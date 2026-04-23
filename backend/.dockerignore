@@ -1,0 +1,7 @@
+node_modules
+.npm
+*.db
+.env
+.DS_Store
+Dockerfile
+.dockerignore

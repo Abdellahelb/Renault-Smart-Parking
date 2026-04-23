@@ -1,0 +1,3 @@
+INFO: Could not find "node".
+INFO: Could not find ";".
+INFO: Could not find "npm".
