@@ -141,9 +141,11 @@ async function initDatabase() {
 
     console.log('✅ Database tables verified/created');
     
-    // Check if seeding is needed
-    const { rows } = await query('SELECT id FROM users WHERE operator_id = $1', ['ADMIN001']);
-    if (rows.length === 0) {
+    // Check if seeding is needed (both admin and lots)
+    const { rows: adminRows } = await query('SELECT id FROM users WHERE operator_id = $1', ['ADMIN001']);
+    const { rows: lotRows } = await query('SELECT id FROM parking_lots LIMIT 1');
+    
+    if (adminRows.length === 0 || lotRows.length === 0) {
       await seedDatabase();
     }
 

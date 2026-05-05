@@ -102,13 +102,10 @@ module.exports = (io) => {
         const releasedSpots = [];
         try {
             for (const spotId of spotIds) {
-                const { rows } = await db.query('SELECT id, spot_label, vin, reservation_method FROM parking_spots WHERE id = $1 OR spot_label = $2', [spotId, spotId]);
+                const { rows } = await db.query('SELECT id, spot_label, status, vin, reservation_method FROM parking_spots WHERE id = $1 OR spot_label = $2', [spotId, spotId]);
                 const spot = rows[0];
                 if (spot) {
-                    const { rows: spotStatusRows } = await db.query('SELECT status FROM parking_spots WHERE id = $1', [spot.id]);
-                    const currentStatus = spotStatusRows[0]?.status;
-
-                    if (spot.reservation_method === 'scan' || currentStatus === 'occupied' || currentStatus === 'alert') {
+                    if (spot.reservation_method === 'scan' || spot.status === 'occupied' || spot.status === 'alert') {
                         // Skip scan-reserved or actual occupied/alert spots in bulk release
                         continue;
                     }
