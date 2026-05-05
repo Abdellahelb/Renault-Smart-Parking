@@ -1,10 +1,13 @@
-const { createPool } = require('@vercel/postgres');
+const { Pool } = require('pg');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
 
-// Create a pool using environment variables (Vercel sets these automatically)
-const pool = createPool({
-  connectionString: process.env.POSTGRES_URL
+// Create a pool using environment variables
+const pool = new Pool({
+  connectionString: process.env.POSTGRES_URL,
+  ssl: {
+    rejectUnauthorized: false // Required for Vercel/Neon Postgres
+  }
 });
 
 /**
