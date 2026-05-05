@@ -23,11 +23,16 @@ const PORT = process.env.PORT || 3001;
 // ============================================
 const app = express();
 const httpServer = createServer(app);
+const corsOptions = {
+    origin: [process.env.FRONTEND_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'].filter(Boolean),
+    credentials: true
+};
+
 const io = new Server(httpServer, {
-    cors: { origin: '*', methods: ['GET', 'POST'] }
+    cors: { origin: [process.env.FRONTEND_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'].filter(Boolean), methods: ['GET', 'POST'] }
 });
 
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json());
 app.use(morgan('dev'));

@@ -109,6 +109,7 @@ db.exec(`
 // Migration scripts
 try { db.exec("ALTER TABLE parking_lots ADD COLUMN width REAL;"); } catch (e) { }
 try { db.exec("ALTER TABLE parking_lots ADD COLUMN length REAL;"); } catch (e) { }
+try { db.exec("ALTER TABLE parking_spots ADD COLUMN reserved_by TEXT;"); } catch (e) { }
 
 try { db.exec("INSERT OR IGNORE INTO system_settings (key, value) VALUES ('max_park_days', '6')"); } catch (e) { }
 
@@ -128,6 +129,10 @@ function seedDatabase() {
     .run(uuidv4(), 'Jean Dupont', 'OP001', 'j.dupont@renault.com', opHash, 'operator');
   db.prepare(`INSERT INTO users (id, name, operator_id, email, password_hash, role) VALUES (?, ?, ?, ?, ?, ?)`)
     .run(uuidv4(), 'Marie Bernard', 'SUP001', 'm.bernard@renault.com', opHash, 'supervisor');
+
+  const rtmaHash = bcrypt.hashSync('rtma123', 12);
+  db.prepare(`INSERT INTO users (id, name, operator_id, email, password_hash, role) VALUES (?, ?, ?, ?, ?, ?)`)
+    .run(uuidv4(), 'RTMA Engineering', 'RTMA001', 'rtma@renault.com', rtmaHash, 'supervisor');
 
   const rhlId = uuidv4();
   db.prepare(`INSERT INTO parking_lots (id, name, type, total_spots) VALUES (?, ?, ?, ?)`)

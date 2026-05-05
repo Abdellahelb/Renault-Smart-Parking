@@ -168,14 +168,27 @@ function SpotDetailModal({ spot, onClose, onRelease, onReserve }) {
 
                 {spot.status !== 'empty' ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '12px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <Car size={16} style={{ color: 'var(--text-muted)' }} />
-                            <div><div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>VIN</div><div style={{ fontSize: '0.9rem', fontFamily: 'var(--font-display)', fontWeight: 600 }}>{spot.vin}</div></div>
-                        </div>
+                        {spot.status === 'reserved' ? (
+                            <>
+                                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Réservé par</div>
+                                <div style={{ fontSize: '0.9rem', fontFamily: 'var(--font-display)', fontWeight: 600 }}>{spot.reserved_by || spot.vin || 'Inconnu'}</div>
+                            </>
+                        ) : (
+                            <>
+                                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>VIN</div>
+                                <div style={{ fontSize: '0.9rem', fontFamily: 'var(--font-display)', fontWeight: 600 }}>{spot.vin}</div>
+                            </>
+                        )}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <Clock size={16} style={{ color: 'var(--text-muted)' }} />
-                            <div><div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Inbound Timestamp</div><div style={{ fontSize: '0.9rem' }}>{new Date(spot.entryDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div></div>
+                            <div><div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Inbound Timestamp</div><div style={{ fontSize: '0.9rem' }}>{spot.entryDate ? new Date(spot.entryDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}</div></div>
                         </div>
+                        {spot.status !== 'reserved' && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <Car size={16} style={{ color: 'var(--text-muted)' }} />
+                                <div><div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>VIN</div><div style={{ fontSize: '0.9rem', fontFamily: 'var(--font-display)', fontWeight: 600 }}>{spot.vin}</div></div>
+                            </div>
+                        )}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <MapPin size={16} style={{ color: 'var(--text-muted)' }} />
                             <div><div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Retention Cycle</div><div style={{ fontSize: '1.1rem', color: spot.daysParked >= maxParkDays ? 'var(--red)' : 'var(--yellow)', fontWeight: 800 }}>{spot.daysParked} <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{spot.daysParked >= maxParkDays ? 'DAYS (EXCEEDED)' : 'DAYS'}</span></div></div>
@@ -184,14 +197,82 @@ function SpotDetailModal({ spot, onClose, onRelease, onReserve }) {
                     </div>
                 ) : (
                     <div style={{ marginTop: '16px' }}>
-                        <p style={{ color: 'var(--text-muted)', marginBottom: '16px', fontSize: '0.85rem' }}>Capacity module is available. Enter a VIN to reserve it.</p>
-                        <div className="form-group">
-                            <label className="form-label">VIN Number</label>
-                            <input type="text" className="form-input" placeholder="Enter 17-character VIN" maxLength={17} style={{ fontFamily: 'monospace', letterSpacing: '1px' }} />
+                        <p style={{ color: 'var(--text-muted)', marginBottom: '16px', fontSize: '0.85rem' }}>Saisissez le Nom et Prénom pour réserver cette place.</p>
+                        <div className="form-group" style={{ marginBottom: '8px' }}>
+                            <label className="form-label">Nom</label>
+                            <input id="reserve-nom" type="text" className="form-input" placeholder="Ex: Dupont" />
                         </div>
-                        <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => onReserve(spot.id)}>Reserve Place</button>
+                        <div className="form-group" style={{ marginBottom: '16px' }}>
+                            <label className="form-label">Prénom</label>
+                            <input id="reserve-prenom" type="text" className="form-input" placeholder="Ex: Jean" />
+                        </div>
+                        <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => {
+                            const nom = document.getElementById('reserve-nom').value;
+                            const prenom = document.getElementById('reserve-prenom').value;
+                            onReserve(spot.id, nom, prenom);
+                        }}>Réserver la Place</button>
                     </div>
                 )}
+            </motion.div>
+        </motion.div>
+    );
+}
+
+// Bulk Reserve Modal
+function BulkReserveModal({ onClose, onBulkReserve, blocks }) {
+    const [block, setBlock] = useState(blocks[0]);
+    const [fromNum, setFromNum] = useState('');
+    const [toNum, setToNum] = useState('');
+    const [nom, setNom] = useState('');
+    const [prenom, setPrenom] = useState('');
+
+    const handleReserve = () => {
+        if (!nom || !prenom) return alert('Nom et Prénom requis');
+        const start = parseInt(fromNum);
+        const end = parseInt(toNum);
+        if (isNaN(start) || isNaN(end) || start > end) return alert('La plage de places est invalide');
+        
+        const spotIds = [];
+        for (let i = start; i <= end; i++) {
+            spotIds.push(`${block}${i}`);
+        }
+        onBulkReserve(spotIds, nom, prenom);
+    };
+
+    return (
+        <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
+            <motion.div className="modal" initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} onClick={e => e.stopPropagation()} style={{ maxWidth: '420px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                    <div className="modal-title" style={{ color: 'var(--yellow)', fontSize: '1.5rem' }}>Réservation Multiple</div>
+                    <button className="btn-icon header-btn" onClick={onClose}><X size={18} /></button>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                    <div className="form-group" style={{ flex: 1 }}>
+                        <label className="form-label">Bloc</label>
+                        <select className="form-input" value={block} onChange={e => setBlock(e.target.value)}>
+                            {blocks.map(b => <option key={b} value={b}>{b}</option>)}
+                        </select>
+                    </div>
+                    <div className="form-group" style={{ flex: 1 }}>
+                        <label className="form-label">De la place</label>
+                        <input type="number" className="form-input" placeholder="Ex: 1" value={fromNum} onChange={e => setFromNum(e.target.value)} />
+                    </div>
+                    <div className="form-group" style={{ flex: 1 }}>
+                        <label className="form-label">À la place</label>
+                        <input type="number" className="form-input" placeholder="Ex: 10" value={toNum} onChange={e => setToNum(e.target.value)} />
+                    </div>
+                </div>
+                <div className="form-group" style={{ marginBottom: '8px' }}>
+                    <label className="form-label">Nom</label>
+                    <input type="text" className="form-input" placeholder="Ex: Dupont" value={nom} onChange={e => setNom(e.target.value)} />
+                </div>
+                <div className="form-group" style={{ marginBottom: '16px' }}>
+                    <label className="form-label">Prénom</label>
+                    <input type="text" className="form-input" placeholder="Ex: Jean" value={prenom} onChange={e => setPrenom(e.target.value)} />
+                </div>
+                <button className="btn btn-primary" style={{ width: '100%' }} onClick={handleReserve}>
+                    Réserver la Plage
+                </button>
             </motion.div>
         </motion.div>
     );
@@ -200,6 +281,7 @@ function SpotDetailModal({ spot, onClose, onRelease, onReserve }) {
 export default function ParkingMapContine() {
     const [spots, setSpots] = useState({});
     const [selectedSpot, setSelectedSpot] = useState(null);
+    const [showBulkReserve, setShowBulkReserve] = useState(false);
     const [loading, setLoading] = useState(true);
     const { token } = useAuthStore();
     const maxParkDays = useSettingsStore(state => state.maxParkDays);
@@ -225,6 +307,7 @@ export default function ParkingMapContine() {
                             number: s.position || parseInt(s.id.replace(/[A-Z]/g, '')),
                             status: actualStatus,
                             vin: s.vin,
+                            reserved_by: s.reserved_by,
                             operator: s.operator_id,
                             entryDate: s.occupied_at,
                             carColor: s.car_color || '#E53935',
@@ -257,6 +340,7 @@ export default function ParkingMapContine() {
                             ...prevSpot,
                             status: actualStatus,
                             vin: data.vin || null,
+                            reserved_by: data.reserved_by || null,
                             carColor: data.car_color || (data.status === 'occupied' ? '#E53935' : prevSpot.carColor),
                             daysParked: newDaysParked,
                             entryDate: data.status === 'occupied' && prevSpot.status !== 'occupied' ? new Date().toISOString() : data.status === 'empty' ? null : prevSpot.entryDate
@@ -300,6 +384,12 @@ export default function ParkingMapContine() {
                 <div className="parking-stat"><div className="stat-dot" style={{ background: 'var(--orange)' }} /><span className="stat-label">Reserved</span><span className="stat-value text-orange">{stats.reserved}</span></div>
                 <div className="parking-stat"><div className="stat-dot" style={{ background: 'var(--green)' }} /><span className="stat-label">Available</span><span className="stat-value text-green">{stats.empty}</span></div>
                 <div className="parking-stat"><div className="stat-dot" style={{ background: 'var(--red)', animation: 'pulse-badge 2s infinite' }} /><span className="stat-label">Alerts</span><span className="stat-value text-red">{stats.alert}</span></div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
+                <button className="btn btn-secondary" onClick={() => setShowBulkReserve(true)} style={{ fontSize: '0.8rem', padding: '6px 12px', border: '1px solid var(--yellow)', color: 'var(--yellow)' }}>
+                    Réservation Multiple
+                </button>
             </div>
 
             <div className="parking-grid" style={{ background: 'var(--bg-card)', padding: '24px 16px' }}>
@@ -365,9 +455,8 @@ export default function ParkingMapContine() {
                                 window.location.reload();
                             } catch (err) { console.error(err); }
                         }}
-                        onReserve={async (id) => {
-                            const vin = document.querySelector('input[placeholder*="VIN"]').value;
-                            if (!vin) return alert('VIN required');
+                        onReserve={async (id, nom, prenom) => {
+                            if (!nom || !prenom) return alert('Nom et Prénom requis');
                             try {
                                 await fetch(`${import.meta.env.VITE_API_URL}/api/v1/spots/${id}/reserve`, {
                                     method: 'POST',
@@ -375,10 +464,31 @@ export default function ParkingMapContine() {
                                         'Authorization': `Bearer ${token}`,
                                         'Content-Type': 'application/json'
                                     },
-                                    body: JSON.stringify({ vin })
+                                    body: JSON.stringify({ nom, prenom })
                                 });
                                 setSelectedSpot(null);
-                                alert('Place reserved successfully');
+                                alert('Place réservée avec succès');
+                                window.location.reload();
+                            } catch (err) { console.error(err); }
+                        }}
+                    />
+                )}
+                {showBulkReserve && (
+                    <BulkReserveModal
+                        blocks={['CT']}
+                        onClose={() => setShowBulkReserve(false)}
+                        onBulkReserve={async (spotIds, nom, prenom) => {
+                            try {
+                                await fetch(`${import.meta.env.VITE_API_URL}/api/v1/spots/bulk-reserve`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Authorization': `Bearer ${token}`,
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ spotIds, nom, prenom })
+                                });
+                                setShowBulkReserve(false);
+                                alert('Places réservées avec succès');
                                 window.location.reload();
                             } catch (err) { console.error(err); }
                         }}

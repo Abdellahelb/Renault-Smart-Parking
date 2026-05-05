@@ -129,7 +129,7 @@ export default function LoginPage() {
             if (success) {
                 navigate('/dashboard', { replace: true });
             } else {
-                setError('Invalid credentials');
+                setError(useAuthStore.getState().error || 'Invalid credentials');
                 setIsLoading(false);
             }
         }, 800);

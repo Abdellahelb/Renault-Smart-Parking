@@ -8,7 +8,7 @@ module.exports = (io) => {
 
     router.get('/rhl/state', authenticate, (req, res) => {
         const spots = db.prepare(`
-            SELECT ps.spot_label, ps.block, ps.side, ps.position, ps.status, ps.vin, ps.occupied_at, ps.car_color, ps.operator_id
+            SELECT ps.spot_label, ps.block, ps.side, ps.position, ps.status, ps.vin, ps.occupied_at, ps.car_color, ps.operator_id, ps.reserved_by
             FROM parking_spots ps JOIN parking_lots pl ON ps.lot_id = pl.id
             WHERE pl.name = 'Parking RHL' ORDER BY ps.block, ps.position
         `).all();
@@ -24,7 +24,7 @@ module.exports = (io) => {
 
     router.get('/contine/state', authenticate, (req, res) => {
         const spots = db.prepare(`
-            SELECT ps.spot_label, ps.block, ps.position, ps.status, ps.vin, ps.occupied_at, ps.car_color, ps.operator_id
+            SELECT ps.spot_label, ps.block, ps.position, ps.status, ps.vin, ps.occupied_at, ps.car_color, ps.operator_id, ps.reserved_by
             FROM parking_spots ps JOIN parking_lots pl ON ps.lot_id = pl.id
             WHERE pl.name = 'Parking Contine' ORDER BY ps.position
         `).all();
@@ -38,18 +38,44 @@ module.exports = (io) => {
         res.json({ spots: enriched, total: enriched.length });
     });
 
-    // Spot reservation
+    // Spot reservation (Single)
     router.post('/spots/:id/reserve', authenticate, (req, res) => {
-        const { vin } = req.body;
+        const { vin, nom, prenom } = req.body;
         const spotId = req.params.id;
         const spot = db.prepare('SELECT * FROM parking_spots WHERE (id = ? OR spot_label = ?) AND status = ?').get(spotId, spotId, 'empty');
         if (!spot) return res.status(404).json({ error: 'Spot not available' });
 
-        db.prepare(`UPDATE parking_spots SET status = ?, vin = ?, operator_id = ?, occupied_at = datetime('now') WHERE id = ?`)
-            .run('reserved', vin?.toUpperCase() || null, req.user.id, spot.id);
+        const reservedBy = (nom && prenom) ? `${nom} ${prenom}` : null;
 
-        io.emit('spot:updated', { spot_id: spot.spot_label, status: 'reserved', vin });
+        db.prepare(`UPDATE parking_spots SET status = ?, vin = ?, reserved_by = ?, operator_id = ?, occupied_at = datetime('now') WHERE id = ?`)
+            .run('reserved', vin?.toUpperCase() || null, reservedBy, req.user.id, spot.id);
+
+        io.emit('spot:updated', { spot_id: spot.spot_label, status: 'reserved', vin, reserved_by: reservedBy });
         res.json({ spot: spot.spot_label, status: 'reserved' });
+    });
+
+    // Bulk Reservation
+    router.post('/spots/bulk-reserve', authenticate, (req, res) => {
+        const { spotIds, nom, prenom } = req.body;
+        if (!Array.isArray(spotIds) || spotIds.length === 0) return res.status(400).json({ error: 'spotIds array is required' });
+        if (!nom || !prenom) return res.status(400).json({ error: 'nom and prenom are required' });
+
+        const reservedBy = `${nom} ${prenom}`;
+        const updatedSpots = [];
+
+        db.transaction(() => {
+            for (const spotId of spotIds) {
+                const spot = db.prepare('SELECT * FROM parking_spots WHERE (id = ? OR spot_label = ?) AND status = ?').get(spotId, spotId, 'empty');
+                if (spot) {
+                    db.prepare(`UPDATE parking_spots SET status = ?, reserved_by = ?, operator_id = ?, occupied_at = datetime('now') WHERE id = ?`)
+                        .run('reserved', reservedBy, req.user.id, spot.id);
+                    updatedSpots.push({ spot_id: spot.spot_label, status: 'reserved', reserved_by: reservedBy });
+                }
+            }
+        })();
+
+        updatedSpots.forEach(s => io.emit('spot:updated', s));
+        res.json({ updated: updatedSpots.length, spots: updatedSpots });
     });
 
     // Spot release
@@ -61,7 +87,7 @@ module.exports = (io) => {
 
             db.prepare(`
                 UPDATE parking_spots 
-                SET status = 'empty', vin = NULL, occupied_at = NULL, operator_id = NULL 
+                SET status = 'empty', vin = NULL, reserved_by = NULL, occupied_at = NULL, operator_id = NULL 
                 WHERE id = ?
             `).run(spot.id);
 
