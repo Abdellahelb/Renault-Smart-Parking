@@ -328,6 +328,7 @@ function SpotDetailModal({ spot, onClose, onRelease, onReserve }) {
                         {spot.status !== 'reserved' && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <Car size={16} style={{ color: 'var(--text-muted)' }} />
+                                <div>
                                     <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>VIN</div>
                                     <div style={{ fontSize: '0.9rem', fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--blue)' }}>{spot.vin}</div>
                                 </div>
@@ -709,7 +710,7 @@ export default function ParkingMapRHL() {
                                     body: JSON.stringify({ nom, prenom })
                                 });
                                 setSelectedSpot(null);
-                                alert('Place réservée avec succès');
+                                alert('Place reserved successfully');
                                 window.location.reload();
                             } catch (err) { console.error(err); }
                         }}

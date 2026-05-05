@@ -184,13 +184,7 @@ function SpotDetailModal({ spot, onClose, onRelease, onReserve }) {
                             <Clock size={16} style={{ color: 'var(--text-muted)' }} />
                             <div><div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Inbound Timestamp</div><div style={{ fontSize: '0.9rem' }}>{spot.entryDate ? new Date(spot.entryDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}</div></div>
                         </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <Car size={16} style={{ color: 'var(--text-muted)' }} />
-                                    <div>
-                                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>VIN</div>
-                                        <div style={{ fontSize: '0.9rem', fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--blue)' }}>{spot.vin}</div>
-                                    </div>
-                                </div>
+
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <MapPin size={16} style={{ color: 'var(--text-muted)' }} />
                             <div><div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Retention Cycle</div><div style={{ fontSize: '1.1rem', color: spot.daysParked >= maxParkDays ? 'var(--red)' : 'var(--yellow)', fontWeight: 800 }}>{spot.daysParked} <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{spot.daysParked >= maxParkDays ? 'DAYS (EXCEEDED)' : 'DAYS'}</span></div></div>
@@ -548,7 +542,7 @@ export default function ParkingMapContine() {
                                     body: JSON.stringify({ nom, prenom })
                                 });
                                 setSelectedSpot(null);
-                                alert('Place réservée avec succès');
+                                alert('Place reserved successfully');
                                 window.location.reload();
                             } catch (err) { console.error(err); }
                         }}
