@@ -42,7 +42,7 @@ module.exports = () => {
             const exitsCount = parseInt(exitRows[0].count);
 
             const { rows: settingsRows } = await db.query("SELECT value FROM system_settings WHERE key = 'max_park_days'");
-            const maxParkDays = settingsRows[0] ? parseInt(settingsRows[0].value, 10) : 6;
+            const maxParkDays = settingsRows[0] ? parseInt(settingsRows[0].value, 10) : 15;
 
             const { rows: alertRows } = await db.query("SELECT COUNT(*) as count FROM parking_spots WHERE status IN ('occupied','alert') AND EXTRACT(DAY FROM (CURRENT_TIMESTAMP - occupied_at)) >= $1", [maxParkDays + 2]);
             const criticalAlerts = parseInt(alertRows[0].count);
@@ -119,7 +119,7 @@ module.exports = () => {
     router.get('/alerts', authenticate, async (req, res) => {
         try {
             const { rows: settingsRows } = await db.query("SELECT value FROM system_settings WHERE key = 'max_park_days'");
-            const maxParkDays = settingsRows[0] ? parseInt(settingsRows[0].value, 10) : 6;
+            const maxParkDays = settingsRows[0] ? parseInt(settingsRows[0].value, 10) : 15;
 
             const { rows: alertSpots } = await db.query(`
                 SELECT ps.spot_label, ps.block, ps.vin, ps.occupied_at, ps.car_color, pl.name as parking,

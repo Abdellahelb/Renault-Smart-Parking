@@ -133,7 +133,7 @@ async function initDatabase() {
     `);
 
     // Ensure system settings exist
-    await query("INSERT INTO system_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO NOTHING", ['max_park_days', '6']);
+    await query("INSERT INTO system_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO NOTHING", ['max_park_days', '15']);
 
     console.log('✅ Database tables verified/created');
     

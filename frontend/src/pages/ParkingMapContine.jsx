@@ -282,7 +282,7 @@ function MultipleReserveModal({ onClose, onMultipleReserve, blocks }) {
                 </div>
                 <div className="form-group" style={{ marginBottom: '8px' }}>
                     <label className="form-label">Last Name</label>
-                    <input type="text" className="form-input" placeholder="e.g. Smith" value={nom} onChange={e => setNom(setNom(e.target.value))} />
+                    <input type="text" className="form-input" placeholder="e.g. Smith" value={nom} onChange={e => setNom(e.target.value)} />
                 </div>
                 <div className="form-group" style={{ marginBottom: '16px' }}>
                     <label className="form-label">First Name</label>
@@ -367,14 +367,17 @@ export default function ParkingMapContine() {
                 const data = await res.json();
 
                 const spotsMap = {};
-                if (data.spots) {
+                if (data.spots && Array.isArray(data.spots)) {
                     data.spots.forEach(s => {
+                        const spotKey = s.spot_label || s.id;
+                        if (!spotKey) return;
+
                         const daysParked = s.daysParked || 0;
                         const actualStatus = (daysParked >= maxParkDays && s.status === 'occupied') ? 'alert' : s.status;
-                        spotsMap[s.id] = {
-                            id: s.id,
+                        spotsMap[spotKey] = {
+                            id: spotKey,
                             block: 'Contine',
-                            number: s.position || parseInt(s.id.replace(/[A-Z]/g, '')),
+                            number: s.position || (typeof spotKey === 'string' ? parseInt(spotKey.replace(/[A-Z]/g, '')) : 0) || 0,
                             status: actualStatus,
                             vin: s.vin,
                             reserved_by: s.reserved_by,
@@ -385,6 +388,8 @@ export default function ParkingMapContine() {
                             daysParked: daysParked
                         };
                     });
+                } else {
+                    console.warn('No spots found in Contine state response:', data);
                 }
                 setSpots(spotsMap);
             } catch (err) {

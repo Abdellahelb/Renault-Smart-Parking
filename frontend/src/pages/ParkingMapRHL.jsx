@@ -526,22 +526,29 @@ export default function ParkingMapRHL() {
                 const data = await res.json();
 
                 const spotsMap = {};
-                if (data.spots) {
+                if (data.spots && Array.isArray(data.spots)) {
                     data.spots.forEach(s => {
-                        spotsMap[s.id] = {
-                            id: s.id,
+                        const spotKey = s.spot_label || s.id;
+                        if (!spotKey) return;
+
+                        const daysParked = s.daysParked || 0;
+                        const actualStatus = (daysParked >= maxParkDays && s.status === 'occupied') ? 'alert' : s.status;
+                        spotsMap[spotKey] = {
+                            id: spotKey,
                             block: s.block,
-                            number: s.position || parseInt(s.id.replace(/[A-Z]/g, '')),
-                            status: s.status,
+                            number: s.position || (typeof spotKey === 'string' ? parseInt(spotKey.replace(/[A-Z]/g, '')) : 0) || 0,
+                            status: actualStatus,
                             vin: s.vin,
                             reserved_by: s.reserved_by,
                             reservation_method: s.reservation_method,
                             operator: s.operator_id,
                             entryDate: s.occupied_at,
                             carColor: s.car_color || '#E53935',
-                            daysParked: s.daysParked || 0
+                            daysParked: daysParked
                         };
                     });
+                } else {
+                    console.warn('No spots found in RHL state response:', data);
                 }
                 setSpots(spotsMap);
             } catch (err) {
