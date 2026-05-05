@@ -118,7 +118,7 @@ export default function SearchPage() {
                 (v.spot_label || '').replace(/,/g, ''),
                 (v.parking || '').replace(/,/g, ''),
                 (v.status || '').toUpperCase().replace(/,/g, ''),
-                v.occupied_at ? new Date(v.occupied_at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).replace(/,/g, '').replace(' à ', ' - ') : '-',
+                v.occupied_at ? new Date(v.occupied_at).toLocaleString('en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).replace(/,/g, '') : '-',
                 Math.floor((new Date() - new Date(v.occupied_at)) / (1000 * 60 * 60 * 24))
             ];
             csvRows.push(row.join(','));
@@ -243,7 +243,7 @@ export default function SearchPage() {
                                         </span>
                                     </td>
                                     <td style={{ fontSize: '0.8rem' }}>
-                                        {v.occupied_at ? new Date(v.occupied_at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).replace(' à ', ' - ') : '-'}
+                                        {v.occupied_at ? new Date(v.occupied_at).toLocaleString('en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '-'}
                                     </td>
                                     <td style={{ color: v.daysParked >= maxParkDays ? 'var(--red)' : 'inherit', fontWeight: v.daysParked >= maxParkDays ? 700 : 400 }}>
                                         {v.occupied_at ? `${Math.floor((new Date() - new Date(v.occupied_at)) / (1000 * 60 * 60 * 24))}d` : '-'}
@@ -268,7 +268,7 @@ export default function SearchPage() {
                                                             method: 'POST',
                                                             headers: { Authorization: `Bearer ${token}` }
                                                         });
-                                                        alert('Place released successfully');
+                                                        alert('Spot released successfully');
                                                         window.location.reload();
                                                     } catch (err) { console.error(err); }
                                                 }}

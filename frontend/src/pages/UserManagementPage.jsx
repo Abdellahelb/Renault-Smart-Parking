@@ -157,7 +157,7 @@ export default function UserManagementPage() {
                                         </span>
                                     </td>
                                     <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                        {u.last_login ? new Date(u.last_login).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Never'}
+                                        {u.last_login ? new Date(u.last_login).toLocaleDateString('en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Never'}
                                     </td>
                                     {canManageUsers && (
                                         <td>

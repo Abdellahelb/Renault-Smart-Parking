@@ -309,8 +309,8 @@ function SpotDetailModal({ spot, onClose, onRelease, onReserve }) {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '12px' }}>
                         {spot.status === 'reserved' ? (
                             <>
-                                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Réservé par</div>
-                                <div style={{ fontSize: '0.9rem', fontFamily: 'var(--font-display)', fontWeight: 600 }}>{spot.reserved_by || spot.vin || 'Inconnu'}</div>
+                                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Reserved by</div>
+                                <div style={{ fontSize: '0.9rem', fontFamily: 'var(--font-display)', fontWeight: 600 }}>{spot.reserved_by || spot.vin || 'Unknown'}</div>
                             </>
                         ) : (
                             <>
@@ -358,22 +358,22 @@ function SpotDetailModal({ spot, onClose, onRelease, onReserve }) {
                 ) : (
                     <div style={{ marginTop: '16px' }}>
                         <p style={{ color: 'var(--text-muted)', marginBottom: '16px', fontSize: '0.85rem' }}>
-                            Saisissez le Nom et Prénom pour réserver cette place.
+                            Enter Last Name and First Name to reserve this spot.
                         </p>
                         <div className="form-group" style={{ marginBottom: '8px' }}>
-                            <label className="form-label">Nom</label>
-                            <input id="reserve-nom" type="text" className="form-input" placeholder="Ex: Dupont" />
+                            <label className="form-label">Last Name</label>
+                            <input id="reserve-nom" type="text" className="form-input" placeholder="e.g. Smith" />
                         </div>
                         <div className="form-group" style={{ marginBottom: '16px' }}>
-                            <label className="form-label">Prénom</label>
-                            <input id="reserve-prenom" type="text" className="form-input" placeholder="Ex: Jean" />
+                            <label className="form-label">First Name</label>
+                            <input id="reserve-prenom" type="text" className="form-input" placeholder="e.g. John" />
                         </div>
                         <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => {
                             const nom = document.getElementById('reserve-nom').value;
                             const prenom = document.getElementById('reserve-prenom').value;
                             onReserve(spot.id, nom, prenom);
                         }}>
-                            Réserver la Place
+                            Reserve Spot
                         </button>
                     </div>
                 )}
@@ -391,10 +391,10 @@ function BulkReserveModal({ onClose, onBulkReserve, blocks }) {
     const [prenom, setPrenom] = useState('');
 
     const handleReserve = () => {
-        if (!nom || !prenom) return alert('Nom et Prénom requis');
+        if (!nom || !prenom) return alert('Last Name and First Name required');
         const start = parseInt(fromNum);
         const end = parseInt(toNum);
-        if (isNaN(start) || isNaN(end) || start > end) return alert('La plage de places est invalide');
+        if (isNaN(start) || isNaN(end) || start > end) return alert('Invalid spot range');
         
         const spotIds = [];
         for (let i = start; i <= end; i++) {
@@ -407,35 +407,35 @@ function BulkReserveModal({ onClose, onBulkReserve, blocks }) {
         <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
             <motion.div className="modal" initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} onClick={e => e.stopPropagation()} style={{ maxWidth: '420px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                    <div className="modal-title" style={{ color: 'var(--yellow)', fontSize: '1.5rem' }}>Réservation Multiple</div>
+                    <div className="modal-title" style={{ color: 'var(--yellow)', fontSize: '1.5rem' }}>Bulk Reservation</div>
                     <button className="btn-icon header-btn" onClick={onClose}><X size={18} /></button>
                 </div>
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                     <div className="form-group" style={{ flex: 1 }}>
-                        <label className="form-label">Bloc</label>
+                        <label className="form-label">Block</label>
                         <select className="form-input" value={block} onChange={e => setBlock(e.target.value)}>
                             {blocks.map(b => <option key={b} value={b}>{b}</option>)}
                         </select>
                     </div>
                     <div className="form-group" style={{ flex: 1 }}>
-                        <label className="form-label">De la place</label>
-                        <input type="number" className="form-input" placeholder="Ex: 1" value={fromNum} onChange={e => setFromNum(e.target.value)} />
+                        <label className="form-label">From spot</label>
+                        <input type="number" className="form-input" placeholder="e.g. 1" value={fromNum} onChange={e => setFromNum(e.target.value)} />
                     </div>
                     <div className="form-group" style={{ flex: 1 }}>
-                        <label className="form-label">À la place</label>
-                        <input type="number" className="form-input" placeholder="Ex: 10" value={toNum} onChange={e => setToNum(e.target.value)} />
+                        <label className="form-label">To spot</label>
+                        <input type="number" className="form-input" placeholder="e.g. 10" value={toNum} onChange={e => setToNum(e.target.value)} />
                     </div>
                 </div>
                 <div className="form-group" style={{ marginBottom: '8px' }}>
-                    <label className="form-label">Nom</label>
-                    <input type="text" className="form-input" placeholder="Ex: Dupont" value={nom} onChange={e => setNom(e.target.value)} />
+                    <label className="form-label">Last Name</label>
+                    <input type="text" className="form-input" placeholder="e.g. Smith" value={nom} onChange={e => setNom(e.target.value)} />
                 </div>
                 <div className="form-group" style={{ marginBottom: '16px' }}>
-                    <label className="form-label">Prénom</label>
-                    <input type="text" className="form-input" placeholder="Ex: Jean" value={prenom} onChange={e => setPrenom(e.target.value)} />
+                    <label className="form-label">First Name</label>
+                    <input type="text" className="form-input" placeholder="e.g. John" value={prenom} onChange={e => setPrenom(e.target.value)} />
                 </div>
                 <button className="btn btn-primary" style={{ width: '100%' }} onClick={handleReserve}>
-                    Réserver la Plage
+                    Reserve Range
                 </button>
             </motion.div>
         </motion.div>
@@ -451,7 +451,7 @@ function BulkReleaseModal({ onClose, onBulkRelease, blocks }) {
     const handleRelease = () => {
         const start = parseInt(fromNum);
         const end = parseInt(toNum);
-        if (isNaN(start) || isNaN(end) || start > end) return alert('La plage de places est invalide');
+        if (isNaN(start) || isNaN(end) || start > end) return alert('Invalid spot range');
         
         const spotIds = [];
         for (let i = start; i <= end; i++) {
@@ -466,27 +466,27 @@ function BulkReleaseModal({ onClose, onBulkRelease, blocks }) {
         <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
             <motion.div className="modal" initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} onClick={e => e.stopPropagation()} style={{ maxWidth: '420px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                    <div className="modal-title" style={{ color: 'var(--red)', fontSize: '1.5rem' }}>Libération Multiple</div>
+                    <div className="modal-title" style={{ color: 'var(--red)', fontSize: '1.5rem' }}>Bulk Release</div>
                     <button className="btn-icon header-btn" onClick={onClose}><X size={18} /></button>
                 </div>
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
                     <div className="form-group" style={{ flex: 1 }}>
-                        <label className="form-label">Bloc</label>
+                        <label className="form-label">Block</label>
                         <select className="form-input" value={block} onChange={e => setBlock(e.target.value)}>
                             {blocks.map(b => <option key={b} value={b}>{b}</option>)}
                         </select>
                     </div>
                     <div className="form-group" style={{ flex: 1 }}>
-                        <label className="form-label">De la place</label>
-                        <input type="number" className="form-input" placeholder="Ex: 1" value={fromNum} onChange={e => setFromNum(e.target.value)} />
+                        <label className="form-label">From spot</label>
+                        <input type="number" className="form-input" placeholder="e.g. 1" value={fromNum} onChange={e => setFromNum(e.target.value)} />
                     </div>
                     <div className="form-group" style={{ flex: 1 }}>
-                        <label className="form-label">À la place</label>
-                        <input type="number" className="form-input" placeholder="Ex: 10" value={toNum} onChange={e => setToNum(e.target.value)} />
+                        <label className="form-label">To spot</label>
+                        <input type="number" className="form-input" placeholder="e.g. 10" value={toNum} onChange={e => setToNum(e.target.value)} />
                     </div>
                 </div>
                 <button className="btn btn-danger" style={{ width: '100%' }} onClick={handleRelease}>
-                    Libérer la Plage
+                    Release Range
                 </button>
             </motion.div>
         </motion.div>
@@ -632,10 +632,10 @@ export default function ParkingMapRHL() {
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                     <button className="btn btn-secondary" onClick={() => setShowBulkReserve(true)} style={{ fontSize: '0.8rem', padding: '6px 12px', border: '1px solid var(--yellow)', color: 'var(--yellow)' }}>
-                        Réservation Multiple
+                        Bulk Reservation
                     </button>
                     <button className="btn btn-secondary" onClick={() => setShowBulkRelease(true)} style={{ fontSize: '0.8rem', padding: '6px 12px', border: '1px solid var(--red)', color: 'var(--red)' }}>
-                        Libération Multiple
+                        Bulk Release
                     </button>
                 </div>
             </div>
@@ -740,7 +740,7 @@ export default function ParkingMapRHL() {
                                     body: JSON.stringify({ spotIds })
                                 });
                                 setShowBulkRelease(false);
-                                alert('Places libérées avec succès');
+                                alert('Spots released successfully');
                                 window.location.reload();
                             } catch (err) { console.error(err); }
                         }}

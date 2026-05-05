@@ -131,7 +131,7 @@ export default function AlertsPage() {
                                         <span className={`badge ${alert.status === 'resolved' ? 'badge-available' : alert.status === 'acknowledged' ? 'badge-reserved' : 'badge-occupied'}`}>{alert.status}</span>
                                     </div>
                                     <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                                        Triggered: {new Date(alert.triggeredAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                                        Triggered: {new Date(alert.triggeredAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
                                     </span>
                                 </div>
                                 <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
@@ -158,7 +158,7 @@ export default function AlertsPage() {
                                 )}
                                 {alert.status === 'resolved' && alert.resolvedAt && (
                                     <span style={{ fontSize: '0.75rem', color: 'var(--green)' }}>
-                                        ✓ Resolved on {new Date(alert.resolvedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                        ✓ Resolved on {new Date(alert.resolvedAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                                     </span>
                                 )}
                             </div>
