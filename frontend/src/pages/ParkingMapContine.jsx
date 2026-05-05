@@ -584,7 +584,7 @@ export default function ParkingMapContine() {
                         onClose={() => setShowMultipleRelease(false)}
                         onMultipleRelease={async (spotIds) => {
                             try {
-                                await fetch(`${API_URL}/spots/bulk-release`, {
+                                const res = await fetch(`${API_URL}/spots/bulk-release`, {
                                     method: 'POST',
                                     headers: {
                                         'Authorization': `Bearer ${token}`,
@@ -592,8 +592,15 @@ export default function ParkingMapContine() {
                                     },
                                     body: JSON.stringify({ spotIds })
                                 });
+
+                                if (!res.ok) {
+                                    const errorData = await res.json();
+                                    throw new Error(errorData.message || 'Failed to release spots');
+                                }
+
+                                const data = await res.json();
                                 setShowMultipleRelease(false);
-                                alert('Spots released successfully');
+                                alert(`Successfully released ${data.count} spots. Note: Active vehicles (Blue/Red) were skipped for protection.`);
                                 window.location.reload();
                             } catch (err) { console.error(err); }
                         }}
