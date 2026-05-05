@@ -68,7 +68,7 @@ module.exports = (io) => {
         }
     });
 
-    // Bulk Reservation
+    // Multiple Reservation
     router.post('/spots/bulk-reserve', authenticate, async (req, res) => {
         const { spotIds, nom, prenom } = req.body;
         if (!Array.isArray(spotIds) || spotIds.length === 0) return res.status(400).json({ error: 'spotIds array is required' });
@@ -94,7 +94,7 @@ module.exports = (io) => {
         }
     });
 
-    // Bulk Release
+    // Multiple Release
     router.post('/spots/bulk-release', authenticate, async (req, res) => {
         const { spotIds } = req.body;
         if (!Array.isArray(spotIds) || spotIds.length === 0) return res.status(400).json({ error: 'spotIds array is required' });

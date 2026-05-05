@@ -394,8 +394,8 @@ function SpotDetailModal({ spot, onClose, onRelease, onReserve }) {
     );
 }
 
-// Bulk Reserve Modal
-function BulkReserveModal({ onClose, onBulkReserve, blocks }) {
+// Multiple Reserve Modal
+function MultipleReserveModal({ onClose, onMultipleReserve, blocks }) {
     const [block, setBlock] = useState(blocks[0]);
     const [fromNum, setFromNum] = useState('');
     const [toNum, setToNum] = useState('');
@@ -412,14 +412,14 @@ function BulkReserveModal({ onClose, onBulkReserve, blocks }) {
         for (let i = start; i <= end; i++) {
             spotIds.push(`${block}${i}`);
         }
-        onBulkReserve(spotIds, nom, prenom);
+        onMultipleReserve(spotIds, nom, prenom);
     };
 
     return (
         <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
             <motion.div className="modal" initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} onClick={e => e.stopPropagation()} style={{ maxWidth: '420px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                    <div className="modal-title" style={{ color: 'var(--yellow)', fontSize: '1.5rem' }}>Bulk Reservation</div>
+                    <div className="modal-title" style={{ color: 'var(--yellow)', fontSize: '1.5rem' }}>Multiple Reservation</div>
                     <button className="btn-icon header-btn" onClick={onClose}><X size={18} /></button>
                 </div>
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
@@ -454,8 +454,8 @@ function BulkReserveModal({ onClose, onBulkReserve, blocks }) {
     );
 }
 
-// Bulk Release Modal
-function BulkReleaseModal({ onClose, onBulkRelease, blocks }) {
+// Multiple Release Modal
+function MultipleReleaseModal({ onClose, onMultipleRelease, blocks }) {
     const [block, setBlock] = useState(blocks[0]);
     const [fromNum, setFromNum] = useState('');
     const [toNum, setToNum] = useState('');
@@ -470,7 +470,7 @@ function BulkReleaseModal({ onClose, onBulkRelease, blocks }) {
             spotIds.push(`${block}${i}`);
         }
         if (window.confirm(`Are you sure you want to release ${spotIds.length} spots in Block ${block}?`)) {
-            onBulkRelease(spotIds);
+            onMultipleRelease(spotIds);
         }
     };
 
@@ -478,7 +478,7 @@ function BulkReleaseModal({ onClose, onBulkRelease, blocks }) {
         <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
             <motion.div className="modal" initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} onClick={e => e.stopPropagation()} style={{ maxWidth: '420px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                    <div className="modal-title" style={{ color: 'var(--red)', fontSize: '1.5rem' }}>Bulk Release</div>
+                    <div className="modal-title" style={{ color: 'var(--red)', fontSize: '1.5rem' }}>Multiple Release</div>
                     <button className="btn-icon header-btn" onClick={onClose}><X size={18} /></button>
                 </div>
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
@@ -508,8 +508,8 @@ function BulkReleaseModal({ onClose, onBulkRelease, blocks }) {
 export default function ParkingMapRHL() {
     const [spots, setSpots] = useState({});
     const [selectedSpot, setSelectedSpot] = useState(null);
-    const [showBulkReserve, setShowBulkReserve] = useState(false);
-    const [showBulkRelease, setShowBulkRelease] = useState(false);
+    const [showMultipleReserve, setShowMultipleReserve] = useState(false);
+    const [showMultipleRelease, setShowMultipleRelease] = useState(false);
     const [activeBlock, setActiveBlock] = useState('all');
     const [loading, setLoading] = useState(true);
     const { token } = useAuthStore();
@@ -643,11 +643,11 @@ export default function ParkingMapRHL() {
                     ))}
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                    <button className="btn btn-secondary" onClick={() => setShowBulkReserve(true)} style={{ fontSize: '0.8rem', padding: '6px 12px', border: '1px solid var(--yellow)', color: 'var(--yellow)' }}>
-                        Bulk Reservation
+                    <button className="btn btn-secondary" onClick={() => setShowMultipleReserve(true)} style={{ fontSize: '0.8rem', padding: '6px 12px', border: '1px solid var(--yellow)', color: 'var(--yellow)' }}>
+                        Multiple Reservation
                     </button>
-                    <button className="btn btn-secondary" onClick={() => setShowBulkRelease(true)} style={{ fontSize: '0.8rem', padding: '6px 12px', border: '1px solid var(--red)', color: 'var(--red)' }}>
-                        Bulk Release
+                    <button className="btn btn-secondary" onClick={() => setShowMultipleRelease(true)} style={{ fontSize: '0.8rem', padding: '6px 12px', border: '1px solid var(--red)', color: 'var(--red)' }}>
+                        Multiple Release
                     </button>
                 </div>
             </div>
@@ -716,11 +716,11 @@ export default function ParkingMapRHL() {
                         }}
                     />
                 )}
-                {showBulkReserve && (
-                    <BulkReserveModal
+                {showMultipleReserve && (
+                    <MultipleReserveModal
                         blocks={blockKeys}
-                        onClose={() => setShowBulkReserve(false)}
-                        onBulkReserve={async (spotIds, nom, prenom) => {
+                        onClose={() => setShowMultipleReserve(false)}
+                        onMultipleReserve={async (spotIds, nom, prenom) => {
                             try {
                                 await fetch(`${API_URL}/spots/bulk-reserve`, {
                                     method: 'POST',
@@ -730,18 +730,18 @@ export default function ParkingMapRHL() {
                                     },
                                     body: JSON.stringify({ spotIds, nom, prenom })
                                 });
-                                setShowBulkReserve(false);
+                                setShowMultipleReserve(false);
                                 alert('Places réservées avec succès');
                                 window.location.reload();
                             } catch (err) { console.error(err); }
                         }}
                     />
                 )}
-                {showBulkRelease && (
-                    <BulkReleaseModal
+                {showMultipleRelease && (
+                    <MultipleReleaseModal
                         blocks={blockKeys}
-                        onClose={() => setShowBulkRelease(false)}
-                        onBulkRelease={async (spotIds) => {
+                        onClose={() => setShowMultipleRelease(false)}
+                        onMultipleRelease={async (spotIds) => {
                             try {
                                 await fetch(`${API_URL}/spots/bulk-release`, {
                                     method: 'POST',
@@ -751,7 +751,7 @@ export default function ParkingMapRHL() {
                                     },
                                     body: JSON.stringify({ spotIds })
                                 });
-                                setShowBulkRelease(false);
+                                setShowMultipleRelease(false);
                                 alert('Spots released successfully');
                                 window.location.reload();
                             } catch (err) { console.error(err); }

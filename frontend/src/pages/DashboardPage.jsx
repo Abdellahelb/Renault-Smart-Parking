@@ -70,17 +70,14 @@ export default function DashboardPage() {
     const { token } = useAuthStore();
     const navigate = useNavigate();
     const [stats, setStats] = useState({
-        dailyVolume: 204,
-        saturation: 68.5,
-        avgDwell: 3.2,
-        criticalAlerts: 3,
-        blockStats: blockData
+        dailyVolume: 0,
+        saturation: 0,
+        avgDwell: 0,
+        criticalAlerts: 0,
+        blockStats: []
     });
     const [activity, setActivity] = useState([]);
-    const [alerts, setAlerts] = useState([
-        { id: '1', spot: 'F3', days: 9, severity: 'critical', desc: 'VF1BZ000458' },
-        { id: '2', spot: 'A12', days: 7, severity: 'high', desc: 'VF1CL020199' },
-    ]);
+    const [alerts, setAlerts] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const fetchStats = async () => {
@@ -92,6 +89,18 @@ export default function DashboardPage() {
             setStats(prev => ({ ...prev, ...data }));
         } catch (err) {
             console.error('Failed to fetch stats:', err);
+        }
+    };
+
+    const fetchAlerts = async () => {
+        try {
+            const res = await fetch(`${API_URL}/alerts`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await res.json();
+            setAlerts(data.alerts || []);
+        } catch (err) {
+            console.error('Failed to fetch alerts:', err);
         }
     };
 
@@ -113,10 +122,12 @@ export default function DashboardPage() {
         if (token) {
             fetchStats();
             fetchActivity();
+            fetchAlerts();
             const socket = io(SOCKET_URL);
             const refresh = () => {
                 fetchStats();
                 fetchActivity();
+                fetchAlerts();
             };
 
             socket.on('vehicle:arrived', refresh);
@@ -158,16 +169,16 @@ export default function DashboardPage() {
 
                 <div className="kpi-card blue">
                     <div className="kpi-icon blue"><Clock size={22} /></div>
-                    <div className="kpi-value">3.2d</div>
+                    <div className="kpi-value">{stats.avgDwellDays || stats.avgDwell || 0}d</div>
                     <div className="kpi-label">Mean Storage Duration</div>
                     <div className="kpi-trend down"><ArrowDownRight size={14} /> Historical Avg</div>
                 </div>
 
                 <div className="kpi-card red">
                     <div className="kpi-icon red"><AlertTriangle size={22} /></div>
-                    <div className="kpi-value">{stats.criticalAlerts}</div>
+                    <div className="kpi-value">{stats.criticalAlerts || 0}</div>
                     <div className="kpi-label">Critical SLA Alerts</div>
-                    <div className="kpi-trend down"><Bell size={14} /> VINs &gt; 8 days</div>
+                    <div className="kpi-trend down"><Bell size={14} /> Global Watchlist</div>
                 </div>
             </motion.div>
 
@@ -231,7 +242,7 @@ export default function DashboardPage() {
                         </div>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-                        {(stats.blockStats.length > 0 ? stats.blockStats : blockData).map(block => {
+                        {(stats.blockStats && stats.blockStats.length > 0 ? stats.blockStats : blockData).map(block => {
                             const pct = block.pct || Math.round((block.vehicles / block.capacity) * 100);
                             const color = pct > 85 ? '#E53935' : pct > 60 ? '#FF9800' : '#43A047';
                             return (
@@ -275,16 +286,16 @@ export default function DashboardPage() {
                     </div>
                     <div style={{ fontSize: '0.85rem', lineHeight: '1.8', color: 'var(--text-secondary)' }}>
                         <p style={{ marginBottom: '12px' }}>
-                            📊 <strong style={{ color: 'var(--yellow)' }}>Occupancy is trending 12% higher</strong> than last week. Block F is consistently overloaded — consider redistributing incoming vehicles to blocks D and G.
+                            📊 <strong style={{ color: 'var(--yellow)' }}>Current Saturation: {stats.saturation}%</strong>. {stats.saturation > 80 ? 'Parking is nearing capacity. Recommend optimizing intake.' : 'Parking levels are stable. No immediate overflow risk.'}
                         </p>
                         <p style={{ marginBottom: '12px' }}>
-                            ⚠️ <strong style={{ color: 'var(--orange)' }}>3 vehicles exceed 6-day threshold.</strong> Vehicle VF1BZ000458 in F3 has been parked for 9 days and requires immediate attention.
+                            ⚠️ <strong style={{ color: stats.criticalAlerts > 0 ? 'var(--red)' : 'var(--green)' }}>{stats.criticalAlerts || 0} critical alerts detected.</strong> {stats.criticalAlerts > 0 ? `Attention required for ${stats.criticalAlerts} vehicles exceeding SLA limits.` : 'All vehicles are currently within their storage duration limits.'}
                         </p>
                         <p style={{ marginBottom: '12px' }}>
-                            ⏰ <strong style={{ color: 'var(--text-primary)' }}>Peak hour prediction:</strong> Parking will reach 85% capacity by 14:00 today based on historical Monday patterns.
+                            ⏰ <strong style={{ color: 'var(--text-primary)' }}>Flow Metrics:</strong> {stats.dailyVolume} total movements processed today. Pattern suggests standard operational load.
                         </p>
                         <p>
-                            👤 <strong style={{ color: 'var(--green)' }}>Operator efficiency:</strong> Average check-in time improved by 18% this week. J. Dupont leads with 2.1min avg.
+                            👤 <strong style={{ color: 'var(--green)' }}>Real-time Monitoring:</strong> System is synchronized with live telemetry. Telemetry feed is active and stable.
                         </p>
                     </div>
                 </motion.div>
@@ -300,7 +311,7 @@ export default function DashboardPage() {
                         </div>
                         <span className="badge badge-alert">{alerts.length}</span>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '250px', overflowY: 'auto' }}>
                         {alerts.map(alert => (
                             <div key={alert.id} style={{
                                 background: 'var(--bg-surface)',
@@ -321,11 +332,15 @@ export default function DashboardPage() {
                                     VIN: <span style={{ color: 'var(--blue)', fontWeight: 600 }}>{alert.vin}</span> · Block {alert.block}
                                 </div>
                                 <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
-                                    <button className="btn btn-sm btn-secondary">Acknowledge</button>
-                                    <button className="btn btn-sm btn-danger">Resolve</button>
+                                    <button className="btn btn-sm btn-secondary" onClick={() => navigate('/alerts')}>View Details</button>
                                 </div>
                             </div>
                         ))}
+                        {alerts.length === 0 && (
+                            <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                                No active alerts at this time.
+                            </div>
+                        )}
                     </div>
                 </motion.div>
             </div>

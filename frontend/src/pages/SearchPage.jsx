@@ -20,7 +20,7 @@ export default function SearchPage() {
     const [statusFilter, setStatusFilter] = useState('all');
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [bulkVins, setBulkVins] = useState([]);
+    const [multipleVins, setMultipleVins] = useState([]);
 
     useEffect(() => {
         const fetchVehicles = async () => {
@@ -46,7 +46,7 @@ export default function SearchPage() {
         const searchInput = query.toLowerCase();
 
         // Single Search Mode
-        if (bulkVins.length === 0) {
+        if (multipleVins.length === 0) {
             return results.filter(v => {
                 if (query && !(v.vin && v.vin.toLowerCase().includes(searchInput))) return false;
                 if (blockFilter !== 'all' && v.block !== blockFilter) return false;
@@ -56,9 +56,9 @@ export default function SearchPage() {
             });
         }
 
-        // Bulk Search Mode: Show all VINs from Excel
-        const uniqueBulkVins = [...new Set(bulkVins.map(v => v.toUpperCase()))];
-        return uniqueBulkVins.map(bv => {
+        // Multiple Search Mode: Show all VINs from Excel
+        const uniqueMultipleVins = [...new Set(multipleVins.map(v => v.toUpperCase()))];
+        return uniqueMultipleVins.map(bv => {
             const found = results.find(v => v.vin?.toUpperCase() === bv);
             if (found) {
                 // Apply filters to found results if they are active
@@ -97,11 +97,11 @@ export default function SearchPage() {
                 const partials = data.flat()
                     .filter(cell => typeof cell === 'string' && cell.trim().length >= 8)
                     .map(cell => cell.trim().toUpperCase());
-                setBulkVins(partials);
+                setMultipleVins(partials);
             } else {
-                setBulkVins(extractedVins);
+                setMultipleVins(extractedVins);
             }
-            setQuery(''); // Clear single search when bulk is active
+            setQuery(''); // Clear single search when multiple is active
         };
         reader.readAsBinaryString(file);
     };
@@ -166,13 +166,13 @@ export default function SearchPage() {
                         />
                         <button
                             className="btn btn-secondary"
-                            style={{ height: '42px', border: bulkVins.length > 0 ? '1px solid var(--blue)' : '1px solid var(--border-color)' }}
+                            style={{ height: '42px', border: multipleVins.length > 0 ? '1px solid var(--blue)' : '1px solid var(--border-color)' }}
                             onClick={() => document.getElementById('excel-upload').click()}
                         >
-                            <FileSpreadsheet size={16} /> {bulkVins.length > 0 ? `Imported (${bulkVins.length})` : 'Import Excel'}
+                            <FileSpreadsheet size={16} /> {multipleVins.length > 0 ? `Imported (${multipleVins.length})` : 'Import Excel'}
                         </button>
-                        {bulkVins.length > 0 && (
-                            <button className="btn btn-icon" onClick={() => setBulkVins([])} title="Clear bulk search">
+                        {multipleVins.length > 0 && (
+                            <button className="btn btn-icon" onClick={() => setMultipleVins([])} title="Clear multiple search">
                                 <CloseIcon size={16} />
                             </button>
                         )}
@@ -209,10 +209,10 @@ export default function SearchPage() {
                     <div className="card-title">Search Results</div>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
                         <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{filteredResults.length} vehicles found</span>
-                        {bulkVins.length > 0 && (
+                        {multipleVins.length > 0 && (
                             <>
                                 <span style={{ fontSize: '0.74rem', color: 'var(--blue)', fontWeight: 600 }}>
-                                    Displaying {filteredResults.length} of {new Set(bulkVins.map(v => v.toUpperCase())).size} VINs from Excel
+                                    Displaying {filteredResults.length} of {new Set(multipleVins.map(v => v.toUpperCase())).size} VINs from Excel
                                 </span>
                             </>
                         )}
