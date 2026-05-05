@@ -91,7 +91,7 @@ This application is designed for **Renault Internal Use Only**. It contains conf
 
 ## 👤 Author
 **Abdellah Elberkaoui**
-*Software Engineer | Industrial Digitalization*
+*Mechatronics Engineer | Industrial Digitalization*
 [LinkedIn](https://linkedin.com/in/abdellah-elberkaoui-1a3493195)
 
 ---
