@@ -26,7 +26,17 @@
     "socket.io-client": "^4.8.3",
     "three": "^0.183.2",
     "xlsx": "^0.18.5",
-    "zustand": "^5.0.12"
+    "zustand": "^5.0.12",
+    "express": "^4.21.0",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "pg": "^8.11.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "uuid": "^9.0.1",
+    "socket.io": "^4.7.5",
+    "dotenv": "^16.4.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
