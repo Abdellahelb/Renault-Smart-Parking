@@ -234,7 +234,7 @@ export default function SearchPage() {
                         <tbody>
                             {filteredResults.map((v, i) => (
                                 <tr key={i}>
-                                    <td style={{ fontFamily: 'monospace', fontSize: '0.78rem' }}>{v.vin}</td>
+                                    <td style={{ fontFamily: 'monospace', fontSize: '0.78rem', color: 'var(--blue)', fontWeight: 600 }}>{v.vin}</td>
                                     <td style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: v.status === 'not_found' ? 'var(--text-muted)' : 'var(--yellow)' }}>{v.spot_label}</td>
                                     <td>{v.parking}</td>
                                     <td>
@@ -250,31 +250,27 @@ export default function SearchPage() {
                                     </td>
                                     <td>
                                         {v.status !== 'not_found' && (
-                                            <button 
-                                                className="btn btn-sm btn-secondary" 
-                                                style={{ fontSize: '0.7rem', padding: '4px 8px' }}
-                                                onClick={async () => {
-                                                    if (v.reservation_method === 'scan') {
-                                                        const dateStr = new Date(v.occupied_at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-                                                        if (!window.confirm(`⚠️ EMERGENCY RELEASE: This spot was reserved from a scan on ${dateStr}. Are you sure?`)) {
-                                                            return;
-                                                        }
-                                                    } else {
+                                            v.reservation_method === 'scan' ? (
+                                                <span style={{ fontSize: '0.65rem', color: 'var(--blue)', fontWeight: 600 }}>🛡️ SCAN PROTECTED</span>
+                                            ) : (
+                                                <button 
+                                                    className="btn btn-sm btn-secondary" 
+                                                    style={{ fontSize: '0.7rem', padding: '4px 8px' }}
+                                                    onClick={async () => {
                                                         if (!window.confirm(`Are you sure you want to release spot ${v.spot_label}?`)) return;
-                                                    }
-                                                    
-                                                    try {
-                                                        await fetch(`${API_URL}/spots/${v.spot_label}/release`, {
-                                                            method: 'POST',
-                                                            headers: { Authorization: `Bearer ${token}` }
-                                                        });
-                                                        alert('Spot released successfully');
-                                                        window.location.reload();
-                                                    } catch (err) { console.error(err); }
-                                                }}
-                                            >
-                                                Release
-                                            </button>
+                                                        try {
+                                                            await fetch(`${API_URL}/spots/${v.spot_label}/release`, {
+                                                                method: 'POST',
+                                                                headers: { Authorization: `Bearer ${token}` }
+                                                            });
+                                                            alert('Spot released successfully');
+                                                            window.location.reload();
+                                                        } catch (err) { console.error(err); }
+                                                    }}
+                                                >
+                                                    Release
+                                                </button>
+                                            )
                                         )}
                                     </td>
                                 </tr>

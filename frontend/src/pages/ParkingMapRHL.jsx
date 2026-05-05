@@ -291,8 +291,8 @@ function SpotDetailModal({ spot, onClose, onRelease, onReserve }) {
                         <div className="modal-title" style={{ color: 'var(--yellow)', fontSize: '1.5rem' }}>
                             Spot {spot.id}
                         </div>
-                        <span className={`badge badge-${spot.status === 'empty' ? 'available' : spot.status === 'alert' ? 'alert' : spot.status}`}>
-                            {spot.status.toUpperCase()}
+                        <span className={`badge badge-${spot.status === 'empty' ? 'available' : spot.status === 'alert' ? 'alert' : spot.status}`} style={spot.reservation_method === 'scan' ? { background: 'var(--blue-dim)', color: 'var(--blue)', border: '1px solid var(--blue)' } : {}}>
+                            {spot.reservation_method === 'scan' ? 'SCAN RESERVED' : spot.status.toUpperCase()}
                         </span>
                     </div>
                     <button className="btn-icon header-btn" onClick={onClose}><X size={18} /></button>
@@ -315,7 +315,7 @@ function SpotDetailModal({ spot, onClose, onRelease, onReserve }) {
                         ) : (
                             <>
                                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>VIN</div>
-                                <div style={{ fontSize: '0.9rem', fontFamily: 'var(--font-display)', fontWeight: 600 }}>{spot.vin}</div>
+                                <div style={{ fontSize: '0.9rem', fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--blue)' }}>{spot.vin}</div>
                             </>
                         )}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -328,9 +328,8 @@ function SpotDetailModal({ spot, onClose, onRelease, onReserve }) {
                         {spot.status !== 'reserved' && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <Car size={16} style={{ color: 'var(--text-muted)' }} />
-                                <div>
                                     <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>VIN</div>
-                                    <div style={{ fontSize: '0.9rem', fontFamily: 'var(--font-display)', fontWeight: 600 }}>{spot.vin}</div>
+                                    <div style={{ fontSize: '0.9rem', fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--blue)' }}>{spot.vin}</div>
                                 </div>
                             </div>
                         )}
@@ -343,17 +342,29 @@ function SpotDetailModal({ spot, onClose, onRelease, onReserve }) {
                                 </div>
                             </div>
                         </div>
-                        <button className="btn btn-primary" style={{ marginTop: '8px' }} onClick={() => {
-                            if (spot.reservation_method === 'scan') {
-                                const dateStr = new Date(spot.entryDate).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-                                if (!window.confirm(`⚠️ EMERGENCY RELEASE: This spot was reserved from a scan on ${dateStr}. Are you sure you want to release it?`)) {
-                                    return;
-                                }
-                            }
-                            onRelease(spot.id);
-                        }}>
-                            Release Place
-                        </button>
+                        {spot.reservation_method === 'scan' ? (
+                            <div style={{ 
+                                marginTop: '16px', 
+                                padding: '12px', 
+                                background: 'var(--blue-dim)', 
+                                border: '1px solid rgba(33,150,243,0.3)', 
+                                borderRadius: '8px',
+                                textAlign: 'center',
+                                color: 'var(--blue)',
+                                fontWeight: 600,
+                                fontSize: '0.85rem'
+                            }}>
+                                🛡️ SCAN PROTECTED
+                                <div style={{ fontSize: '0.7rem', fontWeight: 400, marginTop: '4px', color: 'var(--text-muted)' }}>
+                                    This spot was reserved via scan. Manual release is disabled. 
+                                    Please use a scan checkout to clear this spot.
+                                </div>
+                            </div>
+                        ) : (
+                            <button className="btn btn-primary" style={{ marginTop: '8px' }} onClick={() => onRelease(spot.id)}>
+                                Release Place
+                            </button>
+                        )}
                     </div>
                 ) : (
                     <div style={{ marginTop: '16px' }}>
@@ -596,9 +607,9 @@ export default function ParkingMapRHL() {
                     <span className="stat-value">{stats.total}</span>
                 </div>
                 <div className="parking-stat">
-                    <div className="stat-dot" style={{ background: 'var(--red)' }} />
+                    <div className="stat-dot" style={{ background: 'var(--blue)' }} />
                     <span className="stat-label">Stored VINs</span>
-                    <span className="stat-value text-red">{stats.occupied}</span>
+                    <span className="stat-value text-blue">{stats.occupied}</span>
                 </div>
                 <div className="parking-stat">
                     <div className="stat-dot" style={{ background: 'var(--orange)' }} />

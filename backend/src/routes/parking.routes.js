@@ -102,9 +102,13 @@ module.exports = (io) => {
         const releasedSpots = [];
         try {
             for (const spotId of spotIds) {
-                const { rows } = await db.query('SELECT id, spot_label, vin FROM parking_spots WHERE id = $1 OR spot_label = $2', [spotId, spotId]);
+                const { rows } = await db.query('SELECT id, spot_label, vin, reservation_method FROM parking_spots WHERE id = $1 OR spot_label = $2', [spotId, spotId]);
                 const spot = rows[0];
                 if (spot) {
+                    if (spot.reservation_method === 'scan') {
+                        // Skip scan-reserved spots in bulk release to maintain integrity
+                        continue;
+                    }
                     await db.query(`
                         UPDATE parking_spots 
                         SET status = 'empty', vin = NULL, reserved_by = NULL, occupied_at = NULL, operator_id = NULL, reservation_method = 'manual'
@@ -128,9 +132,13 @@ module.exports = (io) => {
     router.post('/spots/:id/release', authenticate, async (req, res) => {
         const { id } = req.params;
         try {
-            const { rows } = await db.query('SELECT id, lot_id, spot_label, vin FROM parking_spots WHERE id = $1 OR spot_label = $2', [id, id]);
+            const { rows } = await db.query('SELECT id, lot_id, spot_label, vin, reservation_method FROM parking_spots WHERE id = $1 OR spot_label = $2', [id, id]);
             const spot = rows[0];
             if (!spot) return res.status(404).json({ error: 'Spot not found' });
+
+            if (spot.reservation_method === 'scan') {
+                return res.status(403).json({ error: 'SCAN_PROTECTED', message: 'This spot was reserved via scan and can only be released via scan checkout.' });
+            }
 
             await db.query(`
                 UPDATE parking_spots 
@@ -144,7 +152,8 @@ module.exports = (io) => {
             io.emit('spot:updated', {
                 spot_id: spot.spot_label,
                 lot_id: spot.lot_id,
-                status: 'empty'
+                status: 'empty',
+                reservation_method: 'manual'
             });
             res.json({ message: 'Spot released' });
         } catch (err) {
