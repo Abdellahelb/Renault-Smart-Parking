@@ -162,9 +162,8 @@ export default function VirtualMapPage() {
         }
     };
 
-    const onReserve = async (spotId) => {
-        const vin = document.querySelector('input[placeholder*="VIN"]').value;
-        if (!vin) return alert('VIN required');
+    const onReserve = async (spotId, nom, prenom) => {
+        if (!nom || !prenom) return alert('Name and Last Name are required');
         try {
             await fetch(`${API_URL}/spots/${spotId}/reserve`, {
                 method: 'POST',
@@ -172,7 +171,7 @@ export default function VirtualMapPage() {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ vin })
+                body: JSON.stringify({ nom, prenom })
             });
             setSelectedSpot(null);
             alert('Place reserved successfully');
@@ -360,13 +359,21 @@ export default function VirtualMapPage() {
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                     <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                                        Spot is available for smart assignment.
+                                        Spot is available for assignment. Enter identity details to reserve.
                                     </p>
-                                    <div className="form-group">
-                                        <label className="form-label">VIN Number</label>
-                                        <input type="text" className="form-input" placeholder="Enter 17-character VIN" maxLength={17} style={{ fontFamily: 'monospace', letterSpacing: '1px' }} />
+                                    <div className="form-group" style={{ marginBottom: '8px' }}>
+                                        <label className="form-label">Last Name</label>
+                                        <input id="reserve-nom" type="text" className="form-input" placeholder="e.g. Smith" />
                                     </div>
-                                    <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => onReserve(selectedSpot.id)}>
+                                    <div className="form-group" style={{ marginBottom: '8px' }}>
+                                        <label className="form-label">First Name</label>
+                                        <input id="reserve-prenom" type="text" className="form-input" placeholder="e.g. John" />
+                                    </div>
+                                    <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => {
+                                        const nom = document.getElementById('reserve-nom').value;
+                                        const prenom = document.getElementById('reserve-prenom').value;
+                                        onReserve(selectedSpot.id, nom, prenom);
+                                    }}>
                                         Reserve Place
                                     </button>
                                 </div>

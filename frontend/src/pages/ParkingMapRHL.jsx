@@ -322,7 +322,7 @@ function SpotDetailModal({ spot, onClose, onRelease, onReserve }) {
                             <Clock size={16} style={{ color: 'var(--text-muted)' }} />
                             <div>
                                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Inbound Timestamp</div>
-                                <div style={{ fontSize: '0.9rem' }}>{spot.entryDate ? new Date(spot.entryDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}</div>
+                                <div style={{ fontSize: '0.9rem' }}>{spot.entryDate ? new Date(spot.entryDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}</div>
                             </div>
                         </div>
                         {spot.status !== 'reserved' && (
@@ -698,7 +698,7 @@ export default function ParkingMapRHL() {
                             } catch (err) { console.error(err); }
                         }}
                         onReserve={async (id, nom, prenom) => {
-                            if (!nom || !prenom) return alert('Nom et Prénom requis');
+                            if (!nom || !prenom) return alert('Last Name and First Name required');
                             try {
                                 await fetch(`${API_URL}/spots/${id}/reserve`, {
                                     method: 'POST',
