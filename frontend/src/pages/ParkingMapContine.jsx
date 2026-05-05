@@ -602,7 +602,10 @@ export default function ParkingMapContine() {
                                 setShowMultipleRelease(false);
                                 alert(`Successfully released ${data.count} spots. Note: Active vehicles (Blue/Red) were skipped for protection.`);
                                 window.location.reload();
-                            } catch (err) { console.error(err); }
+                            } catch (err) { 
+                                console.error(err); 
+                                alert(`Error: ${err.message}`);
+                            }
                         }}
                     />
                 )}

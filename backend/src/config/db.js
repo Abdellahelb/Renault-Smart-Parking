@@ -131,10 +131,17 @@ async function initDatabase() {
         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
       );
 
-      -- Migration: Add missing columns if they don't exist
-      ALTER TABLE parking_spots ADD COLUMN IF NOT EXISTS reservation_method TEXT DEFAULT 'manual';
-      ALTER TABLE parking_spots ADD COLUMN IF NOT EXISTS reserved_by TEXT;
     `);
+    console.log('✅ Database tables verified/created');
+
+    // Migration: Add missing columns if they don't exist
+    try {
+      await query('ALTER TABLE parking_spots ADD COLUMN IF NOT EXISTS reservation_method TEXT DEFAULT \'manual\'');
+      await query('ALTER TABLE parking_spots ADD COLUMN IF NOT EXISTS reserved_by TEXT');
+      console.log('✅ Database migrations applied');
+    } catch (migErr) {
+      console.warn('⚠️ Migration warning (might already be applied):', migErr.message);
+    }
 
     // Ensure system settings exist
     await query("INSERT INTO system_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO NOTHING", ['max_park_days', '15']);
