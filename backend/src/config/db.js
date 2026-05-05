@@ -143,8 +143,8 @@ async function initDatabase() {
       console.warn('⚠️ Migration warning (might already be applied):', migErr.message);
     }
 
-    // Ensure system settings exist
-    await query("INSERT INTO system_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO NOTHING", ['max_park_days', '15']);
+    // Ensure system settings exist (Force 15 days for SLA consistency)
+    await query("INSERT INTO system_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value", ['max_park_days', '15']);
 
     console.log('✅ Database tables verified/created');
     

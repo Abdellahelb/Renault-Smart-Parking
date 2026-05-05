@@ -2,7 +2,7 @@ import { API_URL, SOCKET_URL } from '../api_config';
 import { create } from 'zustand';
 
 const useSettingsStore = create((set) => ({
-    maxParkDays: 6,
+    maxParkDays: 15,
     fetchSettings: async (token) => {
         if (!token) return;
         try {
