@@ -28,7 +28,7 @@ const baseNavItems = [
     },
     {
         section: 'Operations', items: [
-            { path: '/alerts', icon: ShieldAlert, label: 'Alerts', role: 'supervisor', badge: alerts.length > 0 ? alerts.length : null },
+            { path: '/alerts', icon: ShieldAlert, label: 'Alerts', role: 'supervisor' },
             { path: '/history', icon: FileText, label: 'Operations Audit', role: 'operator' },
             { path: '/reports', icon: FileText, label: 'Reports', role: 'supervisor' },
         ]
@@ -131,7 +131,7 @@ export default function Layout() {
                                     >
                                         <item.icon size={18} />
                                         {item.label}
-                                        {item.badge && <span className="badge">{item.badge}</span>}
+                                        {item.path === '/alerts' && alerts.length > 0 && <span className="badge">{alerts.length}</span>}
                                     </NavLink>
                                 ))}
                             </div>
