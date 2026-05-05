@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import useAuthStore from '../store/authStore';
 import useVirtualStore from '../store/virtualStore';
 import useSettingsStore from '../store/settingsStore';
+import useParkingStore from '../store/parkingStore';
 import {
     LayoutDashboard, Map, ScanBarcode, Search, Bell,
     Users, Settings, FileText, User, LogOut, Zap,
@@ -27,7 +28,7 @@ const baseNavItems = [
     },
     {
         section: 'Operations', items: [
-            { path: '/alerts', icon: ShieldAlert, label: 'Alerts', role: 'supervisor', badge: 3 },
+            { path: '/alerts', icon: ShieldAlert, label: 'Alerts', role: 'supervisor', badge: alerts.length > 0 ? alerts.length : null },
             { path: '/history', icon: FileText, label: 'Operations Audit', role: 'operator' },
             { path: '/reports', icon: FileText, label: 'Reports', role: 'supervisor' },
         ]
@@ -61,9 +62,12 @@ export default function Layout() {
 
     const { token } = useAuthStore();
     const fetchSettings = useSettingsStore(state => state.fetchSettings);
+    const { alerts, fetchAlerts } = useParkingStore();
+
     useEffect(() => {
         fetchSettings(token);
-    }, [token, fetchSettings]);
+        if (token) fetchAlerts();
+    }, [token, fetchSettings, fetchAlerts]);
 
     // Build nav items dynamically
     const navItems = baseNavItems.map(section => {

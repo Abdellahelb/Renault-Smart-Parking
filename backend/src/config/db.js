@@ -130,6 +130,10 @@ async function initDatabase() {
         value TEXT NOT NULL,
         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
       );
+
+      -- Migration: Add missing columns if they don't exist
+      ALTER TABLE parking_spots ADD COLUMN IF NOT EXISTS reservation_method TEXT DEFAULT 'manual';
+      ALTER TABLE parking_spots ADD COLUMN IF NOT EXISTS reserved_by TEXT;
     `);
 
     // Ensure system settings exist
