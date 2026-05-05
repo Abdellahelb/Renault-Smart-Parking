@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/assets/(.*)",
+      "destination": "/frontend/dist/assets/$1"
+    },
+    {
+      "source": "/vite.svg",
+      "destination": "/frontend/dist/vite.svg"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/frontend/dist/index.html"
+    }
+  ]
+}
