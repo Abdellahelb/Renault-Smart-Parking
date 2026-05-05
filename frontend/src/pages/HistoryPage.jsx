@@ -44,16 +44,14 @@ export default function HistoryPage() {
     const filtered = history.filter(h => {
         const query = filter.toLowerCase();
         const v = (h.vin || '').toLowerCase();
-        const opName = (h.operator_name || '').toLowerCase();
-        const opId = (h.operator_id || '').toLowerCase();
         const sp = (h.spot || '').toLowerCase();
-        return v.includes(query) || opName.includes(query) || opId.includes(query) || sp.includes(query);
+        return v.includes(query) || sp.includes(query);
     });
 
     const downloadCSV = () => {
         if (!filtered || filtered.length === 0) return;
 
-        const headers = ['Timestamp', 'Action', 'VIN', 'Spot', 'Parking', 'Operator'];
+        const headers = ['Timestamp', 'Action', 'VIN', 'Spot', 'Parking'];
         const csvRows = [headers.join(',')];
 
         filtered.forEach(log => {
@@ -62,8 +60,7 @@ export default function HistoryPage() {
                 (log.action || '').toUpperCase().replace(/,/g, ''),
                 (log.vin || '').replace(/,/g, ''),
                 (log.spot || '').replace(/,/g, ''),
-                (log.parking || '').replace(/,/g, ''),
-                (log.operator_name || log.operator_id || 'System').replace(/,/g, '')
+                (log.parking || '').replace(/,/g, '')
             ];
             csvRows.push(row.join(','));
         });
@@ -107,7 +104,7 @@ export default function HistoryPage() {
                         <input
                             type="text"
                             className="form-input"
-                            placeholder="Search VIN or Operator..."
+                            placeholder="Search VIN or Spot..."
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
                             style={{ paddingLeft: '36px', width: '100%', borderRadius: '20px', background: 'var(--bg-card)' }}
@@ -144,7 +141,6 @@ export default function HistoryPage() {
                                     <th style={{ padding: '20px 24px', fontWeight: 600 }}>Action Taken</th>
                                     <th style={{ padding: '20px 24px', fontWeight: 600 }}>Vehicle / VIN</th>
                                     <th style={{ padding: '20px 24px', fontWeight: 600 }}>Location</th>
-                                    <th style={{ padding: '20px 24px', fontWeight: 600 }}>Operator ID</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -186,13 +182,6 @@ export default function HistoryPage() {
                                                     </div>
                                                 ) : <span className="text-muted">-</span>}
                                             </td>
-                                            <td style={{ padding: '20px 24px' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                    <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border-color)' }}>
-                                                        <User size={14} className="text-muted" />
-                                                    </div>
-                                                    <span style={{ fontWeight: 500 }}>{log.operator_name || log.operator_id || 'System'}</span>
-                                                </div>
                                             </td>
                                         </motion.tr>
                                     ))}

@@ -137,7 +137,6 @@ export default function AlertsPage() {
                                 <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
                                     <span style={{ fontFamily: 'monospace', fontSize: '0.78rem' }}>{alert.vin}</span>
                                     <span style={{ color: 'var(--text-muted)' }}> · {alert.model} · Block {alert.block} · {alert.parking}</span>
-                                    <span style={{ color: 'var(--text-muted)' }}> · Checked in by {alert.operator}</span>
                                 </div>
                                 {alert.status === 'active' && (
                                     <div style={{ display: 'flex', gap: '8px' }}>

@@ -363,7 +363,7 @@ export default function DashboardPage() {
                                     <span style={{ color: 'var(--yellow)', fontFamily: 'var(--font-display)' }}>{item.spot}</span>
                                 </div>
                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                    {item.vin} · {item.operator_name || 'System'}
+                                    {item.vin}
                                 </div>
                             </div>
                             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>

@@ -109,7 +109,7 @@ export default function SearchPage() {
     const downloadCSV = () => {
         if (!filteredResults || filteredResults.length === 0) return;
 
-        const headers = ['VIN', 'Spot', 'Parking', 'Status', 'Entry Date', 'Days Parked', 'Operator'];
+        const headers = ['VIN', 'Spot', 'Parking', 'Status', 'Entry Date & Time', 'Days Parked'];
         const csvRows = [headers.join(',')];
 
         filteredResults.forEach(v => {
@@ -118,9 +118,8 @@ export default function SearchPage() {
                 (v.spot_label || '').replace(/,/g, ''),
                 (v.parking || '').replace(/,/g, ''),
                 (v.status || '').toUpperCase().replace(/,/g, ''),
-                new Date(v.occupied_at).toLocaleDateString('fr-FR').replace(/,/g, ''),
-                Math.floor((new Date() - new Date(v.occupied_at)) / (1000 * 60 * 60 * 24)),
-                (v.operator_id || 'System').replace(/,/g, '')
+                v.occupied_at ? new Date(v.occupied_at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).replace(/,/g, '').replace(' à ', ' - ') : '-',
+                Math.floor((new Date() - new Date(v.occupied_at)) / (1000 * 60 * 60 * 24))
             ];
             csvRows.push(row.join(','));
         });
@@ -227,9 +226,8 @@ export default function SearchPage() {
                                 <th>Spot</th>
                                 <th>Parking</th>
                                 <th>Status</th>
-                                <th>Entry Date</th>
+                                <th>Entry Date & Time</th>
                                 <th>Days</th>
-                                <th>Operator</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -244,12 +242,11 @@ export default function SearchPage() {
                                         </span>
                                     </td>
                                     <td style={{ fontSize: '0.8rem' }}>
-                                        {v.occupied_at ? new Date(v.occupied_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '-'}
+                                        {v.occupied_at ? new Date(v.occupied_at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).replace(' à ', ' - ') : '-'}
                                     </td>
                                     <td style={{ color: v.daysParked >= maxParkDays ? 'var(--red)' : 'inherit', fontWeight: v.daysParked >= maxParkDays ? 700 : 400 }}>
                                         {v.occupied_at ? `${Math.floor((new Date() - new Date(v.occupied_at)) / (1000 * 60 * 60 * 24))}d` : '-'}
                                     </td>
-                                    <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{v.operator_id || 'System'}</td>
                                 </tr>
                             ))}
                         </tbody>
