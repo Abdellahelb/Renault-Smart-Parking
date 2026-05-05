@@ -81,7 +81,8 @@ async function initDatabase() {
         operator_id TEXT,
         occupied_at TIMESTAMP,
         car_color TEXT,
-        reserved_by TEXT
+        reserved_by TEXT,
+        reservation_method TEXT DEFAULT 'manual'
       );
 
       CREATE TABLE IF NOT EXISTS vehicles (

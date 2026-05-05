@@ -343,7 +343,15 @@ function SpotDetailModal({ spot, onClose, onRelease, onReserve }) {
                                 </div>
                             </div>
                         </div>
-                        <button className="btn btn-primary" style={{ marginTop: '8px' }} onClick={() => onRelease(spot.id)}>
+                        <button className="btn btn-primary" style={{ marginTop: '8px' }} onClick={() => {
+                            if (spot.reservation_method === 'scan') {
+                                const dateStr = new Date(spot.entryDate).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                                if (!window.confirm(`⚠️ EMERGENCY RELEASE: This spot was reserved from a scan on ${dateStr}. Are you sure you want to release it?`)) {
+                                    return;
+                                }
+                            }
+                            onRelease(spot.id);
+                        }}>
                             Release Place
                         </button>
                     </div>
@@ -434,10 +442,62 @@ function BulkReserveModal({ onClose, onBulkReserve, blocks }) {
     );
 }
 
+// Bulk Release Modal
+function BulkReleaseModal({ onClose, onBulkRelease, blocks }) {
+    const [block, setBlock] = useState(blocks[0]);
+    const [fromNum, setFromNum] = useState('');
+    const [toNum, setToNum] = useState('');
+
+    const handleRelease = () => {
+        const start = parseInt(fromNum);
+        const end = parseInt(toNum);
+        if (isNaN(start) || isNaN(end) || start > end) return alert('La plage de places est invalide');
+        
+        const spotIds = [];
+        for (let i = start; i <= end; i++) {
+            spotIds.push(`${block}${i}`);
+        }
+        if (window.confirm(`Are you sure you want to release ${spotIds.length} spots in Block ${block}?`)) {
+            onBulkRelease(spotIds);
+        }
+    };
+
+    return (
+        <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
+            <motion.div className="modal" initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} onClick={e => e.stopPropagation()} style={{ maxWidth: '420px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                    <div className="modal-title" style={{ color: 'var(--red)', fontSize: '1.5rem' }}>Libération Multiple</div>
+                    <button className="btn-icon header-btn" onClick={onClose}><X size={18} /></button>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                    <div className="form-group" style={{ flex: 1 }}>
+                        <label className="form-label">Bloc</label>
+                        <select className="form-input" value={block} onChange={e => setBlock(e.target.value)}>
+                            {blocks.map(b => <option key={b} value={b}>{b}</option>)}
+                        </select>
+                    </div>
+                    <div className="form-group" style={{ flex: 1 }}>
+                        <label className="form-label">De la place</label>
+                        <input type="number" className="form-input" placeholder="Ex: 1" value={fromNum} onChange={e => setFromNum(e.target.value)} />
+                    </div>
+                    <div className="form-group" style={{ flex: 1 }}>
+                        <label className="form-label">À la place</label>
+                        <input type="number" className="form-input" placeholder="Ex: 10" value={toNum} onChange={e => setToNum(e.target.value)} />
+                    </div>
+                </div>
+                <button className="btn btn-danger" style={{ width: '100%' }} onClick={handleRelease}>
+                    Libérer la Plage
+                </button>
+            </motion.div>
+        </motion.div>
+    );
+}
+
 export default function ParkingMapRHL() {
     const [spots, setSpots] = useState({});
     const [selectedSpot, setSelectedSpot] = useState(null);
     const [showBulkReserve, setShowBulkReserve] = useState(false);
+    const [showBulkRelease, setShowBulkRelease] = useState(false);
     const [activeBlock, setActiveBlock] = useState('all');
     const [loading, setLoading] = useState(true);
     const { token } = useAuthStore();
@@ -463,6 +523,7 @@ export default function ParkingMapRHL() {
                             status: s.status,
                             vin: s.vin,
                             reserved_by: s.reserved_by,
+                            reservation_method: s.reservation_method,
                             operator: s.operator_id,
                             entryDate: s.occupied_at,
                             carColor: s.car_color || '#E53935',
@@ -492,6 +553,7 @@ export default function ParkingMapRHL() {
                             status: data.status,
                             vin: data.vin || null,
                             reserved_by: data.reserved_by || null,
+                            reservation_method: data.reservation_method || prev[data.spot_id].reservation_method,
                             carColor: data.car_color || (data.status === 'occupied' ? '#E53935' : prev[data.spot_id].carColor)
                         }
                     };
@@ -568,9 +630,14 @@ export default function ParkingMapRHL() {
                         </button>
                     ))}
                 </div>
-                <button className="btn btn-secondary" onClick={() => setShowBulkReserve(true)} style={{ fontSize: '0.8rem', padding: '6px 12px', border: '1px solid var(--yellow)', color: 'var(--yellow)' }}>
-                    Réservation Multiple
-                </button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    <button className="btn btn-secondary" onClick={() => setShowBulkReserve(true)} style={{ fontSize: '0.8rem', padding: '6px 12px', border: '1px solid var(--yellow)', color: 'var(--yellow)' }}>
+                        Réservation Multiple
+                    </button>
+                    <button className="btn btn-secondary" onClick={() => setShowBulkRelease(true)} style={{ fontSize: '0.8rem', padding: '6px 12px', border: '1px solid var(--red)', color: 'var(--red)' }}>
+                        Libération Multiple
+                    </button>
+                </div>
             </div>
 
             {/* Entry */}
@@ -653,6 +720,27 @@ export default function ParkingMapRHL() {
                                 });
                                 setShowBulkReserve(false);
                                 alert('Places réservées avec succès');
+                                window.location.reload();
+                            } catch (err) { console.error(err); }
+                        }}
+                    />
+                )}
+                {showBulkRelease && (
+                    <BulkReleaseModal
+                        blocks={blockKeys}
+                        onClose={() => setShowBulkRelease(false)}
+                        onBulkRelease={async (spotIds) => {
+                            try {
+                                await fetch(`${API_URL}/spots/bulk-release`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Authorization': `Bearer ${token}`,
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ spotIds })
+                                });
+                                setShowBulkRelease(false);
+                                alert('Places libérées avec succès');
                                 window.location.reload();
                             } catch (err) { console.error(err); }
                         }}

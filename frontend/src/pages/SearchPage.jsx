@@ -228,6 +228,7 @@ export default function SearchPage() {
                                 <th>Status</th>
                                 <th>Entry Date & Time</th>
                                 <th>Days</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -246,6 +247,35 @@ export default function SearchPage() {
                                     </td>
                                     <td style={{ color: v.daysParked >= maxParkDays ? 'var(--red)' : 'inherit', fontWeight: v.daysParked >= maxParkDays ? 700 : 400 }}>
                                         {v.occupied_at ? `${Math.floor((new Date() - new Date(v.occupied_at)) / (1000 * 60 * 60 * 24))}d` : '-'}
+                                    </td>
+                                    <td>
+                                        {v.status !== 'not_found' && (
+                                            <button 
+                                                className="btn btn-sm btn-secondary" 
+                                                style={{ fontSize: '0.7rem', padding: '4px 8px' }}
+                                                onClick={async () => {
+                                                    if (v.reservation_method === 'scan') {
+                                                        const dateStr = new Date(v.occupied_at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                                                        if (!window.confirm(`⚠️ EMERGENCY RELEASE: This spot was reserved from a scan on ${dateStr}. Are you sure?`)) {
+                                                            return;
+                                                        }
+                                                    } else {
+                                                        if (!window.confirm(`Are you sure you want to release spot ${v.spot_label}?`)) return;
+                                                    }
+                                                    
+                                                    try {
+                                                        await fetch(`${API_URL}/spots/${v.spot_label}/release`, {
+                                                            method: 'POST',
+                                                            headers: { Authorization: `Bearer ${token}` }
+                                                        });
+                                                        alert('Place released successfully');
+                                                        window.location.reload();
+                                                    } catch (err) { console.error(err); }
+                                                }}
+                                            >
+                                                Release
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             ))}

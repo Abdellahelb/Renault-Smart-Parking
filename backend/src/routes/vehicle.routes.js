@@ -30,7 +30,7 @@ module.exports = (io) => {
                 await db.query('INSERT INTO vehicle_history (id, vin, spot_id, action, operator_id) VALUES ($1, $2, $3, $4, $5)', 
                     [uuidv4(), vin.toUpperCase(), existingSpot.id, 'checkout', req.user.id || req.user.operator_id]);
 
-                io.emit('spot:updated', { spot_id: existingSpot.spot_label, status: 'empty', vin: null });
+                io.emit('spot:updated', { spot_id: existingSpot.spot_label, status: 'empty', vin: null, reservation_method: 'manual' });
                 io.emit('vehicle:departed', { vin: vin.toUpperCase(), spot_id: existingSpot.spot_label });
 
                 return res.json({
@@ -59,7 +59,7 @@ module.exports = (io) => {
             const carColors = ['#2D3436', '#E53935', '#1565C0', '#F5F5F5', '#424242'];
             const color = carColors[Math.floor(Math.random() * carColors.length)];
 
-            await db.query(`UPDATE parking_spots SET status = $1, vin = $2, operator_id = $3, occupied_at = CURRENT_TIMESTAMP, car_color = $4 WHERE id = $5`, 
+            await db.query(`UPDATE parking_spots SET status = $1, vin = $2, operator_id = $3, occupied_at = CURRENT_TIMESTAMP, car_color = $4, reservation_method = 'scan' WHERE id = $5`, 
                 ['occupied', vin.toUpperCase(), req.user.id || req.user.operator_id, color, availableSpot.id]);
 
             await db.query('INSERT INTO vehicles (id, vin, spot_id, operator_id) VALUES ($1, $2, $3, $4)', 
@@ -68,7 +68,7 @@ module.exports = (io) => {
             await db.query('INSERT INTO vehicle_history (id, vin, spot_id, action, operator_id) VALUES ($1, $2, $3, $4, $5)', 
                 [uuidv4(), vin.toUpperCase(), availableSpot.id, 'checkin', req.user.id || req.user.operator_id]);
 
-            io.emit('spot:updated', { spot_id: availableSpot.spot_label, status: 'occupied', vin: vin.toUpperCase() });
+            io.emit('spot:updated', { spot_id: availableSpot.spot_label, status: 'occupied', vin: vin.toUpperCase(), reservation_method: 'scan' });
             io.emit('vehicle:arrived', { vin: vin.toUpperCase(), spot_id: availableSpot.spot_label, operator: req.user.name });
 
             res.json({
@@ -101,7 +101,7 @@ module.exports = (io) => {
             await db.query('INSERT INTO vehicle_history (id, vin, spot_id, action, operator_id) VALUES ($1, $2, $3, $4, $5)', 
                 [uuidv4(), vin.toUpperCase(), spot.id, 'checkout', req.user.id]);
 
-            io.emit('spot:updated', { spot_id: spot.spot_label, status: 'empty', vin: null });
+            io.emit('spot:updated', { spot_id: spot.spot_label, status: 'empty', vin: null, reservation_method: 'manual' });
             io.emit('vehicle:departed', { vin: vin.toUpperCase(), spot_id: spot.spot_label });
 
             res.json({ spot: spot.spot_label, block: spot.block, parking: spot.parking_name, status: 'freed' });
