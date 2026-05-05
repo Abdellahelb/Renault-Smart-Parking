@@ -4,6 +4,18 @@
     {
       "source": "/api/(.*)",
       "destination": "/api/index.js"
+    },
+    {
+      "source": "/assets/(.*)",
+      "destination": "/frontend/dist/assets/$1"
+    },
+    {
+      "source": "/vite.svg",
+      "destination": "/frontend/dist/vite.svg"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/frontend/dist/index.html"
     }
   ]
 }

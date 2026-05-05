@@ -2,6 +2,9 @@
   "name": "renault-smart-parking",
   "version": "1.0.0",
   "private": true,
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build"
+  },
   "dependencies": {
     "express": "^4.21.0",
     "cors": "^2.8.5",
