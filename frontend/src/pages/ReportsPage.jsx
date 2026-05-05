@@ -7,9 +7,6 @@ import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, startOfQuarter, endOf
 import io from 'socket.io-client';
 import useAuthStore from '../store/authStore';
 
-
-
-
 const blockUtilization = [
     { block: 'A', utilization: 60 }, { block: 'B', utilization: 73 },
     { block: 'C', utilization: 83 }, { block: 'D', utilization: 50 },
@@ -125,8 +122,6 @@ export default function ReportsPage() {
         link.click();
         document.body.removeChild(link);
     };
-
-
 
     return (
         <div>

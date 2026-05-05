@@ -1,8 +1,6 @@
 import { API_URL, SOCKET_URL } from '../api_config';
 import { create } from 'zustand';
 
-const API_URL = `${API_URL}`;
-
 const useParkingStore = create((set, get) => ({
     rhlSpots: [],
     contineSpots: [],

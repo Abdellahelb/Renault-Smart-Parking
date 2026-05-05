@@ -434,7 +434,6 @@ function BulkReserveModal({ onClose, onBulkReserve, blocks }) {
     );
 }
 
-
 export default function ParkingMapRHL() {
     const [spots, setSpots] = useState({});
     const [selectedSpot, setSelectedSpot] = useState(null);
