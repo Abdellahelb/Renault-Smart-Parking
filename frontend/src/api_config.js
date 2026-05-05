@@ -1,5 +1,5 @@
 const isProd = import.meta.env.PROD;
-const BASE_URL = import.meta.env.VITE_API_URL || (isProd ? '/_backend' : 'http://localhost:3001');
+const BASE_URL = import.meta.env.VITE_API_URL || (isProd ? '/api' : 'http://localhost:3001');
 
 export const API_URL = `${BASE_URL}/api/v1`;
 export const SOCKET_URL = BASE_URL;
