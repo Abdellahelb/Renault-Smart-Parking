@@ -68,15 +68,27 @@ io.on('connection', (socket) => {
 // ============================================
 // START SERVER
 // ============================================
-httpServer.listen(PORT, () => {
-    console.log(`
+const startServer = async () => {
+    try {
+        await authRoutes.initAdmin ? null : null; // No-op if not needed
+        const db = require('./src/config/db');
+        await db.initDatabase();
+
+        httpServer.listen(PORT, () => {
+            console.log(`
   ╔═══════════════════════════════════════════════╗
-  ║   🚗 Smart Parking Manager API (Modular)      ║
+  ║   🚗 Smart Parking Manager API (PostgreSQL)   ║
   ║   Running on http://localhost:${PORT}            ║
-  ║   Database: SQLite(parking.db)               ║
+  ║   Database: Vercel Postgres                   ║
   ║   WebSocket: Enabled                          ║
   ║                                               ║
-  ║   Refactor: Code Abdellah Baseline            ║
+  ║   Refactor: Persistent Data Mode              ║
   ╚═══════════════════════════════════════════════╝
     `);
-});
+        });
+    } catch (err) {
+        console.error('Failed to start server:', err);
+    }
+};
+
+startServer();

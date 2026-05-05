@@ -1,16 +1,22 @@
 const express = require('express');
 const db = require('../config/db');
 const { authenticate, requireRole } = require('../middleware/authMiddleware');
+const bcrypt = require('bcryptjs');
+const { v4: uuidv4 } = require('uuid');
 
 module.exports = () => {
     const router = express.Router();
 
-    router.get('/users', authenticate, requireRole('supervisor'), (req, res) => {
-        const users = db.prepare('SELECT id, name, operator_id, email, role, active, created_at, last_login FROM users ORDER BY created_at DESC').all();
-        res.json({ users });
+    router.get('/users', authenticate, requireRole('supervisor'), async (req, res) => {
+        try {
+            const { rows } = await db.query('SELECT id, name, operator_id, email, role, active, created_at, last_login FROM users ORDER BY created_at DESC');
+            res.json({ users: rows });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
     });
 
-    router.post('/users', authenticate, requireRole('supervisor'), (req, res) => {
+    router.post('/users', authenticate, requireRole('supervisor'), async (req, res) => {
         try {
             const { name, operator_id, email, role, password } = req.body;
             if (!name || !operator_id || !role || !password) {
@@ -21,16 +27,14 @@ module.exports = () => {
                 return res.status(403).json({ error: 'Supervisors cannot create admin users' });
             }
 
-            const existing = db.prepare('SELECT id FROM users WHERE operator_id = ?').get(operator_id);
-            if (existing) return res.status(409).json({ error: 'Operator ID already exists' });
+            const { rows: existing } = await db.query('SELECT id FROM users WHERE operator_id = $1', [operator_id]);
+            if (existing.length > 0) return res.status(409).json({ error: 'Operator ID already exists' });
 
-            const bcrypt = require('bcryptjs');
-            const { v4: uuidv4 } = require('uuid');
             const hash = bcrypt.hashSync(password, 12);
             const userId = uuidv4();
 
-            db.prepare('INSERT INTO users (id, name, operator_id, email, password_hash, role, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)')
-                .run(userId, name, operator_id, email || null, hash, role, req.user.id);
+            await db.query('INSERT INTO users (id, name, operator_id, email, password_hash, role, created_by) VALUES ($1, $2, $3, $4, $5, $6, $7)', 
+                [userId, name, operator_id, email || null, hash, role, req.user.id]);
 
             res.status(201).json({ id: userId, name, operator_id, role });
         } catch (err) {
@@ -39,18 +43,19 @@ module.exports = () => {
         }
     });
 
-    router.delete('/users/:id', authenticate, requireRole('supervisor'), (req, res) => {
+    router.delete('/users/:id', authenticate, requireRole('supervisor'), async (req, res) => {
         try {
             const { id } = req.params;
             if (id === req.user.id) return res.status(400).json({ error: 'Cannot delete your own account' });
 
-            const targetUser = db.prepare('SELECT role FROM users WHERE id = ?').get(id);
+            const { rows } = await db.query('SELECT role FROM users WHERE id = $1', [id]);
+            const targetUser = rows[0];
             if (targetUser && targetUser.role === 'admin' && req.user.role !== 'admin') {
                 return res.status(403).json({ error: 'Supervisors cannot delete admin users' });
             }
 
-            const result = db.prepare('DELETE FROM users WHERE id = ?').run(id);
-            if (result.changes === 0) return res.status(404).json({ error: 'User not found' });
+            const result = await db.query('DELETE FROM users WHERE id = $1', [id]);
+            if (result.rowCount === 0) return res.status(404).json({ error: 'User not found' });
 
             res.json({ message: 'User deleted successfully' });
         } catch (err) {
@@ -59,33 +64,38 @@ module.exports = () => {
         }
     });
 
-    router.get('/audit-log', authenticate, requireRole('supervisor'), (req, res) => {
-        const logs = db.prepare('SELECT * FROM audit_log ORDER BY timestamp DESC LIMIT 100').all();
-        res.json({ logs });
+    router.get('/audit-log', authenticate, requireRole('supervisor'), async (req, res) => {
+        try {
+            const { rows } = await db.query('SELECT * FROM audit_log ORDER BY timestamp DESC LIMIT 100');
+            res.json({ logs: rows });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
     });
 
-    router.get('/settings', authenticate, requireRole('supervisor'), (req, res) => {
-        const settings = db.prepare('SELECT key, value FROM system_settings').all();
-        const settingsObj = {};
-        for (let s of settings) settingsObj[s.key] = s.value;
-        res.json(settingsObj);
+    router.get('/settings', authenticate, requireRole('supervisor'), async (req, res) => {
+        try {
+            const { rows } = await db.query('SELECT key, value FROM system_settings');
+            const settingsObj = {};
+            for (let s of rows) settingsObj[s.key] = s.value;
+            res.json(settingsObj);
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
     });
 
-    router.post('/settings', authenticate, requireRole('supervisor'), (req, res) => {
-        console.log('POST /settings req.body:', req.body);
+    router.post('/settings', authenticate, requireRole('supervisor'), async (req, res) => {
         const { max_park_days } = req.body;
         if (max_park_days !== undefined) {
             try {
-                db.prepare("INSERT OR REPLACE INTO system_settings (key, value) VALUES (?, ?)")
-                    .run('max_park_days', max_park_days.toString());
-                console.log('Saved max_park_days to DB:', max_park_days);
+                await db.query("INSERT INTO system_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2", 
+                    ['max_park_days', max_park_days.toString()]);
                 res.json({ message: 'Settings updated' });
             } catch (err) {
                 console.error('Failed to save settings to DB:', err);
                 res.status(500).json({ error: 'DB Save failed' });
             }
         } else {
-            console.log('max_park_days not in req.body');
             res.status(400).json({ error: 'max_park_days is required' });
         }
     });

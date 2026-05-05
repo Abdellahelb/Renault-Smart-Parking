@@ -4,7 +4,7 @@ const db = require('../config/db');
 const JWT_SECRET = process.env.JWT_SECRET || 'spm-dev-secret-key-change-in-production-2026';
 const HARDWARE_API_KEY = process.env.HARDWARE_API_KEY || 'ESP32-DEV-KEY-2026';
 
-function authenticate(req, res, next) {
+async function authenticate(req, res, next) {
     const apiKey = req.headers['x-api-key'];
     if (apiKey === HARDWARE_API_KEY) {
         req.user = { id: 'hardware', role: 'operator', name: 'ESP32 Device' };
@@ -18,7 +18,8 @@ function authenticate(req, res, next) {
 
     try {
         const decoded = jwt.verify(auth.split(' ')[1], JWT_SECRET);
-        const user = db.prepare('SELECT id, name, operator_id, role, active FROM users WHERE id = ?').get(decoded.userId);
+        const { rows } = await db.query('SELECT id, name, operator_id, role, active FROM users WHERE id = $1', [decoded.userId]);
+        const user = rows[0];
         if (!user || !user.active) return res.status(401).json({ error: 'Invalid or inactive account' });
         req.user = user;
         next();

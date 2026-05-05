@@ -8,12 +8,13 @@ const { authenticate, requireRole, JWT_SECRET } = require('../middleware/authMid
 
 const JWT_EXPIRES = '8h';
 
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res) => {
     try {
         const { operator_id, password } = req.body;
         if (!operator_id || !password) return res.status(400).json({ error: 'Operator ID and password required' });
 
-        const user = db.prepare('SELECT * FROM users WHERE operator_id = ?').get(operator_id);
+        const { rows } = await db.query('SELECT * FROM users WHERE operator_id = $1', [operator_id]);
+        const user = rows[0];
         if (!user) return res.status(401).json({ error: 'Invalid credentials' });
         if (!user.active) return res.status(403).json({ error: 'Account deactivated' });
 
@@ -21,12 +22,12 @@ router.post('/login', (req, res) => {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        db.prepare(`UPDATE users SET last_login = datetime('now') WHERE id = ?`).run(user.id);
+        await db.query(`UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1`, [user.id]);
 
         const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
 
-        db.prepare('INSERT INTO audit_log (id, user_id, action, resource, ip_address) VALUES (?, ?, ?, ?, ?)')
-            .run(uuidv4(), user.id, 'login', 'auth', req.ip);
+        await db.query('INSERT INTO audit_log (id, user_id, action, resource, ip_address) VALUES ($1, $2, $3, $4, $5)', 
+            [uuidv4(), user.id, 'login', 'auth', req.ip]);
 
         res.json({
             token,
@@ -37,17 +38,5 @@ router.post('/login', (req, res) => {
         res.status(500).json({ error: 'Login failed', detail: err.message });
     }
 });
-
-/* 
-router.post('/register', (req, res) => {
-    ...
-});
-*/
-
-/*
-router.post('/invite', authenticate, requireRole('supervisor'), (req, res) => {
-    ...
-});
-*/
 
 module.exports = router;

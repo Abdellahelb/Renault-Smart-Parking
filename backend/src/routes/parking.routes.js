@@ -6,56 +6,70 @@ const { authenticate, requireRole } = require('../middleware/authMiddleware');
 module.exports = (io) => {
     const router = express.Router();
 
-    router.get('/rhl/state', authenticate, (req, res) => {
-        const spots = db.prepare(`
-            SELECT ps.spot_label, ps.block, ps.side, ps.position, ps.status, ps.vin, ps.occupied_at, ps.car_color, ps.operator_id, ps.reserved_by
-            FROM parking_spots ps JOIN parking_lots pl ON ps.lot_id = pl.id
-            WHERE pl.name = 'Parking RHL' ORDER BY ps.block, ps.position
-        `).all();
+    router.get('/rhl/state', authenticate, async (req, res) => {
+        try {
+            const { rows } = await db.query(`
+                SELECT ps.spot_label, ps.block, ps.side, ps.position, ps.status, ps.vin, ps.occupied_at, ps.car_color, ps.operator_id, ps.reserved_by
+                FROM parking_spots ps JOIN parking_lots pl ON ps.lot_id = pl.id
+                WHERE pl.name = 'Parking RHL' ORDER BY ps.block, ps.position
+            `);
 
-        const enriched = spots.map(s => ({
-            ...s,
-            id: s.spot_label,
-            daysParked: s.occupied_at ? Math.floor((Date.now() - new Date(s.occupied_at).getTime()) / 86400000) : 0,
-        }));
+            const enriched = rows.map(s => ({
+                ...s,
+                id: s.spot_label,
+                daysParked: s.occupied_at ? Math.floor((Date.now() - new Date(s.occupied_at).getTime()) / 86400000) : 0,
+            }));
 
-        res.json({ spots: enriched, total: enriched.length });
+            res.json({ spots: enriched, total: enriched.length });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
     });
 
-    router.get('/contine/state', authenticate, (req, res) => {
-        const spots = db.prepare(`
-            SELECT ps.spot_label, ps.block, ps.position, ps.status, ps.vin, ps.occupied_at, ps.car_color, ps.operator_id, ps.reserved_by
-            FROM parking_spots ps JOIN parking_lots pl ON ps.lot_id = pl.id
-            WHERE pl.name = 'Parking Contine' ORDER BY ps.position
-        `).all();
+    router.get('/contine/state', authenticate, async (req, res) => {
+        try {
+            const { rows } = await db.query(`
+                SELECT ps.spot_label, ps.block, ps.position, ps.status, ps.vin, ps.occupied_at, ps.car_color, ps.operator_id, ps.reserved_by
+                FROM parking_spots ps JOIN parking_lots pl ON ps.lot_id = pl.id
+                WHERE pl.name = 'Parking Contine' ORDER BY ps.position
+            `);
 
-        const enriched = spots.map(s => ({
-            ...s,
-            id: s.spot_label,
-            daysParked: s.occupied_at ? Math.floor((Date.now() - new Date(s.occupied_at).getTime()) / 86400000) : 0,
-        }));
+            const enriched = rows.map(s => ({
+                ...s,
+                id: s.spot_label,
+                daysParked: s.occupied_at ? Math.floor((Date.now() - new Date(s.occupied_at).getTime()) / 86400000) : 0,
+            }));
 
-        res.json({ spots: enriched, total: enriched.length });
+            res.json({ spots: enriched, total: enriched.length });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
     });
 
     // Spot reservation (Single)
-    router.post('/spots/:id/reserve', authenticate, (req, res) => {
+    router.post('/spots/:id/reserve', authenticate, async (req, res) => {
         const { vin, nom, prenom } = req.body;
         const spotId = req.params.id;
-        const spot = db.prepare('SELECT * FROM parking_spots WHERE (id = ? OR spot_label = ?) AND status = ?').get(spotId, spotId, 'empty');
-        if (!spot) return res.status(404).json({ error: 'Spot not available' });
+        
+        try {
+            const { rows } = await db.query('SELECT * FROM parking_spots WHERE (id = $1 OR spot_label = $2) AND status = $3', [spotId, spotId, 'empty']);
+            const spot = rows[0];
+            if (!spot) return res.status(404).json({ error: 'Spot not available' });
 
-        const reservedBy = (nom && prenom) ? `${nom} ${prenom}` : null;
+            const reservedBy = (nom && prenom) ? `${nom} ${prenom}` : null;
 
-        db.prepare(`UPDATE parking_spots SET status = ?, vin = ?, reserved_by = ?, operator_id = ?, occupied_at = datetime('now') WHERE id = ?`)
-            .run('reserved', vin?.toUpperCase() || null, reservedBy, req.user.id, spot.id);
+            await db.query(`UPDATE parking_spots SET status = $1, vin = $2, reserved_by = $3, operator_id = $4, occupied_at = CURRENT_TIMESTAMP WHERE id = $5`, 
+                ['reserved', vin?.toUpperCase() || null, reservedBy, req.user.id, spot.id]);
 
-        io.emit('spot:updated', { spot_id: spot.spot_label, status: 'reserved', vin, reserved_by: reservedBy });
-        res.json({ spot: spot.spot_label, status: 'reserved' });
+            io.emit('spot:updated', { spot_id: spot.spot_label, status: 'reserved', vin, reserved_by: reservedBy });
+            res.json({ spot: spot.spot_label, status: 'reserved' });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
     });
 
     // Bulk Reservation
-    router.post('/spots/bulk-reserve', authenticate, (req, res) => {
+    router.post('/spots/bulk-reserve', authenticate, async (req, res) => {
         const { spotIds, nom, prenom } = req.body;
         if (!Array.isArray(spotIds) || spotIds.length === 0) return res.status(400).json({ error: 'spotIds array is required' });
         if (!nom || !prenom) return res.status(400).json({ error: 'nom and prenom are required' });
@@ -63,121 +77,146 @@ module.exports = (io) => {
         const reservedBy = `${nom} ${prenom}`;
         const updatedSpots = [];
 
-        db.transaction(() => {
+        try {
             for (const spotId of spotIds) {
-                const spot = db.prepare('SELECT * FROM parking_spots WHERE (id = ? OR spot_label = ?) AND status = ?').get(spotId, spotId, 'empty');
+                const { rows } = await db.query('SELECT * FROM parking_spots WHERE (id = $1 OR spot_label = $2) AND status = $3', [spotId, spotId, 'empty']);
+                const spot = rows[0];
                 if (spot) {
-                    db.prepare(`UPDATE parking_spots SET status = ?, reserved_by = ?, operator_id = ?, occupied_at = datetime('now') WHERE id = ?`)
-                        .run('reserved', reservedBy, req.user.id, spot.id);
+                    await db.query(`UPDATE parking_spots SET status = $1, reserved_by = $2, operator_id = $3, occupied_at = CURRENT_TIMESTAMP WHERE id = $4`, 
+                        ['reserved', reservedBy, req.user.id, spot.id]);
                     updatedSpots.push({ spot_id: spot.spot_label, status: 'reserved', reserved_by: reservedBy });
                 }
             }
-        })();
-
-        updatedSpots.forEach(s => io.emit('spot:updated', s));
-        res.json({ updated: updatedSpots.length, spots: updatedSpots });
+            updatedSpots.forEach(s => io.emit('spot:updated', s));
+            res.json({ updated: updatedSpots.length, spots: updatedSpots });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
     });
 
     // Spot release
-    router.post('/spots/:id/release', authenticate, (req, res) => {
+    router.post('/spots/:id/release', authenticate, async (req, res) => {
         const { id } = req.params;
-        db.transaction(() => {
-            const spot = db.prepare('SELECT id, lot_id, spot_label, vin FROM parking_spots WHERE id = ? OR spot_label = ?').get(id, id);
+        try {
+            const { rows } = await db.query('SELECT id, lot_id, spot_label, vin FROM parking_spots WHERE id = $1 OR spot_label = $2', [id, id]);
+            const spot = rows[0];
             if (!spot) return res.status(404).json({ error: 'Spot not found' });
 
-            db.prepare(`
+            await db.query(`
                 UPDATE parking_spots 
                 SET status = 'empty', vin = NULL, reserved_by = NULL, occupied_at = NULL, operator_id = NULL 
-                WHERE id = ?
-            `).run(spot.id);
+                WHERE id = $1
+            `, [spot.id]);
 
-            db.prepare('INSERT INTO vehicle_history (id, vin, action, spot_id, operator_id) VALUES (?, ?, ?, ?, ?)')
-                .run(uuidv4(), spot.vin || 'N/A', 'RELEASED', spot.id, req.user.id);
+            await db.query('INSERT INTO vehicle_history (id, vin, action, spot_id, operator_id) VALUES ($1, $2, $3, $4, $5)', 
+                [uuidv4(), spot.vin || 'N/A', 'RELEASED', spot.id, req.user.id]);
 
             io.emit('spot:updated', {
                 spot_id: spot.spot_label,
                 lot_id: spot.lot_id,
                 status: 'empty'
             });
-        })();
-        res.json({ message: 'Spot released' });
+            res.json({ message: 'Spot released' });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
     });
 
     // Virtual Parking Routes
-    router.get('/virtual', authenticate, (req, res) => {
-        const virtualLots = db.prepare(`
-            SELECT * FROM parking_lots 
-            WHERE type = 'virtual' ORDER BY created_at DESC
-        `).all();
+    router.get('/virtual', authenticate, async (req, res) => {
+        try {
+            const { rows: virtualLots } = await db.query(`
+                SELECT * FROM parking_lots 
+                WHERE type = 'virtual' ORDER BY created_at DESC
+            `);
 
-        const lotsWithStats = virtualLots.map(lot => {
-            const stats = db.prepare(`
-                SELECT 
-                    COUNT(*) as spots,
-                    SUM(CASE WHEN status != 'empty' THEN 1 ELSE 0 END) as occupied
-                FROM parking_spots WHERE lot_id = ?
-            `).get(lot.id);
-            return { ...lot, spots: stats.spots, occupied: stats.occupied };
-        });
-        res.json({ virtualLots: lotsWithStats });
+            const lotsWithStats = await Promise.all(virtualLots.map(async (lot) => {
+                const { rows } = await db.query(`
+                    SELECT 
+                        COUNT(*) as spots,
+                        SUM(CASE WHEN status != 'empty' THEN 1 ELSE 0 END) as occupied
+                    FROM parking_spots WHERE lot_id = $1
+                `, [lot.id]);
+                const stats = rows[0];
+                return { ...lot, spots: parseInt(stats.spots), occupied: parseInt(stats.occupied || 0) };
+            }));
+            res.json({ virtualLots: lotsWithStats });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
     });
 
-    router.get('/virtual/:id/spots', authenticate, (req, res) => {
+    router.get('/virtual/:id/spots', authenticate, async (req, res) => {
         const { id } = req.params;
         try {
-            const spots = db.prepare(`
+            const { rows: spots } = await db.query(`
                 SELECT ps.*, pl.name as parking 
                 FROM parking_spots ps 
                 JOIN parking_lots pl ON ps.lot_id = pl.id 
-                WHERE pl.id = ?
-            `).all(id);
+                WHERE pl.id = $1
+            `, [id]);
             res.json({ vehicles: spots });
         } catch (err) {
             res.status(500).json({ error: err.message });
         }
     });
 
-    router.post('/virtual', authenticate, requireRole('supervisor'), (req, res) => {
+    router.post('/virtual', authenticate, requireRole('supervisor'), async (req, res) => {
         const { name, totalSpots, width, length } = req.body;
         if (!name || !totalSpots) return res.status(400).json({ error: 'Name and totalSpots required' });
 
         const lotId = uuidv4();
-        db.transaction(() => {
-            db.prepare('INSERT INTO parking_lots (id, name, type, total_spots, width, length) VALUES (?, ?, ?, ?, ?, ?)')
-                .run(lotId, name, 'virtual', totalSpots, width || null, length || null);
+        try {
+            await db.query('INSERT INTO parking_lots (id, name, type, total_spots, width, length) VALUES ($1, $2, $3, $4, $5, $6)', 
+                [lotId, name, 'virtual', totalSpots, width || null, length || null]);
+            
             for (let i = 1; i <= totalSpots; i++) {
-                db.prepare('INSERT INTO parking_spots (id, lot_id, spot_label, position) VALUES (?, ?, ?, ?)')
-                    .run(uuidv4(), lotId, `V${i}`, i);
+                await db.query('INSERT INTO parking_spots (id, lot_id, spot_label, position) VALUES ($1, $2, $3, $4)', 
+                    [uuidv4(), lotId, `V${i}`, i]);
             }
-            db.prepare('INSERT INTO audit_log (id, user_id, action, resource, detail) VALUES (?, ?, ?, ?, ?)')
-                .run(uuidv4(), req.user.id, 'CREATE_VIRTUAL_PARK', lotId, `Created virtual park ${name} with ${totalSpots} spots`);
-        })();
-        res.status(201).json({ id: lotId, name, totalSpots, status: 'created' });
+            
+            await db.query('INSERT INTO audit_log (id, user_id, action, resource, detail) VALUES ($1, $2, $3, $4, $5)', 
+                [uuidv4(), req.user.id, 'CREATE_VIRTUAL_PARK', lotId, `Created virtual park ${name} with ${totalSpots} spots`]);
+                
+            res.status(201).json({ id: lotId, name, totalSpots, status: 'created' });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
     });
 
-    router.delete('/virtual/:id', authenticate, requireRole('supervisor'), (req, res) => {
+    router.delete('/virtual/:id', authenticate, requireRole('supervisor'), async (req, res) => {
         const { id } = req.params;
-        db.transaction(() => {
-            const lot = db.prepare('SELECT name FROM parking_lots WHERE id = ?').get(id);
-            if (!lot) throw new Error('Virtual lot not found');
-            db.prepare('DELETE FROM parking_spots WHERE lot_id = ?').run(id);
-            db.prepare('DELETE FROM parking_lots WHERE id = ?').run(id);
-            db.prepare('INSERT INTO audit_log (id, user_id, action, resource, detail) VALUES (?, ?, ?, ?, ?)')
-                .run(uuidv4(), req.user.id, 'DELETE_VIRTUAL_PARK', id, `Deleted virtual park ${lot.name}`);
-        })();
-        res.json({ message: 'Virtual lot deleted' });
+        try {
+            const { rows } = await db.query('SELECT name FROM parking_lots WHERE id = $1', [id]);
+            const lot = rows[0];
+            if (!lot) return res.status(404).json({ error: 'Virtual lot not found' });
+            
+            await db.query('DELETE FROM parking_spots WHERE lot_id = $1', [id]);
+            await db.query('DELETE FROM parking_lots WHERE id = $1', [id]);
+            await db.query('INSERT INTO audit_log (id, user_id, action, resource, detail) VALUES ($1, $2, $3, $4, $5)', 
+                [uuidv4(), req.user.id, 'DELETE_VIRTUAL_PARK', id, `Deleted virtual park ${lot.name}`]);
+            
+            res.json({ message: 'Virtual lot deleted' });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
     });
 
-    router.patch('/virtual/:id/toggle', authenticate, requireRole('supervisor'), (req, res) => {
+    router.patch('/virtual/:id/toggle', authenticate, requireRole('supervisor'), async (req, res) => {
         const lotId = req.params.id;
-        const lot = db.prepare('SELECT active, name FROM parking_lots WHERE id = ?').get(lotId);
-        if (!lot) return res.status(404).json({ error: 'Lot not found' });
+        try {
+            const { rows } = await db.query('SELECT active, name FROM parking_lots WHERE id = $1', [lotId]);
+            const lot = rows[0];
+            if (!lot) return res.status(404).json({ error: 'Lot not found' });
 
-        const newActive = lot.active === 1 ? 0 : 1;
-        db.prepare('UPDATE parking_lots SET active = ? WHERE id = ?').run(newActive, lotId);
-        db.prepare('INSERT INTO audit_log (id, user_id, action, resource, detail) VALUES (?, ?, ?, ?, ?)')
-            .run(uuidv4(), req.user.id, 'TOGGLE_VIRTUAL_PARK', lotId, `Set ${lot.name} to ${newActive ? 'active' : 'inactive'}`);
-        res.json({ id: lotId, active: newActive });
+            const newActive = lot.active === 1 ? 0 : 1;
+            await db.query('UPDATE parking_lots SET active = $1 WHERE id = $2', [newActive, lotId]);
+            await db.query('INSERT INTO audit_log (id, user_id, action, resource, detail) VALUES ($1, $2, $3, $4, $5)', 
+                [uuidv4(), req.user.id, 'TOGGLE_VIRTUAL_PARK', lotId, `Set ${lot.name} to ${newActive ? 'active' : 'inactive'}`]);
+            res.json({ id: lotId, active: newActive });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
     });
 
     return router;
