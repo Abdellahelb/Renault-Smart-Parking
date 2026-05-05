@@ -460,19 +460,24 @@ function MultipleReleaseModal({ onClose, onMultipleRelease, blocks }) {
     const [block, setBlock] = useState(blocks[0]);
     const [fromNum, setFromNum] = useState('');
     const [toNum, setToNum] = useState('');
+    const [pendingSpotIds, setPendingSpotIds] = useState(null);
 
     const handleRelease = () => {
         const start = parseInt(fromNum);
         const end = parseInt(toNum);
-        if (isNaN(start) || isNaN(end) || start > end) return alert('Invalid spot range');
-        
+        if (isNaN(start) || isNaN(end) || start > end) {
+            setPendingSpotIds(null);
+            return;
+        }
         const spotIds = [];
         for (let i = start; i <= end; i++) {
             spotIds.push(`${block}${i}`);
         }
-        if (window.confirm(`Are you sure you want to release ${spotIds.length} spots in Block ${block}?`)) {
-            onMultipleRelease(spotIds);
-        }
+        setPendingSpotIds(spotIds);
+    };
+
+    const handleConfirm = () => {
+        if (pendingSpotIds) onMultipleRelease(pendingSpotIds);
     };
 
     return (
@@ -483,28 +488,44 @@ function MultipleReleaseModal({ onClose, onMultipleRelease, blocks }) {
                     <button className="btn-icon header-btn" onClick={onClose}><X size={18} /></button>
                 </div>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '16px' }}>
-                    ⚠️ Note: Only <strong>Orange (Reserved)</strong> spots will be released. 
+                    ⚠️ Note: Only <strong>Orange (Reserved)</strong> spots will be released.
                     Active Blue/Red vehicles are protected and will be skipped.
                 </p>
-                <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                    <div className="form-group" style={{ flex: 1 }}>
-                        <label className="form-label">Block</label>
-                        <select className="form-input" value={block} onChange={e => setBlock(e.target.value)}>
-                            {blocks.map(b => <option key={b} value={b}>{b}</option>)}
-                        </select>
+
+                {pendingSpotIds ? (
+                    <div style={{ textAlign: 'center' }}>
+                        <p style={{ marginBottom: '20px', color: 'var(--text-primary)', fontWeight: 600 }}>
+                            Release <span style={{ color: 'var(--red)' }}>{pendingSpotIds.length} spot(s)</span> in Block <span style={{ color: 'var(--yellow)' }}>{block}</span>?<br/>
+                            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 400 }}>Only orange reserved spots will be cleared.</span>
+                        </p>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setPendingSpotIds(null)}>Cancel</button>
+                            <button className="btn btn-danger" style={{ flex: 1 }} onClick={handleConfirm}>✓ Confirm Release</button>
+                        </div>
                     </div>
-                    <div className="form-group" style={{ flex: 1 }}>
-                        <label className="form-label">From spot</label>
-                        <input type="number" className="form-input" placeholder="e.g. 1" value={fromNum} onChange={e => setFromNum(e.target.value)} />
-                    </div>
-                    <div className="form-group" style={{ flex: 1 }}>
-                        <label className="form-label">To spot</label>
-                        <input type="number" className="form-input" placeholder="e.g. 10" value={toNum} onChange={e => setToNum(e.target.value)} />
-                    </div>
-                </div>
-                <button className="btn btn-danger" style={{ width: '100%' }} onClick={handleRelease}>
-                    Release Range
-                </button>
+                ) : (
+                    <>
+                        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                            <div className="form-group" style={{ flex: 1 }}>
+                                <label className="form-label">Block</label>
+                                <select className="form-input" value={block} onChange={e => setBlock(e.target.value)}>
+                                    {blocks.map(b => <option key={b} value={b}>{b}</option>)}
+                                </select>
+                            </div>
+                            <div className="form-group" style={{ flex: 1 }}>
+                                <label className="form-label">From spot</label>
+                                <input type="number" className="form-input" placeholder="e.g. 1" value={fromNum} onChange={e => setFromNum(e.target.value)} />
+                            </div>
+                            <div className="form-group" style={{ flex: 1 }}>
+                                <label className="form-label">To spot</label>
+                                <input type="number" className="form-input" placeholder="e.g. 10" value={toNum} onChange={e => setToNum(e.target.value)} />
+                            </div>
+                        </div>
+                        <button className="btn btn-danger" style={{ width: '100%' }} onClick={handleRelease}>
+                            Release Range
+                        </button>
+                    </>
+                )}
             </motion.div>
         </motion.div>
     );
