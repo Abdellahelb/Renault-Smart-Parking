@@ -171,7 +171,7 @@ export default function HistoryPage() {
                                                     <div className="kpi-icon blue" style={{ width: '32px', height: '32px', marginBottom: 0 }}>
                                                         <Car size={16} />
                                                     </div>
-                                                    <span style={{ fontFamily: 'monospace', color: 'var(--text-primary)', fontWeight: 600, letterSpacing: '1px' }}>{log.vin}</span>
+                                                    <span style={{ fontFamily: 'monospace', color: 'var(--blue)', fontWeight: 700, letterSpacing: '1px', fontSize: '0.9rem' }}>{log.vin}</span>
                                                 </div>
                                             </td>
                                             <td style={{ padding: '20px 24px' }}>

@@ -318,7 +318,7 @@ export default function DashboardPage() {
                                     </span>
                                 </div>
                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                    VIN: {alert.vin} · Block {alert.block}
+                                    VIN: <span style={{ color: 'var(--blue)', fontWeight: 600 }}>{alert.vin}</span> · Block {alert.block}
                                 </div>
                                 <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
                                     <button className="btn btn-sm btn-secondary">Acknowledge</button>
@@ -362,7 +362,7 @@ export default function DashboardPage() {
                                     <span style={{ color: 'var(--text-muted)' }}> · </span>
                                     <span style={{ color: 'var(--yellow)', fontFamily: 'var(--font-display)' }}>{item.spot}</span>
                                 </div>
-                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--blue)', fontWeight: 500, fontFamily: 'monospace' }}>
                                     {item.vin}
                                 </div>
                             </div>
