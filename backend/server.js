@@ -12,10 +12,11 @@ const vehicleRoutes = require('./src/routes/vehicle.routes');
 const parkingRoutes = require('./src/routes/parking.routes');
 const dashboardRoutes = require('./src/routes/dashboard.routes');
 const adminRoutes = require('./src/routes/admin.routes');
+const db = require('./src/config/db');
 
 // ============================================
 // CONFIG
-// ============================================
+20: // ============================================
 const PORT = process.env.PORT || 3001;
 
 // ============================================
@@ -24,18 +25,38 @@ const PORT = process.env.PORT || 3001;
 const app = express();
 const httpServer = createServer(app);
 const corsOptions = {
-    origin: [process.env.FRONTEND_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'].filter(Boolean),
+    origin: '*', // More permissive for Vercel proxying
     credentials: true
 };
 
 const io = new Server(httpServer, {
-    cors: { origin: [process.env.FRONTEND_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'].filter(Boolean), methods: ['GET', 'POST'] }
+    cors: { origin: '*', methods: ['GET', 'POST'] }
 });
 
 app.use(cors(corsOptions));
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json());
 app.use(morgan('dev'));
+
+// ============================================
+// DATABASE INIT
+// ============================================
+// In Vercel, we can't easily wait for this in a top-level startServer
+// so we'll just trigger it and let the first request wait if needed,
+// or use a simple middleware to ensure DB is ready.
+let dbInitialized = false;
+app.use(async (req, res, next) => {
+    if (!dbInitialized) {
+        try {
+            await db.initDatabase();
+            dbInitialized = true;
+            console.log('Database initialized on first request');
+        } catch (err) {
+            console.error('Database initialization failed:', err);
+        }
+    }
+    next();
+});
 
 // ============================================
 // ROUTES
@@ -66,29 +87,13 @@ io.on('connection', (socket) => {
 });
 
 // ============================================
-// START SERVER
+// START SERVER (Local only)
 // ============================================
-const startServer = async () => {
-    try {
-        await authRoutes.initAdmin ? null : null; // No-op if not needed
-        const db = require('./src/config/db');
-        await db.initDatabase();
+if (process.env.NODE_ENV !== 'production') {
+    httpServer.listen(PORT, () => {
+        console.log(`Server running locally on port ${PORT}`);
+    });
+}
 
-        httpServer.listen(PORT, () => {
-            console.log(`
-  ╔═══════════════════════════════════════════════╗
-  ║   🚗 Smart Parking Manager API (PostgreSQL)   ║
-  ║   Running on http://localhost:${PORT}            ║
-  ║   Database: Vercel Postgres                   ║
-  ║   WebSocket: Enabled                          ║
-  ║                                               ║
-  ║   Refactor: Persistent Data Mode              ║
-  ╚═══════════════════════════════════════════════╝
-    `);
-        });
-    } catch (err) {
-        console.error('Failed to start server:', err);
-    }
-};
-
-startServer();
+// Export for Vercel
+module.exports = app;
