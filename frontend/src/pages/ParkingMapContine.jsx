@@ -189,26 +189,26 @@ function SpotDetailModal({ spot, onClose, onRelease, onReserve }) {
                             <MapPin size={16} style={{ color: 'var(--text-muted)' }} />
                             <div><div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Retention Cycle</div><div style={{ fontSize: '1.1rem', color: spot.daysParked >= maxParkDays ? 'var(--red)' : 'var(--yellow)', fontWeight: 800 }}>{spot.daysParked} <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{spot.daysParked >= maxParkDays ? 'DAYS (EXCEEDED)' : 'DAYS'}</span></div></div>
                         </div>
-                        {spot.reservation_method === 'scan' ? (
+                        {spot.status !== 'reserved' ? (
                             <div style={{ 
                                 marginTop: '16px', 
                                 padding: '12px', 
-                                background: 'var(--blue-dim)', 
+                                background: 'rgba(33,150,243,0.1)', 
                                 border: '1px solid rgba(33,150,243,0.3)', 
                                 borderRadius: '8px',
                                 textAlign: 'center',
-                                color: 'var(--blue)',
+                                color: spot.status === 'alert' ? 'var(--red)' : 'var(--blue)',
                                 fontWeight: 600,
                                 fontSize: '0.85rem'
                             }}>
-                                🛡️ SCAN PROTECTED
+                                🛡️ PROTECTED VIN
                                 <div style={{ fontSize: '0.7rem', fontWeight: 400, marginTop: '4px', color: 'var(--text-muted)' }}>
-                                    This spot was reserved via scan. Manual release is disabled. 
-                                    Please use a scan checkout to clear this spot.
+                                    This vehicle is active ({spot.status.toUpperCase()}). 
+                                    Manual release is disabled. Please use Scan Checkout.
                                 </div>
                             </div>
                         ) : (
-                            <button className="btn btn-primary" style={{ marginTop: '8px' }} onClick={() => onRelease(spot.id)}>
+                            <button className="btn btn-primary" onClick={() => onRelease(spot.id)}>
                                 Release Place
                             </button>
                         )}
@@ -323,6 +323,10 @@ function MultipleReleaseModal({ onClose, onMultipleRelease, blocks }) {
                     <div className="modal-title" style={{ color: 'var(--red)', fontSize: '1.5rem' }}>Multiple Release</div>
                     <button className="btn-icon header-btn" onClick={onClose}><X size={18} /></button>
                 </div>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '16px' }}>
+                    ⚠️ Note: Only <strong>Orange (Reserved)</strong> spots will be released. 
+                    Active Blue/Red vehicles are protected and will be skipped.
+                </p>
                 <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
                     <div className="form-group" style={{ flex: 1 }}>
                         <label className="form-label">Block</label>

@@ -105,8 +105,11 @@ module.exports = (io) => {
                 const { rows } = await db.query('SELECT id, spot_label, vin, reservation_method FROM parking_spots WHERE id = $1 OR spot_label = $2', [spotId, spotId]);
                 const spot = rows[0];
                 if (spot) {
-                    if (spot.reservation_method === 'scan') {
-                        // Skip scan-reserved spots in bulk release to maintain integrity
+                    const { rows: spotStatusRows } = await db.query('SELECT status FROM parking_spots WHERE id = $1', [spot.id]);
+                    const currentStatus = spotStatusRows[0]?.status;
+
+                    if (spot.reservation_method === 'scan' || currentStatus === 'occupied' || currentStatus === 'alert') {
+                        // Skip scan-reserved or actual occupied/alert spots in bulk release
                         continue;
                     }
                     await db.query(`
@@ -136,8 +139,14 @@ module.exports = (io) => {
             const spot = rows[0];
             if (!spot) return res.status(404).json({ error: 'Spot not found' });
 
-            if (spot.reservation_method === 'scan') {
-                return res.status(403).json({ error: 'SCAN_PROTECTED', message: 'This spot was reserved via scan and can only be released via scan checkout.' });
+            const { rows: spotStatusRows } = await db.query('SELECT status FROM parking_spots WHERE id = $1', [spot.id]);
+            const currentStatus = spotStatusRows[0]?.status;
+
+            if (spot.reservation_method === 'scan' || currentStatus === 'occupied' || currentStatus === 'alert') {
+                return res.status(403).json({ 
+                    error: 'MANUAL_RELEASE_FORBIDDEN', 
+                    message: 'This spot contains an active vehicle (Blue/Red) and can only be released via scan checkout.' 
+                });
             }
 
             await db.query(`

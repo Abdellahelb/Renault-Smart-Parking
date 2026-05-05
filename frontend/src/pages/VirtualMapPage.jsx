@@ -352,9 +352,29 @@ export default function VirtualMapPage() {
                                             </div>
                                         </div>
                                     </div>
-                                    <button className="btn btn-primary" onClick={() => onRelease(selectedSpot.id)}>
-                                        Release Place
-                                    </button>
+                                    {(selectedSpot.status === 'occupied' || selectedSpot.status === 'alert') ? (
+                                        <div style={{ 
+                                            marginTop: '16px', 
+                                            padding: '12px', 
+                                            background: 'rgba(33,150,243,0.1)', 
+                                            border: '1px solid rgba(33,150,243,0.3)', 
+                                            borderRadius: '8px',
+                                            textAlign: 'center',
+                                            color: selectedSpot.status === 'alert' ? 'var(--red)' : 'var(--blue)',
+                                            fontWeight: 600,
+                                            fontSize: '0.85rem'
+                                        }}>
+                                            🛡️ PROTECTED VIN
+                                            <div style={{ fontSize: '0.7rem', fontWeight: 400, marginTop: '4px', color: 'var(--text-muted)' }}>
+                                                This vehicle is active ({selectedSpot.status.toUpperCase()}). 
+                                                Manual release is disabled. Please use Scan Checkout.
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <button className="btn btn-primary" onClick={() => onRelease(selectedSpot.id)}>
+                                            Release Place
+                                        </button>
+                                    )}
                                 </div>
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
