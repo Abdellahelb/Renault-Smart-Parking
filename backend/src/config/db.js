@@ -16,7 +16,7 @@ db.exec(`
     operator_id TEXT UNIQUE NOT NULL,
     email TEXT,
     password_hash TEXT NOT NULL,
-    role TEXT NOT NULL DEFAULT 'operator' CHECK(role IN ('admin','supervisor','operator')),
+    role TEXT NOT NULL DEFAULT 'operator' CHECK(role IN ('admin','supervisor','engineering','operator')),
     active INTEGER NOT NULL DEFAULT 1,
     created_by TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -132,7 +132,7 @@ function seedDatabase() {
 
   const rtmaHash = bcrypt.hashSync('rtma123', 12);
   db.prepare(`INSERT INTO users (id, name, operator_id, email, password_hash, role) VALUES (?, ?, ?, ?, ?, ?)`)
-    .run(uuidv4(), 'RTMA Engineering', 'RTMA001', 'rtma@renault.com', rtmaHash, 'supervisor');
+    .run(uuidv4(), 'RTMA Engineering', 'RTMA001', 'rtma@renault.com', rtmaHash, 'engineering');
 
   const rhlId = uuidv4();
   db.prepare(`INSERT INTO parking_lots (id, name, type, total_spots) VALUES (?, ?, ?, ?)`)

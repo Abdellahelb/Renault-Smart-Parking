@@ -1,3 +1,4 @@
+import { API_URL, SOCKET_URL } from '../api_config';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FileText, Download, Calendar, BarChart3, PieChart, TrendingUp, Loader2 } from 'lucide-react';
@@ -43,7 +44,7 @@ export default function ReportsPage() {
         const fetchStats = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/stats?from=${dateFrom}&to=${dateTo}&period=${period}`, {
+                const res = await fetch(`${API_URL}/stats?from=${dateFrom}&to=${dateTo}&period=${period}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
@@ -58,11 +59,11 @@ export default function ReportsPage() {
         if (token) {
             fetchStats();
 
-            const socket = io(import.meta.env.VITE_API_URL);
+            const socket = io(SOCKET_URL);
 
             const refresh = () => {
                 // Silently refresh without full loading state for real-time feel
-                fetch(`${import.meta.env.VITE_API_URL}/api/v1/stats?from=${dateFrom}&to=${dateTo}&period=${period}`, {
+                fetch(`${API_URL}/stats?from=${dateFrom}&to=${dateTo}&period=${period}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 })
                     .then(res => res.json())

@@ -1,3 +1,4 @@
+import { API_URL, SOCKET_URL } from '../api_config';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Zap, Ruler, Grid, Trash2, Eye, Settings, Map as MapIcon, ArrowRight } from 'lucide-react';

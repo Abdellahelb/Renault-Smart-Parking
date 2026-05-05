@@ -1,6 +1,7 @@
+import { API_URL, SOCKET_URL } from '../api_config';
 import { create } from 'zustand';
 
-const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
+const API_URL = `${API_URL}`;
 
 const useUserStore = create((set) => ({
     users: [],

@@ -1,3 +1,4 @@
+import { API_URL, SOCKET_URL } from '../api_config';
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -24,7 +25,7 @@ export default function SearchPage() {
     useEffect(() => {
         const fetchVehicles = async () => {
             try {
-                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/vehicles/search`, {
+                const res = await fetch(`${API_URL}/vehicles/search`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();

@@ -1,3 +1,4 @@
+import { API_URL, SOCKET_URL } from '../api_config';
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';

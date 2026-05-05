@@ -1,3 +1,4 @@
+import { API_URL, SOCKET_URL } from '../api_config';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Bell, AlertTriangle, CheckCircle2, Clock, Eye, Filter } from 'lucide-react';
@@ -12,7 +13,7 @@ export default function AlertsPage() {
     const fetchAlerts = async () => {
         if (!token) return;
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/alerts`, {
+            const res = await fetch(`${API_URL}/alerts`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -36,7 +37,7 @@ export default function AlertsPage() {
         fetchAlerts();
         let socket;
         if (token) {
-            socket = io(import.meta.env.VITE_API_URL);
+            socket = io(SOCKET_URL);
             socket.on('spot:updated', fetchAlerts);
             socket.on('vehicle:departed', fetchAlerts);
             socket.on('vehicle:arrived', fetchAlerts);

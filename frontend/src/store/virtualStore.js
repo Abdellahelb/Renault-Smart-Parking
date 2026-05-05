@@ -1,3 +1,4 @@
+import { API_URL, SOCKET_URL } from '../api_config';
 import { create } from 'zustand';
 import useAuthStore from './authStore';
 
@@ -10,7 +11,7 @@ const useVirtualStore = create((set, get) => ({
         set({ loading: true, error: null });
         try {
             const { token } = useAuthStore.getState();
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/virtual`, {
+            const res = await fetch(`${API_URL}/virtual`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const data = await res.json();
@@ -26,7 +27,7 @@ const useVirtualStore = create((set, get) => ({
         set({ loading: true, error: null });
         try {
             const { token } = useAuthStore.getState();
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/virtual`, {
+            const res = await fetch(`${API_URL}/virtual`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -49,7 +50,7 @@ const useVirtualStore = create((set, get) => ({
     toggleVirtualLot: async (id) => {
         set({ loading: true });
         try {
-            await fetch(`${import.meta.env.VITE_API_URL}/api/v1/virtual/${id}/toggle`, {
+            await fetch(`${API_URL}/virtual/${id}/toggle`, {
                 method: 'PATCH',
                 headers: { 'Authorization': `Bearer ${useAuthStore.getState().token}` }
             });
@@ -64,7 +65,7 @@ const useVirtualStore = create((set, get) => ({
     deleteVirtualLot: async (id) => {
         set({ loading: true });
         try {
-            await fetch(`${import.meta.env.VITE_API_URL}/api/v1/virtual/${id}`, {
+            await fetch(`${API_URL}/virtual/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${useAuthStore.getState().token}` }
             });

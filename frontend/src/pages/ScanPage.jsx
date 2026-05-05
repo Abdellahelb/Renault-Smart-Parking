@@ -1,3 +1,4 @@
+import { API_URL, SOCKET_URL } from '../api_config';
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScanBarcode, CheckCircle2, XCircle, MapPin, Car, ArrowRight, RotateCcw, Zap } from 'lucide-react';
@@ -18,7 +19,7 @@ export default function ScanPage() {
         const fetchHistory = async () => {
             try {
                 const { token } = useAuthStore.getState();
-                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/history`, {
+                const res = await fetch(`${API_URL}/history`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const data = await res.json();
@@ -41,7 +42,7 @@ export default function ScanPage() {
 
         fetchHistory();
 
-        const socket = io(import.meta.env.VITE_API_URL);
+        const socket = io(SOCKET_URL);
         socket.on('vehicle:arrived', fetchHistory);
         socket.on('vehicle:departed', fetchHistory);
 
@@ -67,7 +68,7 @@ export default function ScanPage() {
 
         try {
             const { token } = useAuthStore.getState();
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/vehicles/checkin`, {
+            const res = await fetch(`${API_URL}/vehicles/checkin`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

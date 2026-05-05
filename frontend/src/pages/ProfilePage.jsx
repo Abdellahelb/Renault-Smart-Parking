@@ -1,3 +1,4 @@
+import { API_URL, SOCKET_URL } from '../api_config';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { User, Lock, Shield, Save, Eye, EyeOff } from 'lucide-react';

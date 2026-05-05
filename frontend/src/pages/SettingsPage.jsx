@@ -1,3 +1,4 @@
+import { API_URL, SOCKET_URL } from '../api_config';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Settings, Key, Globe, Bell, Database, Shield, Save, RefreshCw } from 'lucide-react';
@@ -16,7 +17,7 @@ export default function SettingsPage() {
 
     useEffect(() => {
         if (!token) return;
-        fetch(`${import.meta.env.VITE_API_URL}/api/v1/settings`, {
+        fetch(`${API_URL}/settings`, {
             headers: { 'Authorization': `Bearer ${token}` }
         })
             .then(res => res.json())
@@ -30,7 +31,7 @@ export default function SettingsPage() {
         try {
             const daysToSave = specificDays !== null ? specificDays : alertDays;
             console.log('Saving alertDays:', daysToSave);
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/settings`, {
+            const res = await fetch(`${API_URL}/settings`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,

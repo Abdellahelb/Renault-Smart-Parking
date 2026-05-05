@@ -1,3 +1,4 @@
+import { API_URL, SOCKET_URL } from '../api_config';
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -106,7 +107,7 @@ export default function VirtualMapPage() {
     const fetchSpots = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/virtual/${id}/spots`, {
+            const res = await fetch(`${API_URL}/virtual/${id}/spots`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const data = await res.json();
@@ -123,7 +124,7 @@ export default function VirtualMapPage() {
         if (token && id) {
             fetchSpots();
 
-            socket = io(import.meta.env.VITE_API_URL);
+            socket = io(SOCKET_URL);
             socket.on('spot:updated', (data) => {
                 if (data.lot_id && data.lot_id !== id) return; // Ignore updates for other lots
                 setSpots(prev => {
@@ -149,7 +150,7 @@ export default function VirtualMapPage() {
 
     const onRelease = async (spotId) => {
         try {
-            await fetch(`${import.meta.env.VITE_API_URL}/api/v1/spots/${spotId}/release`, {
+            await fetch(`${API_URL}/spots/${spotId}/release`, {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -165,7 +166,7 @@ export default function VirtualMapPage() {
         const vin = document.querySelector('input[placeholder*="VIN"]').value;
         if (!vin) return alert('VIN required');
         try {
-            await fetch(`${import.meta.env.VITE_API_URL}/api/v1/spots/${spotId}/reserve`, {
+            await fetch(`${API_URL}/spots/${spotId}/reserve`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,

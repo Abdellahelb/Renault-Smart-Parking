@@ -1,3 +1,4 @@
+import { API_URL, SOCKET_URL } from '../api_config';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Filter, History, Car, ArrowRight, User, Download } from 'lucide-react';
@@ -13,7 +14,7 @@ export default function HistoryPage() {
     useEffect(() => {
         const fetchHistory = async () => {
             try {
-                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/history`, {
+                const res = await fetch(`${API_URL}/history`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const data = await res.json();
@@ -27,7 +28,7 @@ export default function HistoryPage() {
         if (token) {
             fetchHistory();
 
-            const socket = io(import.meta.env.VITE_API_URL);
+            const socket = io(SOCKET_URL);
             const handleRefresh = () => {
                 // Slight delay to ensure SQLite has finished transaction
                 setTimeout(fetchHistory, 200);

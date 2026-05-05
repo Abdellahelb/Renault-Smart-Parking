@@ -1,3 +1,4 @@
+import { API_URL, SOCKET_URL } from '../api_config';
 import { create } from 'zustand';
 
 const useSettingsStore = create((set) => ({
@@ -5,7 +6,7 @@ const useSettingsStore = create((set) => ({
     fetchSettings: async (token) => {
         if (!token) return;
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/settings`, {
+            const res = await fetch(`${API_URL}/settings`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {

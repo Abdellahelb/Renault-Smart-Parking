@@ -1,3 +1,4 @@
+import { API_URL, SOCKET_URL } from './api_config';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';

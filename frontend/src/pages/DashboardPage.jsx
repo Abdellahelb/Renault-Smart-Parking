@@ -1,3 +1,4 @@
+import { API_URL, SOCKET_URL } from '../api_config';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
@@ -84,7 +85,7 @@ export default function DashboardPage() {
 
     const fetchStats = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/stats`, {
+            const res = await fetch(`${API_URL}/stats`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const data = await res.json();
@@ -96,7 +97,7 @@ export default function DashboardPage() {
 
     const fetchActivity = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/recent-activity`, {
+            const res = await fetch(`${API_URL}/recent-activity`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const data = await res.json();
@@ -112,7 +113,7 @@ export default function DashboardPage() {
         if (token) {
             fetchStats();
             fetchActivity();
-            const socket = io(import.meta.env.VITE_API_URL);
+            const socket = io(SOCKET_URL);
             const refresh = () => {
                 fetchStats();
                 fetchActivity();

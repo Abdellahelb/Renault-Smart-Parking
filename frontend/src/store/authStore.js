@@ -1,6 +1,5 @@
+import { API_URL, SOCKET_URL } from '../api_config';
 import { create } from 'zustand';
-
-const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
 
 const useAuthStore = create((set, get) => ({
   user: JSON.parse(localStorage.getItem('spm_user') || 'null'),
@@ -62,7 +61,7 @@ const useAuthStore = create((set, get) => ({
   hasRole: (role) => {
     const user = get().user;
     if (!user) return false;
-    const hierarchy = { admin: 3, supervisor: 2, operator: 1 };
+    const hierarchy = { admin: 3, engineering: 2, supervisor: 2, operator: 1 };
     return (hierarchy[user.role] || 0) >= (hierarchy[role] || 0);
   },
 }));

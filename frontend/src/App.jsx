@@ -1,3 +1,4 @@
+import { API_URL, SOCKET_URL } from './api_config';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AnimatePresence } from 'framer-motion';

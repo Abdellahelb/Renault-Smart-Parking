@@ -1,3 +1,4 @@
+import { API_URL, SOCKET_URL } from '../api_config';
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Car, Clock, User, MapPin, Filter } from 'lucide-react';
@@ -291,7 +292,7 @@ export default function ParkingMapContine() {
 
         const fetchSpots = async () => {
             try {
-                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/parking/contine/state`, {
+                const res = await fetch(`${API_URL}/parking/contine/state`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
@@ -326,7 +327,7 @@ export default function ParkingMapContine() {
         if (token) {
             fetchSpots();
 
-            socket = io(import.meta.env.VITE_API_URL);
+            socket = io(SOCKET_URL);
             socket.on('spot:updated', (data) => {
                 setSpots(prev => {
                     if (!prev[data.spot_id]) return prev;
@@ -446,7 +447,7 @@ export default function ParkingMapContine() {
                         onClose={() => setSelectedSpot(null)}
                         onRelease={async (id) => {
                             try {
-                                await fetch(`${import.meta.env.VITE_API_URL}/api/v1/spots/${id}/release`, {
+                                await fetch(`${API_URL}/spots/${id}/release`, {
                                     method: 'POST',
                                     headers: { Authorization: `Bearer ${token}` }
                                 });
@@ -458,7 +459,7 @@ export default function ParkingMapContine() {
                         onReserve={async (id, nom, prenom) => {
                             if (!nom || !prenom) return alert('Nom et Prénom requis');
                             try {
-                                await fetch(`${import.meta.env.VITE_API_URL}/api/v1/spots/${id}/reserve`, {
+                                await fetch(`${API_URL}/spots/${id}/reserve`, {
                                     method: 'POST',
                                     headers: {
                                         'Authorization': `Bearer ${token}`,
@@ -479,7 +480,7 @@ export default function ParkingMapContine() {
                         onClose={() => setShowBulkReserve(false)}
                         onBulkReserve={async (spotIds, nom, prenom) => {
                             try {
-                                await fetch(`${import.meta.env.VITE_API_URL}/api/v1/spots/bulk-reserve`, {
+                                await fetch(`${API_URL}/spots/bulk-reserve`, {
                                     method: 'POST',
                                     headers: {
                                         'Authorization': `Bearer ${token}`,
