@@ -182,7 +182,6 @@ export default function HistoryPage() {
                                                     </div>
                                                 ) : <span className="text-muted">-</span>}
                                             </td>
-                                            </td>
                                         </motion.tr>
                                     ))}
                                 </AnimatePresence>
