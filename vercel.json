@@ -10,7 +10,7 @@
       "destination": "/frontend/dist/vite.svg"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api/).*)",
       "destination": "/frontend/dist/index.html"
     }
   ]
