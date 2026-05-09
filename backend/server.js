@@ -57,6 +57,8 @@ app.use(morgan('dev'));
 // In Vercel, we can't easily wait for this in a top-level startServer
 // so we'll just trigger it and let the first request wait if needed,
 // or use a simple middleware to ensure DB is ready.
+/* 
+// Disabled auto-init to avoid Vercel timeouts. Use a separate migration script instead.
 let dbInitialized = false;
 app.use(async (req, res, next) => {
     if (!dbInitialized) {
@@ -70,6 +72,7 @@ app.use(async (req, res, next) => {
     }
     next();
 });
+*/
 
 // ============================================
 // ROUTES
@@ -79,8 +82,7 @@ app.get('/api/v1/health', (req, res) => {
     res.json({ 
         status: 'ok', 
         timestamp: new Date().toISOString(),
-        env: process.env.NODE_ENV,
-        db: dbInitialized ? 'connected' : 'pending'
+        env: process.env.NODE_ENV
     });
 });
 
