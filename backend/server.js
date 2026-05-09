@@ -13,6 +13,7 @@ const parkingRoutes = require('./src/routes/parking.routes');
 const dashboardRoutes = require('./src/routes/dashboard.routes');
 const adminRoutes = require('./src/routes/admin.routes');
 const db = require('./src/config/db');
+const logger = require('./src/utils/logger');
 
 // ============================================
 // CONFIG
@@ -25,16 +26,18 @@ const PORT = process.env.PORT || 3001;
 const app = express();
 const httpServer = createServer(app);
 const corsOptions = {
-    origin: '*', // More permissive for Vercel proxying
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173', // Restrict in production
     credentials: true
 };
 
 const io = new Server(httpServer, {
-    cors: { origin: '*', methods: ['GET', 'POST'] }
+    cors: { origin: process.env.FRONTEND_URL || 'http://localhost:5173', methods: ['GET', 'POST'] }
 });
 
 app.use(cors(corsOptions));
-app.use(helmet({ contentSecurityPolicy: false }));
+app.use(helmet({
+    contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false
+}));
 app.use(express.json());
 app.use(morgan('dev'));
 
@@ -50,9 +53,9 @@ app.use(async (req, res, next) => {
         try {
             await db.initDatabase();
             dbInitialized = true;
-            console.log('Database initialized on first request');
+            logger.info('Database initialized on first request');
         } catch (err) {
-            console.error('Database initialization failed:', err);
+            logger.error('Database initialization failed:', err);
         }
     }
     next();
@@ -72,17 +75,22 @@ app.use('/api/v1', adminRoutes());     // For /users, /audit-log
 // GLOBAL ERROR HANDLER
 // ============================================
 app.use((err, req, res, next) => {
-    console.error('💥 Unhandled error:', err.message, err.stack);
-    res.status(500).json({ error: 'Internal server error', detail: err.message });
+    logger.error(`💥 Unhandled error: ${err.message}`, { stack: err.stack });
+    
+    if (process.env.NODE_ENV === 'production') {
+        res.status(500).json({ error: 'Internal server error' });
+    } else {
+        res.status(500).json({ error: 'Internal server error', detail: err.message, stack: err.stack });
+    }
 });
 
 // ============================================
 // WEBSOCKET
 // ============================================
 io.on('connection', (socket) => {
-    console.log(`🔌 Client connected: ${socket.id}`);
+    logger.info(`🔌 Client connected: ${socket.id}`);
     socket.on('disconnect', () => {
-        console.log(`❌ Client disconnected: ${socket.id}`);
+        logger.info(`❌ Client disconnected: ${socket.id}`);
     });
 });
 
@@ -91,7 +99,7 @@ io.on('connection', (socket) => {
 // ============================================
 if (process.env.NODE_ENV !== 'production') {
     httpServer.listen(PORT, () => {
-        console.log(`Server running locally on port ${PORT}`);
+        logger.info(`Server running locally on port ${PORT}`);
     });
 }
 

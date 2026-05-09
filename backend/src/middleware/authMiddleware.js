@@ -1,14 +1,29 @@
 const jwt = require('jsonwebtoken');
-const db = require('../config/db');
+const crypto = require('crypto');
+const db = require('../config/db'); // kept in case other middleware need it, or we can remove if unused
 
-const JWT_SECRET = process.env.JWT_SECRET || 'spm-dev-secret-key-change-in-production-2026';
-const HARDWARE_API_KEY = process.env.HARDWARE_API_KEY || 'ESP32-DEV-KEY-2026';
+const JWT_SECRET = process.env.JWT_SECRET;
+const HARDWARE_API_KEY = process.env.HARDWARE_API_KEY;
+
+// Fail-fast on startup if secrets are missing
+if (!JWT_SECRET) {
+    throw new Error('FATAL ERROR: JWT_SECRET environment variable is not defined.');
+}
+
+if (!HARDWARE_API_KEY) {
+    throw new Error('FATAL ERROR: HARDWARE_API_KEY environment variable is not defined.');
+}
+
+const hardwareKeyBuffer = Buffer.from(HARDWARE_API_KEY);
 
 async function authenticate(req, res, next) {
     const apiKey = req.headers['x-api-key'];
-    if (apiKey === HARDWARE_API_KEY) {
-        req.user = { id: 'hardware', role: 'operator', name: 'ESP32 Device' };
-        return next();
+    if (apiKey) {
+        const inputKeyBuffer = Buffer.from(apiKey);
+        if (inputKeyBuffer.length === hardwareKeyBuffer.length && crypto.timingSafeEqual(inputKeyBuffer, hardwareKeyBuffer)) {
+            req.user = { id: 'hardware', role: 'operator', name: 'ESP32 Device' };
+            return next();
+        }
     }
 
     const auth = req.headers.authorization;
@@ -18,10 +33,19 @@ async function authenticate(req, res, next) {
 
     try {
         const decoded = jwt.verify(auth.split(' ')[1], JWT_SECRET);
-        const { rows } = await db.query('SELECT id, name, operator_id, role, active FROM users WHERE id = $1', [decoded.userId]);
-        const user = rows[0];
-        if (!user || !user.active) return res.status(401).json({ error: 'Invalid or inactive account' });
-        req.user = user;
+        
+        // Use JWT payload instead of DB query for performance
+        if (!decoded || !decoded.active) {
+            return res.status(401).json({ error: 'Invalid or inactive account' });
+        }
+        
+        req.user = {
+            id: decoded.userId,
+            name: decoded.name,
+            operator_id: decoded.operator_id,
+            role: decoded.role,
+            active: decoded.active
+        };
         next();
     } catch (err) {
         return res.status(401).json({ error: 'Invalid token' });

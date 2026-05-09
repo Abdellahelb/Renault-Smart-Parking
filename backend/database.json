@@ -1,0 +1,13 @@
+{
+  "dev": {
+    "driver": "pg",
+    "connectionString": { "ENV": "POSTGRES_URL" }
+  },
+  "production": {
+    "driver": "pg",
+    "connectionString": { "ENV": "POSTGRES_URL" },
+    "ssl": {
+      "rejectUnauthorized": false
+    }
+  }
+}

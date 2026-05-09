@@ -1,5 +1,6 @@
 const express = require('express');
 const db = require('../config/db');
+const logger = require('../utils/logger');
 const { authenticate, requireRole } = require('../middleware/authMiddleware');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
@@ -38,8 +39,8 @@ module.exports = () => {
 
             res.status(201).json({ id: userId, name, operator_id, role });
         } catch (err) {
-            console.error('Error creating user:', err);
-            res.status(500).json({ error: 'Failed to create user' });
+            logger.error('Error creating user:', err);
+            res.status(500).json({ error: 'Failed to create user', detail: err.message });
         }
     });
 
@@ -59,7 +60,7 @@ module.exports = () => {
 
             res.json({ message: 'User deleted successfully' });
         } catch (err) {
-            console.error('Error deleting user:', err);
+            logger.error('Error deleting user:', err);
             res.status(500).json({ error: 'Failed to delete user' });
         }
     });
@@ -92,7 +93,7 @@ module.exports = () => {
                     ['max_park_days', max_park_days.toString()]);
                 res.json({ message: 'Settings updated' });
             } catch (err) {
-                console.error('Failed to save settings to DB:', err);
+                logger.error('Failed to save settings to DB:', err);
                 res.status(500).json({ error: 'DB Save failed' });
             }
         } else {

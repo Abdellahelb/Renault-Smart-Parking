@@ -1,6 +1,7 @@
 const { Pool } = require('pg');
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
+const logger = require('../utils/logger');
 
 // Create a pool using environment variables
 const pool = new Pool({
@@ -21,7 +22,7 @@ async function query(text, params) {
     // console.log('executed query', { text, duration, rows: res.rowCount });
     return res;
   } catch (err) {
-    console.error('Query error:', err.message, { text });
+    logger.error('Query error:', err.message, { text });
     throw err;
   }
 }
@@ -31,7 +32,7 @@ async function query(text, params) {
  * Called once at server startup or via a setup script.
  */
 async function initDatabase() {
-  console.log('🏛️ Initializing PostgreSQL database...');
+  logger.info('🏛️ Initializing PostgreSQL database...');
   
   try {
     await query(`
@@ -132,21 +133,21 @@ async function initDatabase() {
       );
 
     `);
-    console.log('✅ Database tables verified/created');
+    logger.info('✅ Database tables verified/created');
 
     // Migration: Add missing columns if they don't exist
     try {
       await query('ALTER TABLE parking_spots ADD COLUMN IF NOT EXISTS reservation_method TEXT DEFAULT \'manual\'');
       await query('ALTER TABLE parking_spots ADD COLUMN IF NOT EXISTS reserved_by TEXT');
-      console.log('✅ Database migrations applied');
+      logger.info('✅ Database migrations applied');
     } catch (migErr) {
-      console.warn('⚠️ Migration warning (might already be applied):', migErr.message);
+      logger.warn('⚠️ Migration warning (might already be applied):', migErr.message);
     }
 
     // Ensure system settings exist (Force 15 days for SLA consistency)
     await query("INSERT INTO system_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value", ['max_park_days', '15']);
 
-    console.log('✅ Database tables verified/created');
+    logger.info('✅ Database tables verified/created');
     
     // Check if seeding is needed (both admin and lots)
     const { rows: adminRows } = await query('SELECT id FROM users WHERE operator_id = $1', ['ADMIN001']);
@@ -157,12 +158,12 @@ async function initDatabase() {
     }
 
   } catch (err) {
-    console.error('💥 Database initialization failed:', err.message);
+    logger.error('💥 Database initialization failed:', err.message);
   }
 }
 
 async function seedDatabase() {
-  console.log('🌱 Seeding database...');
+  logger.info('🌱 Seeding database...');
   
   try {
     const adminHash = bcrypt.hashSync('admin123', 12);
@@ -211,9 +212,9 @@ async function seedDatabase() {
         [uuidv4(), contineId, `CT${i}`, i, 'empty']);
     }
 
-    console.log('✅ Database seeded successfully');
+    logger.info('✅ Database seeded successfully');
   } catch (err) {
-    console.error('❌ Seeding failed:', err.message);
+    logger.error('❌ Seeding failed:', err.message);
   }
 }
 

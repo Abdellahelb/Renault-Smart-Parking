@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const db = require('../config/db');
+const logger = require('../utils/logger');
 const { authenticate, requireRole, JWT_SECRET } = require('../middleware/authMiddleware');
 
 const JWT_EXPIRES = '8h';
@@ -24,7 +25,7 @@ router.post('/login', async (req, res) => {
 
         await db.query(`UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1`, [user.id]);
 
-        const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+        const token = jwt.sign({ userId: user.id, role: user.role, active: user.active }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
 
         await db.query('INSERT INTO audit_log (id, user_id, action, resource, ip_address) VALUES ($1, $2, $3, $4, $5)', 
             [uuidv4(), user.id, 'login', 'auth', req.ip]);
@@ -34,8 +35,8 @@ router.post('/login', async (req, res) => {
             user: { id: user.id, name: user.name, operator_id: user.operator_id, email: user.email, role: user.role }
         });
     } catch (err) {
-        console.error('Login error:', err);
-        res.status(500).json({ error: 'Login failed', detail: err.message });
+        logger.error('Login error:', err);
+        res.status(500).json({ error: 'Login failed', detail: process.env.NODE_ENV === 'production' ? undefined : err.message });
     }
 });
 
