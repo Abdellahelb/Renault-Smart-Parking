@@ -4,7 +4,6 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const { createServer } = require('http');
-const { Server } = require('socket.io');
 
 // Modularized imports
 const { validateConfig } = require('./src/middleware/authMiddleware');
@@ -20,29 +19,23 @@ const logger = require('./src/utils/logger');
 try {
     validateConfig();
 } catch (err) {
-    // We log it, but in production Vercel will still show 500 if we let the error propagate or if it crashes later.
-    // However, top-level log might show up in Vercel logs.
     console.error(err.message);
 }
 
-// ============================================
-// CONFIG
-// ============================================
 const PORT = process.env.PORT || 3001;
-
-// ============================================
-// EXPRESS APP
-// ============================================
 const app = express();
 const httpServer = createServer(app);
+
 const corsOptions = {
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173', // Restrict in production
+    origin: process.env.FRONTEND_URL || '*',
     credentials: true
 };
 
-const io = new Server(httpServer, {
-    cors: { origin: process.env.FRONTEND_URL || 'http://localhost:5173', methods: ['GET', 'POST'] }
-});
+// Vercel Socket.io Mock (since it's not supported)
+const ioMock = {
+    emit: (event, data) => logger.info(`[Socket Mock] Emitted ${event}`),
+    on: () => {}
+};
 
 app.use(cors(corsOptions));
 app.use(helmet({
@@ -51,32 +44,6 @@ app.use(helmet({
 app.use(express.json());
 app.use(morgan('dev'));
 
-// ============================================
-// DATABASE INIT
-// ============================================
-// In Vercel, we can't easily wait for this in a top-level startServer
-// so we'll just trigger it and let the first request wait if needed,
-// or use a simple middleware to ensure DB is ready.
-/* 
-// Disabled auto-init to avoid Vercel timeouts. Use a separate migration script instead.
-let dbInitialized = false;
-app.use(async (req, res, next) => {
-    if (!dbInitialized) {
-        try {
-            await db.initDatabase();
-            dbInitialized = true;
-            logger.info('Database initialized on first request');
-        } catch (err) {
-            logger.error('Database initialization failed:', err);
-        }
-    }
-    next();
-});
-*/
-
-// ============================================
-// ROUTES
-// ============================================
 // Health check
 app.get('/api/v1/health', (req, res) => {
     res.json({ 
@@ -87,43 +54,21 @@ app.get('/api/v1/health', (req, res) => {
 });
 
 app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/vehicles', vehicleRoutes(io));
-app.use('/api/v1/parking', parkingRoutes(io));
-app.use('/api/v1', parkingRoutes(io)); // For /spots and /virtual (shared)
-app.use('/api/v1', dashboardRoutes()); // For /stats, /recent-activity, /alerts, /history
-app.use('/api/v1', adminRoutes());     // For /users, /audit-log
+app.use('/api/v1/vehicles', vehicleRoutes(ioMock));
+app.use('/api/v1/parking', parkingRoutes(ioMock));
+app.use('/api/v1', parkingRoutes(ioMock)); 
+app.use('/api/v1', dashboardRoutes());
+app.use('/api/v1', adminRoutes());
 
-// ============================================
-// GLOBAL ERROR HANDLER
-// ============================================
 app.use((err, req, res, next) => {
     logger.error(`💥 Unhandled error: ${err.message}`, { stack: err.stack });
-    
-    if (process.env.NODE_ENV === 'production') {
-        res.status(500).json({ error: 'Internal server error' });
-    } else {
-        res.status(500).json({ error: 'Internal server error', detail: err.message, stack: err.stack });
-    }
+    res.status(500).json({ error: 'Internal server error', detail: process.env.NODE_ENV === 'production' ? undefined : err.message });
 });
 
-// ============================================
-// WEBSOCKET
-// ============================================
-io.on('connection', (socket) => {
-    logger.info(`🔌 Client connected: ${socket.id}`);
-    socket.on('disconnect', () => {
-        logger.info(`❌ Client disconnected: ${socket.id}`);
-    });
-});
-
-// ============================================
-// START SERVER (Local only)
-// ============================================
 if (process.env.NODE_ENV !== 'production') {
     httpServer.listen(PORT, () => {
         logger.info(`Server running locally on port ${PORT}`);
     });
 }
 
-// Export for Vercel
 module.exports = app;
