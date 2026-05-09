@@ -21,7 +21,7 @@ if (HARDWARE_API_KEY) {
 
 async function authenticate(req, res, next) {
     const apiKey = req.headers['x-api-key'];
-    if (apiKey) {
+    if (apiKey && hardwareKeyBuffer) {
         const inputKeyBuffer = Buffer.from(apiKey);
         if (inputKeyBuffer.length === hardwareKeyBuffer.length && crypto.timingSafeEqual(inputKeyBuffer, hardwareKeyBuffer)) {
             req.user = { id: 'hardware', role: 'operator', name: 'ESP32 Device' };

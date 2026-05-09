@@ -40,4 +40,30 @@ router.post('/login', async (req, res) => {
     }
 });
 
+router.post('/register', async (req, res) => {
+    try {
+        const { name, operator_id, password, invite_code } = req.body;
+        if (!name || !operator_id || !password) return res.status(400).json({ error: 'All fields required' });
+
+        const password_hash = bcrypt.hashSync(password, 12);
+        const userId = uuidv4();
+
+        await db.query(`INSERT INTO users (id, name, operator_id, password_hash, role, active) VALUES ($1, $2, $3, $4, $5, $6)`,
+            [userId, name, operator_id, password_hash, 'operator', 1]);
+
+        const token = jwt.sign({ userId, role: 'operator', active: 1 }, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+
+        await db.query('INSERT INTO audit_log (id, user_id, action, resource, ip_address) VALUES ($1, $2, $3, $4, $5)',
+            [uuidv4(), userId, 'register', 'auth', req.ip]);
+
+        res.json({
+            token,
+            user: { id: userId, name, operator_id, role: 'operator' }
+        });
+    } catch (err) {
+        logger.error('Registration error:', err);
+        res.status(500).json({ error: 'Registration failed', detail: process.env.NODE_ENV === 'production' ? undefined : err.message });
+    }
+});
+
 module.exports = router;

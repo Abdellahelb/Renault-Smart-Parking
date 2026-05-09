@@ -4,22 +4,50 @@ const bcrypt = require('bcryptjs');
 const logger = require('../utils/logger');
 
 // Create a pool using environment variables
+if (!process.env.POSTGRES_URL) {
+  logger.error('❌ FATAL ERROR: POSTGRES_URL is not defined in environment variables.');
+  logger.error('Please add POSTGRES_URL to your .env file or Vercel environment.');
+}
+
 const pool = new Pool({
   connectionString: process.env.POSTGRES_URL,
-  ssl: {
+  ssl: process.env.NODE_ENV === 'production' ? {
     rejectUnauthorized: false // Required for Vercel/Neon Postgres
-  }
+  } : false
 });
 
 /**
  * Executes a SQL query with parameters.
  */
 async function query(text, params) {
+  // Mock mode for local testing if POSTGRES_URL is missing
+  if (!process.env.POSTGRES_URL) {
+    logger.warn('⚠️ MOCK MODE: No POSTGRES_URL found. Returning mock data.');
+    
+    if (text.includes('SELECT * FROM users WHERE operator_id = $1')) {
+      const operator_id = params[0];
+      if (operator_id === 'ADMIN001') {
+        return {
+          rows: [{
+            id: 'mock-admin-id',
+            name: 'Mock Admin',
+            operator_id: 'ADMIN001',
+            password_hash: require('bcryptjs').hashSync('admin123', 10),
+            role: 'admin',
+            active: 1
+          }]
+        };
+      }
+    }
+    
+    // Return empty results for other queries in mock mode
+    return { rows: [], rowCount: 0 };
+  }
+
   const start = Date.now();
   try {
     const res = await pool.query(text, params);
     const duration = Date.now() - start;
-    // console.log('executed query', { text, duration, rows: res.rowCount });
     return res;
   } catch (err) {
     logger.error('Query error:', err.message, { text });
