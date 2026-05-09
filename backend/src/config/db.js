@@ -1,5 +1,5 @@
 const { Pool } = require('pg');
-const { v4: uuidv4 } = require('uuid');
+const uuidv4 = () => require('crypto').randomUUID();
 const bcrypt = require('bcryptjs');
 const logger = require('../utils/logger');
 

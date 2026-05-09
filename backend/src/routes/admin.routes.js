@@ -3,7 +3,7 @@ const db = require('../config/db');
 const logger = require('../utils/logger');
 const { authenticate, requireRole } = require('../middleware/authMiddleware');
 const bcrypt = require('bcryptjs');
-const { v4: uuidv4 } = require('uuid');
+const uuidv4 = () => require('crypto').randomUUID();
 
 module.exports = () => {
     const router = express.Router();
