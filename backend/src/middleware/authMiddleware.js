@@ -5,16 +5,19 @@ const db = require('../config/db'); // kept in case other middleware need it, or
 const JWT_SECRET = process.env.JWT_SECRET;
 const HARDWARE_API_KEY = process.env.HARDWARE_API_KEY;
 
-// Fail-fast on startup if secrets are missing
-if (!JWT_SECRET) {
-    throw new Error('FATAL ERROR: JWT_SECRET environment variable is not defined.');
+function validateConfig() {
+    if (!JWT_SECRET || !HARDWARE_API_KEY) {
+        const missing = [];
+        if (!JWT_SECRET) missing.push('JWT_SECRET');
+        if (!HARDWARE_API_KEY) missing.push('HARDWARE_API_KEY');
+        throw new Error(`FATAL ERROR: Missing environment variables: ${missing.join(', ')}`);
+    }
 }
 
-if (!HARDWARE_API_KEY) {
-    throw new Error('FATAL ERROR: HARDWARE_API_KEY environment variable is not defined.');
+let hardwareKeyBuffer;
+if (HARDWARE_API_KEY) {
+    hardwareKeyBuffer = Buffer.from(HARDWARE_API_KEY);
 }
-
-const hardwareKeyBuffer = Buffer.from(HARDWARE_API_KEY);
 
 async function authenticate(req, res, next) {
     const apiKey = req.headers['x-api-key'];
@@ -62,4 +65,4 @@ function requireRole(role) {
     };
 }
 
-module.exports = { authenticate, requireRole, JWT_SECRET };
+module.exports = { authenticate, requireRole, validateConfig, JWT_SECRET };

@@ -7,6 +7,7 @@ const { createServer } = require('http');
 const { Server } = require('socket.io');
 
 // Modularized imports
+const { validateConfig } = require('./src/middleware/authMiddleware');
 const authRoutes = require('./src/routes/auth.routes');
 const vehicleRoutes = require('./src/routes/vehicle.routes');
 const parkingRoutes = require('./src/routes/parking.routes');
@@ -14,6 +15,15 @@ const dashboardRoutes = require('./src/routes/dashboard.routes');
 const adminRoutes = require('./src/routes/admin.routes');
 const db = require('./src/config/db');
 const logger = require('./src/utils/logger');
+
+// Validate configuration on startup
+try {
+    validateConfig();
+} catch (err) {
+    // We log it, but in production Vercel will still show 500 if we let the error propagate or if it crashes later.
+    // However, top-level log might show up in Vercel logs.
+    console.error(err.message);
+}
 
 // ============================================
 // CONFIG
