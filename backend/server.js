@@ -74,6 +74,16 @@ app.use(async (req, res, next) => {
 // ============================================
 // ROUTES
 // ============================================
+// Health check
+app.get('/api/v1/health', (req, res) => {
+    res.json({ 
+        status: 'ok', 
+        timestamp: new Date().toISOString(),
+        env: process.env.NODE_ENV,
+        db: dbInitialized ? 'connected' : 'pending'
+    });
+});
+
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/vehicles', vehicleRoutes(io));
 app.use('/api/v1/parking', parkingRoutes(io));

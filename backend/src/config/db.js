@@ -20,27 +20,26 @@ const pool = new Pool({
  * Executes a SQL query with parameters.
  */
 async function query(text, params) {
-  // Mock mode for local testing if POSTGRES_URL is missing
-  if (!process.env.POSTGRES_URL) {
-    logger.warn('⚠️ MOCK MODE: No POSTGRES_URL found. Returning mock data.');
-    
+  const isPlaceholder = process.env.POSTGRES_URL && (process.env.POSTGRES_URL.includes('localhost') || process.env.POSTGRES_URL.includes('user:password'));
+  
+  // Mock mode for local testing if POSTGRES_URL is missing or a placeholder
+  if (!process.env.POSTGRES_URL || isPlaceholder) {
     if (text.includes('SELECT * FROM users WHERE operator_id = $1')) {
       const operator_id = params[0];
       if (operator_id === 'ADMIN001') {
+        logger.info('👤 Mock Login: ADMIN001 requested');
         return {
           rows: [{
             id: 'mock-admin-id',
             name: 'Mock Admin',
             operator_id: 'ADMIN001',
-            password_hash: require('bcryptjs').hashSync('admin123', 10),
+            password_hash: bcrypt.hashSync('admin123', 10),
             role: 'admin',
             active: 1
           }]
         };
       }
     }
-    
-    // Return empty results for other queries in mock mode
     return { rows: [], rowCount: 0 };
   }
 
