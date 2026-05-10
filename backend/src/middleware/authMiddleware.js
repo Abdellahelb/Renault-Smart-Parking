@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const db = require('../config/db'); // kept in case other middleware need it, or we can remove if unused
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || 'spm-fallback-secret-2026';
 const HARDWARE_API_KEY = process.env.HARDWARE_API_KEY;
 
 function validateConfig() {

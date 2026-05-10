@@ -24,10 +24,11 @@ async function query(text, params) {
   
   // Mock mode for local testing if POSTGRES_URL is missing or a placeholder
   if (!process.env.POSTGRES_URL || isPlaceholder) {
-    if (text.includes('SELECT * FROM users WHERE operator_id = $1')) {
-      const operator_id = params[0];
-      if (operator_id === 'ADMIN001') {
-        logger.info('👤 Mock Login: ADMIN001 requested');
+    const isUserQuery = text.includes('FROM users WHERE operator_id = $1');
+    if (isUserQuery) {
+      const opId = params[0] ? params[0].toUpperCase() : '';
+      if (opId === 'ADMIN001') {
+        logger.info('👤 Mock Login matched: ADMIN001');
         return {
           rows: [{
             id: 'mock-admin-id',
