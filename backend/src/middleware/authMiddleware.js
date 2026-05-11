@@ -56,7 +56,7 @@ async function authenticate(req, res, next) {
 }
 
 function requireRole(role) {
-    const hierarchy = { admin: 3, supervisor: 2, operator: 1 };
+    const hierarchy = { admin: 3, supervisor: 2, engineering: 2, operator: 1 };
     return (req, res, next) => {
         if ((hierarchy[req.user.role] || 0) < (hierarchy[role] || 0)) {
             return res.status(403).json({ error: 'Insufficient permissions' });

@@ -7,7 +7,7 @@ import useSettingsStore from '../store/settingsStore';
 
 export default function SettingsPage() {
     const { token } = useAuthStore();
-    const fetchSettings = useSettingsStore(state => state.fetchSettings);
+    const { theme, setTheme, fetchSettings } = useSettingsStore();
     const [apiKey, setApiKey] = useState('ESP32-HW-KEY-••••••••••');
     const [frontendUrl, setFrontendUrl] = useState('https://parking.renault-internal.com');
     const [alertEmail, setAlertEmail] = useState('supervisor@renault.com');
@@ -137,35 +137,32 @@ export default function SettingsPage() {
                 </div>
             </motion.div>
 
-            {/* Database & Audit */}
+            {/* Appearance & Theme */}
             <motion.div className="card" style={{ marginBottom: '16px' }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
                 <div className="card-header">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <Database size={18} style={{ color: 'var(--yellow)' }} />
-                        <div className="card-title">Database & Audit</div>
+                        <Globe size={18} style={{ color: 'var(--yellow)' }} />
+                        <div className="card-title">Appearance & Theme</div>
                     </div>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-                    <div style={{ background: 'var(--bg-surface)', padding: '12px', borderRadius: '8px' }}>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Database</div>
-                        <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>SQLite (dev) / PostgreSQL</div>
-                    </div>
-                    <div style={{ background: 'var(--bg-surface)', padding: '12px', borderRadius: '8px' }}>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Backup Schedule</div>
-                        <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>Daily (30-day retention)</div>
-                    </div>
-                    <div style={{ background: 'var(--bg-surface)', padding: '12px', borderRadius: '8px' }}>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Audit Log Size</div>
-                        <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>12,847 entries</div>
-                    </div>
-                    <div style={{ background: 'var(--bg-surface)', padding: '12px', borderRadius: '8px' }}>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Last Backup</div>
-                        <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>Today 03:00 AM</div>
-                    </div>
-                </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                    <button className="btn btn-secondary"><Database size={14} /> Export Audit Log</button>
-                    <button className="btn btn-secondary"><RefreshCw size={14} /> Manual Backup</button>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
+                    Choose your preferred interface style.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <button 
+                        className={`btn ${theme === 'dark' ? 'btn-primary' : 'btn-secondary'}`} 
+                        onClick={() => setTheme('dark')}
+                        style={{ justifyContent: 'center' }}
+                    >
+                        Black Mode (Dark)
+                    </button>
+                    <button 
+                        className={`btn ${theme === 'light' ? 'btn-primary' : 'btn-secondary'}`} 
+                        onClick={() => setTheme('light')}
+                        style={{ justifyContent: 'center' }}
+                    >
+                        White Mode (Light)
+                    </button>
                 </div>
             </motion.div>
 

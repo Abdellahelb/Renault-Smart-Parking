@@ -2,7 +2,9 @@ import { API_URL, SOCKET_URL } from './api_config';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AnimatePresence } from 'framer-motion';
+import { useEffect } from 'react';
 import useAuthStore from './store/authStore';
+import useSettingsStore from './store/settingsStore';
 import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
@@ -28,6 +30,12 @@ function ProtectedRoute({ children, requiredRole }) {
 }
 
 function App() {
+  const theme = useSettingsStore(state => state.theme);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
   return (
     <BrowserRouter>
       <Toaster

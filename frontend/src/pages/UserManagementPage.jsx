@@ -43,7 +43,7 @@ export default function UserManagementPage() {
         }
     };
 
-    const roleBadge = { admin: 'badge-admin', supervisor: 'badge-supervisor', operator: 'badge-operator' };
+    const roleBadge = { admin: 'badge-admin', supervisor: 'badge-supervisor', engineering: 'badge-supervisor', operator: 'badge-operator' };
 
     const canManageUsers = hasRole('supervisor');
 
@@ -101,6 +101,7 @@ export default function UserManagementPage() {
                             <label className="form-label">Role</label>
                             <select className="form-input" value={newUser.role} onChange={e => setNewUser({ ...newUser, role: e.target.value })}>
                                 <option value="operator">Operator</option>
+                                <option value="engineering">Engineering</option>
                                 <option value="supervisor">Supervisor</option>
                                 <option value="admin">Admin</option>
                             </select>
