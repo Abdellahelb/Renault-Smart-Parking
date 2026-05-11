@@ -103,47 +103,66 @@ export default function VirtualParkingPage() {
                                 boxShadow: 'inset 0 0 40px rgba(0,0,0,0.5)'
                             }}>
                                 {[...Array(layout.numLanes)].map((_, laneIdx) => (
-                                    <div key={laneIdx} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    <div key={laneIdx} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                         {/* Row A */}
-                                        <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
-                                            {[...Array(layout.spotsPerRow)].map((_, i) => (
-                                                <div key={i} style={{ 
-                                                    width: '20px', 
-                                                    height: '42px', 
-                                                    background: 'var(--green-dim)', 
-                                                    border: '1px solid var(--green)', 
-                                                    borderRadius: '3px',
-                                                    opacity: 0.8
-                                                }} />
-                                            ))}
+                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                                            {[...Array(layout.spotsPerRow)].map((_, i) => {
+                                                const spotNum = (laneIdx * 2 * layout.spotsPerRow) + i + 1;
+                                                return (
+                                                    <div key={i} style={{ 
+                                                        width: '64px', 
+                                                        height: '110px', 
+                                                        background: 'rgba(255,255,255,0.02)', 
+                                                        border: '1px solid rgba(247,201,72,0.3)', 
+                                                        borderRadius: '8px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        fontSize: '0.75rem',
+                                                        fontWeight: 600,
+                                                        color: 'rgba(255,255,255,0.4)',
+                                                        fontFamily: 'var(--font-display)'
+                                                    }}>
+                                                        V{spotNum}
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                         {/* Road / Lane */}
                                         <div style={{ 
-                                            height: '24px', 
-                                            background: 'rgba(255,255,255,0.03)', 
-                                            borderTop: '1px dashed rgba(255,255,255,0.1)', 
-                                            borderBottom: '1px dashed rgba(255,255,255,0.1)',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            fontSize: '0.6rem',
-                                            color: 'rgba(255,255,255,0.2)',
-                                            letterSpacing: '2px'
+                                            gap: '12px',
+                                            padding: '4px 0'
                                         }}>
-                                            LANE {laneIdx + 1}
+                                            <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(247,201,72,0.1), transparent)' }} />
+                                            <span style={{ fontSize: '0.65rem', color: 'rgba(247,201,72,0.3)', letterSpacing: '4px', textTransform: 'uppercase', fontWeight: 600 }}>— DRIVE LANE —</span>
+                                            <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(247,201,72,0.1), transparent)' }} />
                                         </div>
                                         {/* Row B */}
-                                        <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
-                                            {[...Array(layout.spotsPerRow)].map((_, i) => (
-                                                <div key={i} style={{ 
-                                                    width: '20px', 
-                                                    height: '42px', 
-                                                    background: 'var(--green-dim)', 
-                                                    border: '1px solid var(--green)', 
-                                                    borderRadius: '3px',
-                                                    opacity: 0.8
-                                                }} />
-                                            ))}
+                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                                            {[...Array(layout.spotsPerRow)].map((_, i) => {
+                                                const spotNum = (laneIdx * 2 * layout.spotsPerRow) + layout.spotsPerRow + i + 1;
+                                                return (
+                                                    <div key={i} style={{ 
+                                                        width: '64px', 
+                                                        height: '110px', 
+                                                        background: 'rgba(255,255,255,0.02)', 
+                                                        border: '1px solid rgba(247,201,72,0.3)', 
+                                                        borderRadius: '8px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        fontSize: '0.75rem',
+                                                        fontWeight: 600,
+                                                        color: 'rgba(255,255,255,0.4)',
+                                                        fontFamily: 'var(--font-display)'
+                                                    }}>
+                                                        V{spotNum}
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 ))}
