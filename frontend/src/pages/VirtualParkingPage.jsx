@@ -173,6 +173,30 @@ export default function VirtualParkingPage() {
                     </motion.div>
                 )}
             </motion.div>
+
+            {/* Existing Sectors List (Moved below generator) */}
+            <motion.div className="card" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ marginTop: '24px' }}>
+                <div className="card-header">
+                    <div className="card-title">Active Storage Sectors</div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {virtualLots?.map(v => (
+                        <div key={v.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: 'var(--bg-surface)', borderRadius: '8px' }}>
+                            <div className={`kpi-icon ${v.type === 'virtual' ? 'yellow' : 'blue'}`} style={{ width: '32px', height: '32px' }}>
+                                {v.type === 'virtual' ? <Zap size={16} /> : <Grid size={16} />}
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{v.name}</div>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{v.type?.toUpperCase() || 'VIRTUAL'} · {v.total_spots_actual || v.total_spots || 0} spots</div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '4px' }}>
+                                <button className="btn btn-sm btn-primary" onClick={() => navigate(v.type === 'virtual' ? `/map/virtual/${v.id}` : (v.name.includes('RHL') ? '/map/rhl' : v.name.includes('Contine') ? '/map/contine' : `/map/physical/${v.id}`))}><MapIcon size={12} /></button>
+                                <button className="btn btn-sm btn-danger" onClick={() => deleteLot(v.id)}><Trash2 size={12} /></button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </motion.div>
         </div>
     );
 }
