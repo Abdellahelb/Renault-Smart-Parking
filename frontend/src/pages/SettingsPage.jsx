@@ -11,7 +11,7 @@ export default function SettingsPage() {
     const [apiKey, setApiKey] = useState('ESP32-HW-KEY-••••••••••');
     const [frontendUrl, setFrontendUrl] = useState('https://parking.renault-internal.com');
     const [alertEmail, setAlertEmail] = useState('supervisor@renault.com');
-    const [alertDays, setAlertDays] = useState(6);
+    const [alertDays, setAlertDays] = useState(null); // Null to indicate loading
     const [smtpHost, setSmtpHost] = useState('smtp.renault.com');
     const [saved, setSaved] = useState(false);
 
@@ -22,9 +22,16 @@ export default function SettingsPage() {
         })
             .then(res => res.json())
             .then(data => {
-                if (data.max_park_days) setAlertDays(parseInt(data.max_park_days, 10));
+                if (data.max_park_days) {
+                    setAlertDays(parseInt(data.max_park_days, 10));
+                } else {
+                    setAlertDays(6); // Default if none in DB
+                }
             })
-            .catch(err => console.error('Failed to fetch settings', err));
+            .catch(err => {
+                console.error('Failed to fetch settings', err);
+                setAlertDays(6); // Fallback
+            });
     }, [token]);
 
     const handleSave = async (specificDays = null) => {
@@ -58,12 +65,11 @@ export default function SettingsPage() {
     };
 
     const handleAlertDaysChange = (e) => {
-        const val = parseInt(e.target.value);
-        if (!isNaN(val) && val > 0) {
-            setAlertDays(val);
-            handleSave(val); // Auto-save on change
-        } else {
-            setAlertDays('');
+        const val = e.target.value === '' ? '' : parseInt(e.target.value, 10);
+        setAlertDays(val);
+        
+        if (typeof val === 'number' && !isNaN(val) && val > 0) {
+            handleSave(val); // Auto-save on valid change
         }
     };
 
@@ -124,7 +130,11 @@ export default function SettingsPage() {
                 </div>
                 <div className="form-group">
                     <label className="form-label">Alert Threshold (days)</label>
-                    <input type="number" className="form-input" value={alertDays} onChange={handleAlertDaysChange} min="1" max="30" style={{ width: '100px' }} />
+                    {alertDays === null ? (
+                        <div className="form-input" style={{ width: '100px', display: 'flex', alignItems: 'center' }}>...</div>
+                    ) : (
+                        <input type="number" className="form-input" value={alertDays} onChange={handleAlertDaysChange} min="1" max="30" style={{ width: '100px' }} />
+                    )}
                     <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>Trigger alert when vehicle parked ≥ this many days (Auto-saves instantly)</span>
                 </div>
                 <div className="form-group">

@@ -14,8 +14,8 @@ import {
 
 const RenaultLogo = ({ size = 22 }) => (
     <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M50 2L10 50L50 98L90 50L50 2ZM50 18L74 50L50 82L26 50L50 18Z" fill="currentColor" />
-        <path d="M50 36L40 50L50 64L60 50L50 36Z" fill="currentColor" />
+        <path d="M50 0 L10 50 L50 100 L90 50 L50 0 Z M50 15 L75 50 L50 85 L25 50 L50 15 Z" fill="currentColor" />
+        <path d="M50 30 L35 50 L50 70 L65 50 L50 30 Z" fill="currentColor" />
     </svg>
 );
 
@@ -118,7 +118,7 @@ export default function Layout() {
                         <RenaultLogo size={24} />
                     </div>
                     <div className="brand-text">
-                        <h1>SPM</h1>
+                        <h1 style={{ fontSize: '0.95rem', whiteSpace: 'nowrap' }}>Smart Parking Manager</h1>
                         <span>RTMA</span>
                     </div>
                 </div>
