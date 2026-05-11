@@ -12,6 +12,7 @@
   --bg-surface: rgba(25, 25, 25, 0.7);
   --bg-hover: rgba(255, 255, 255, 0.05);
   --bg-input: rgba(30, 30, 30, 0.4);
+  --bg-sidebar: linear-gradient(180deg, rgba(15, 15, 15, 0.95) 0%, rgba(5, 5, 5, 1) 100%);
 
   --text-primary: #FFFFFF;
   --text-secondary: #C4C4C4;
@@ -57,6 +58,8 @@
   --shadow-glow: 0 4px 20px rgba(247, 201, 72, 0.12);
   --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
 
+  --shadow-sidebar: 4px 0 24px rgba(0, 0, 0, 0.2);
+  
   /* Transitions */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -70,6 +73,7 @@
   --bg-surface: #F9FAFB;
   --bg-hover: rgba(0, 0, 0, 0.05);
   --bg-input: #FFFFFF;
+  --bg-sidebar: #FFFFFF;
 
   --text-primary: #111827;
   --text-secondary: #374151;
@@ -90,6 +94,11 @@
   --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-glow: 0 4px 12px rgba(217, 119, 6, 0.15);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-sidebar: 4px 0 24px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='light'] .sidebar-brand .brand-icon svg {
+  color: #FFFFFF;
 }
 
 /* Reset & Base */
@@ -167,7 +176,7 @@ h6 {
 /* Sidebar */
 .sidebar {
   width: var(--sidebar-width);
-  background: linear-gradient(180deg, rgba(15, 15, 15, 0.95) 0%, rgba(5, 5, 5, 1) 100%);
+  background: var(--bg-sidebar);
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
@@ -176,7 +185,7 @@ h6 {
   left: 0;
   height: 100vh;
   z-index: 100;
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-sidebar);
   transition: transform var(--transition-normal);
 }
 
