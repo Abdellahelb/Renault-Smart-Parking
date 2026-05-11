@@ -96,6 +96,34 @@ export default function VirtualParkingPage({ defaultType = 'virtual' }) {
 
     return (
         <div className="parking-lots-container">
+            {/* Existing Sectors List (Moved to Top for Visibility) */}
+            <motion.div className="card" style={{ marginBottom: '24px' }}>
+                <div className="card-header">
+                    <div className="card-title">Active Storage Sectors</div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {virtualLots?.map(v => (
+                        <div key={v.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: 'var(--bg-surface)', borderRadius: '8px' }}>
+                            <div className={`kpi-icon ${v.type === 'virtual' ? 'yellow' : 'blue'}`} style={{ width: '32px', height: '32px' }}>
+                                {v.type === 'virtual' ? <Zap size={16} /> : <Grid size={16} />}
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{v.name}</div>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{v.type.toUpperCase()} · {v.spots} spots</div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '4px' }}>
+                                <button className="btn btn-sm btn-primary" onClick={() => navigate(v.type === 'virtual' ? `/map/virtual/${v.id}` : `/map/physical/${v.id}`)}><MapIcon size={12} /></button>
+                                <button className="btn btn-sm btn-secondary" onClick={() => toggleVirtual(v.id)}>{v.active ? 'Off' : 'On'}</button>
+                                {!['Park RHL', 'Park Cantine', 'Parking RHL', 'Parking Contine'].includes(v.name) && (
+                                    <button className="btn btn-sm btn-danger" onClick={() => deleteVirtual(v.id)}><Trash2 size={12} /></button>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </motion.div>
+
+            {/* Builder Tabs */}
             <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
                 <button 
                     className={`btn ${creationType === 'virtual' ? 'btn-primary' : 'btn-secondary'}`} 
@@ -203,34 +231,7 @@ export default function VirtualParkingPage({ defaultType = 'virtual' }) {
                     )}
                 </motion.div>
             )}
-
-            <motion.div className="card" style={{ marginTop: '24px' }}>
-                <div className="card-header">
-                    <div className="card-title">
-                        {creationType === 'virtual' ? 'Virtual AI Sectors' : 'Physical Storage Sectors'}
-                    </div>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {virtualLots?.filter(v => v.type === creationType).map(v => (
-                        <div key={v.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: 'var(--bg-surface)', borderRadius: '8px' }}>
-                            <div className={`kpi-icon ${v.type === 'virtual' ? 'yellow' : 'blue'}`} style={{ width: '32px', height: '32px' }}>
-                                {v.type === 'virtual' ? <Zap size={16} /> : <Grid size={16} />}
-                            </div>
-                            <div style={{ flex: 1 }}>
-                                <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{v.name}</div>
-                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{v.type.toUpperCase()} · {v.spots} spots</div>
-                            </div>
-                            <div style={{ display: 'flex', gap: '4px' }}>
-                                <button className="btn btn-sm btn-primary" onClick={() => navigate(v.type === 'virtual' ? `/map/virtual/${v.id}` : `/map/physical/${v.id}`)}><MapIcon size={12} /></button>
-                                <button className="btn btn-sm btn-secondary" onClick={() => toggleVirtual(v.id)}>{v.active ? 'Off' : 'On'}</button>
-                                {!['Park RHL', 'Park Cantine', 'Parking RHL', 'Parking Contine'].includes(v.name) && (
-                                    <button className="btn btn-sm btn-danger" onClick={() => deleteVirtual(v.id)}><Trash2 size={12} /></button>
-                                )}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </motion.div>
+            
         </div>
     );
 }
