@@ -72,13 +72,17 @@ export default function Layout() {
     // Build nav items dynamically
     const navItems = baseNavItems.map(section => {
         if (section.section === 'Storage Sectors') {
+            const staticLots = [
+                { path: '/map/rhl', icon: Map, label: 'Park RHL', role: 'operator' },
+                { path: '/map/contine', icon: ParkingSquare, label: 'Park Cantine', role: 'operator' },
+            ];
             const dynamicLots = (virtualLots || []).filter(v => v.active === 1).map(v => ({
                 path: v.type === 'virtual' ? `/map/virtual/${v.id}` : `/map/physical/${v.id}`,
                 icon: v.type === 'virtual' ? Map : ParkingSquare,
                 label: v.name,
                 role: 'operator'
             }));
-            return { ...section, items: dynamicLots };
+            return { ...section, items: [...staticLots, ...dynamicLots] };
         }
         return section;
     });
