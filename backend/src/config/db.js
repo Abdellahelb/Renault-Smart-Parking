@@ -113,10 +113,12 @@ async function query(text, params) {
       };
     }
 
-    // 7. Fallback for health check or unhandled queries
-    if (textLower.includes('select 1')) {
-      return { rows: [{ '?column?': 1 }] };
+    // 7. Generic modifications (DELETE, UPDATE, INSERT)
+    if (textLower.includes('delete') || textLower.includes('update') || textLower.includes('insert')) {
+      return { rows: [], rowCount: 1 };
     }
+
+    // 8. Fallback for health check or unhandled queries
 
     return { rows: [], rowCount: 0 };
   }

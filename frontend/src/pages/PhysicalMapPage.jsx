@@ -123,9 +123,9 @@ function SpotDetailModal({ spot, onClose, onRelease, onReserve }) {
                     </div>
                 ) : (
                     <div>
-                        <div className="form-group"><label className="form-label">VIN (Optional)</label><input id="res-vin" type="text" className="form-input" placeholder="VF1..." /></div>
                         <div className="form-group"><label className="form-label">Full Name</label><input id="res-name" type="text" className="form-input" placeholder="Abdellah Elberkaoui" /></div>
-                        <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => onReserve(spot.id, document.getElementById('res-vin').value, document.getElementById('res-name').value)}>Reserve Spot</button>
+                        <div className="form-group"><label className="form-label">Subject / Project</label><input id="res-subject" type="text" className="form-input" placeholder="Maintenance B" /></div>
+                        <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => onReserve(spot.id, document.getElementById('res-name').value, document.getElementById('res-subject').value)}>Reserve Spot</button>
                     </div>
                 )}
             </motion.div>
@@ -200,11 +200,11 @@ export default function PhysicalMapPage({ id: propId }) {
                                     await fetch(`${API_URL}/spots/${sid}/release`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
                                     setSelectedSpot(null);
                                 }}
-                                onReserve={async (sid, vin, fullName) => {
+                                onReserve={async (sid, fullName, subject) => {
                                     await fetch(`${API_URL}/spots/${sid}/reserve`, {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                                        body: JSON.stringify({ vin, fullName })
+                                        body: JSON.stringify({ fullName, subject })
                                     });
                                     setSelectedSpot(null);
                                 }}
