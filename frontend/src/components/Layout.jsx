@@ -14,6 +14,7 @@ import {
 
 import RenaultLogoImg from '../assets/renault-logo.png';
 
+// Navigation configuration with role-based access control
 const baseNavItems = [
     {
         section: 'Main', items: [
