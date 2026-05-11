@@ -15,7 +15,8 @@ const uuidv4 = () => Math.random().toString(36).substring(2, 15) + Math.random()
 
 // In-memory store for mock mode persistence during demo session
 const mockLots = [
-  { id: '2d69f4ac-0efd-4812-bdf6-d62e1d27bb69', name: 'Park RHL', type: 'physical', total_spots: 302, active: 1, created_at: new Date().toISOString(), total_spots_actual: 302, occupied_count: 45 }
+  { id: '2d69f4ac-0efd-4812-bdf6-d62e1d27bb69', name: 'Park RHL', type: 'physical', total_spots: 302, active: 1, created_at: new Date().toISOString(), total_spots_actual: 302, occupied_count: 45 },
+  { id: '83943c3a-a562-4749-b9d2-d55faad8913f', name: 'Park Cantine', type: 'physical', total_spots: 42, active: 1, created_at: new Date().toISOString(), total_spots_actual: 42, occupied_count: 5 }
 ];
 
 /**
@@ -37,10 +38,11 @@ async function query(text, params) {
     if (textLower.includes('parking_spots')) {
       const lotId = params && params[0];
       const lot = mockLots.find(l => l.id === lotId) || {};
-      const isCantine = (lotId && lotId.includes('83943c3a')) || textLower.includes('cantine') || lot.name === 'Park Cantine' || lot.name === 'Parking Contine';
-      const name = isCantine ? 'Park Cantine' : (lot.name || 'Park RHL');
+      const isCantine = textLower.includes('cantine') || (lotId && lotId.includes('83943c3a'));
+      const isRHL = textLower.includes('rhl') || (lotId && lotId.includes('2d69f4ac')) || (!isCantine && (lot.name?.includes('RHL') || !lot.id));
+      const name = isCantine ? 'Park Cantine' : (isRHL ? 'Park RHL' : (lot.name || 'Virtual Lot'));
       const rows = [];
-      const totalSpots = lot.total_spots || (isCantine ? 42 : 302);
+      const totalSpots = isCantine ? 42 : (isRHL ? 302 : (lot.total_spots || 100));
       
       if (isCantine) {
         for (let i = 1; i <= 42; i++) {
@@ -51,7 +53,8 @@ async function query(text, params) {
             occupied_at: status === 'occupied' ? '2026-05-10T14:00:00Z' : null, vin: status === 'occupied' ? 'VF1DEMO00X123456' : null
           });
         }
-      } else if (lot.name === 'Park RHL' || lot.name === 'Parking RHL' || !lot.type || lot.type === 'physical') {
+        }
+      } else if (isRHL) {
         const blocks = { A: 20, B: 30, C: 36, D: 36, E: 36, F: 36, G: 36, H: 36, I: 36 };
         for (const [block, total] of Object.entries(blocks)) {
           for (let i = 1; i <= total; i++) {
