@@ -33,7 +33,42 @@ async function query(text, params) {
   // Mock mode for local testing if POSTGRES_URL is missing or a placeholder
   if (!process.env.POSTGRES_URL || isPlaceholder) {
     const textLower = text.toLowerCase();
-    
+
+    // Specific Lot State (Maps / Parking Spots) - HIGH PRIORITY
+    if (textLower.includes('parking_spots')) {
+      const lotId = params && params[0];
+      const isCantine = (lotId && lotId.includes('83943c3a')) || textLower.includes('cantine');
+      const isVirtual = (lotId && lotId.includes('v-lot')) || textLower.includes('virtual');
+      const name = isCantine ? 'Park Cantine' : (isVirtual ? 'Virtual Zone Alpha' : 'Park RHL');
+      const rows = [];
+      
+      if (isCantine || isVirtual) {
+        const count = isCantine ? 42 : 100;
+        for (let i = 1; i <= count; i++) {
+          const status = i % 7 === 0 ? 'occupied' : 'empty';
+          rows.push({
+            id: `${isCantine ? 'CT' : 'V'}${i}`, spot_label: `${isCantine ? 'CT' : 'V'}${i}`, lot_id: lotId || 'mock-id',
+            block: null, status: status, lot_name: name, position: i,
+            occupied_at: status === 'occupied' ? '2026-05-10T14:00:00Z' : null, vin: status === 'occupied' ? 'VF1DEMO00X123456' : null
+          });
+        }
+      } else {
+        const blocks = { A: 20, B: 30, C: 36, D: 36, E: 36, F: 36, G: 36, H: 36, I: 36 };
+        for (const [block, total] of Object.entries(blocks)) {
+          for (let i = 1; i <= total; i++) {
+            const side = i <= (total / 2) ? 'left' : 'right';
+            const status = (i + block.charCodeAt(0)) % 8 === 0 ? 'occupied' : 'empty';
+            rows.push({
+              id: `${block}${i}`, spot_label: `${block}${i}`, lot_id: '2d69f4ac-0efd-4812-bdf6-d62e1d27bb69',
+              block: block, side: side, status: status, lot_name: name, position: i,
+              occupied_at: status === 'occupied' ? '2026-05-09T08:00:00Z' : null, vin: status === 'occupied' ? 'VF1RHL00X654321' : null
+            });
+          }
+        }
+      }
+      return { rows, rowCount: rows.length };
+    }
+
     // Auth: Login ADMIN001
     if (textLower.includes('from users where operator_id = $1')) {
       const opId = params[0] ? params[0].toUpperCase() : '';
@@ -91,40 +126,7 @@ async function query(text, params) {
       };
     }
 
-    // Specific Lot State (Maps / Parking Spots)
-    if (textLower.includes('from parking_spots') || textLower.includes('ps.*')) {
-      const lotId = params && params[0];
-      const isCantine = (lotId && lotId.includes('83943c3a')) || textLower.includes('cantine');
-      const isVirtual = (lotId && lotId.includes('v-lot')) || textLower.includes('virtual');
-      const name = isCantine ? 'Park Cantine' : (isVirtual ? 'Virtual Zone Alpha' : 'Park RHL');
-      const rows = [];
-      
-      if (isCantine || isVirtual) {
-        const count = isCantine ? 42 : 100;
-        for (let i = 1; i <= count; i++) {
-          const status = i % 7 === 0 ? 'occupied' : 'empty';
-          rows.push({
-            id: `${isCantine ? 'CT' : 'V'}${i}`, spot_label: `${isCantine ? 'CT' : 'V'}${i}`, lot_id: lotId || 'mock-id',
-            block: null, status: status, lot_name: name, position: i,
-            occupied_at: status === 'occupied' ? '2026-05-10T14:00:00Z' : null, vin: status === 'occupied' ? 'VF1DEMO00X123456' : null
-          });
-        }
-      } else {
-        const blocks = { A: 20, B: 30, C: 36, D: 36, E: 36, F: 36, G: 36, H: 36, I: 36 };
-        for (const [block, total] of Object.entries(blocks)) {
-          for (let i = 1; i <= total; i++) {
-            const side = i <= (total / 2) ? 'left' : 'right';
-            const status = (i + block.charCodeAt(0)) % 8 === 0 ? 'occupied' : 'empty';
-            rows.push({
-              id: `${block}${i}`, spot_label: `${block}${i}`, lot_id: '2d69f4ac-0efd-4812-bdf6-d62e1d27bb69',
-              block: block, side: side, status: status, lot_name: name, position: i,
-              occupied_at: status === 'occupied' ? '2026-05-09T08:00:00Z' : null, vin: status === 'occupied' ? 'VF1RHL00X654321' : null
-            });
-          }
-        }
-      }
-      return { rows, rowCount: rows.length };
-    }
+
     // Dwell time / Avg Days
     if (textLower.includes('avg(')) {
       return { rows: [{ avg: '3.5' }] };
