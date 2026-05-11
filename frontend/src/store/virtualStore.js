@@ -11,15 +11,38 @@ const useVirtualStore = create((set, get) => ({
         set({ loading: true, error: null });
         try {
             const { token } = useAuthStore.getState();
-            const res = await fetch(`${API_URL}/virtual`, {
+            const res = await fetch(`${API_URL}/lots`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Failed to fetch virtual lots');
+            if (!res.ok) throw new Error(data.error || 'Failed to fetch lots');
 
-            set({ virtualLots: data.virtualLots, loading: false });
+            set({ virtualLots: data.lots, loading: false });
         } catch (err) {
             set({ error: err.message, loading: false });
+        }
+    },
+
+    createPhysicalLot: async (lotData) => {
+        set({ loading: true, error: null });
+        try {
+            const { token } = useAuthStore.getState();
+            const res = await fetch(`${API_URL}/lots/physical`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify(lotData)
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to create physical lot');
+
+            await get().fetchVirtualLots();
+            return { success: true, id: data.id };
+        } catch (err) {
+            set({ error: err.message, loading: false });
+            return { success: false, error: err.message };
         }
     },
 

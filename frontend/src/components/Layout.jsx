@@ -23,10 +23,7 @@ const baseNavItems = [
         ]
     },
     {
-        section: 'Storage Sectors', items: [
-            { path: '/map/rhl', icon: Map, label: 'Park RHL', role: 'operator' },
-            { path: '/map/contine', icon: ParkingSquare, label: 'Park Cantine', role: 'operator' },
-        ]
+        section: 'Storage Sectors', items: [] // Populated dynamically
     },
     {
         section: 'Operations', items: [
@@ -59,7 +56,7 @@ export default function Layout() {
     };
 
     useEffect(() => {
-        fetchVirtualLots();
+        fetchVirtualLots(); // This should now also fetch physical lots if we update the store
     }, [fetchVirtualLots]);
 
     const { token } = useAuthStore();
@@ -74,19 +71,20 @@ export default function Layout() {
     // Build nav items dynamically
     const navItems = baseNavItems.map(section => {
         if (section.section === 'Storage Sectors') {
-            const dynamicMaps = (virtualLots || []).filter(v => v.active === 1).map(v => ({
-                path: `/map/virtual/${v.id}`,
-                icon: Map,
+            const dynamicLots = (virtualLots || []).filter(v => v.active === 1).map(v => ({
+                path: v.type === 'virtual' ? `/map/virtual/${v.id}` : `/map/physical/${v.id}`,
+                icon: v.type === 'virtual' ? Map : ParkingSquare,
                 label: v.name,
                 role: 'operator'
             }));
-            return { ...section, items: [...section.items, ...dynamicMaps] };
+            return { ...section, items: dynamicLots };
         }
         return section;
     });
 
     const getPageTitle = () => {
         if (location.pathname.startsWith('/map/virtual/')) return 'Virtual Sector Map';
+        if (location.pathname.startsWith('/map/physical/')) return 'Physical Sector Map';
         const titles = {
             '/dashboard': 'Command Center',
             '/history': 'Operations Audit',

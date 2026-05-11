@@ -167,6 +167,83 @@ module.exports = (io) => {
         }
     });
 
+    // Lots Management
+    router.get('/lots', authenticate, async (req, res) => {
+        try {
+            const { rows: lots } = await db.query(`
+                SELECT pl.*, 
+                    COUNT(ps.id) as total_spots_actual,
+                    SUM(CASE WHEN ps.status != 'empty' THEN 1 ELSE 0 END) as occupied_count
+                FROM parking_lots pl
+                LEFT JOIN parking_spots ps ON pl.id = ps.lot_id
+                GROUP BY pl.id
+                ORDER BY pl.type, pl.created_at DESC
+            `);
+            res.json({ lots });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
+    });
+
+    router.get('/lots/:id/state', authenticate, async (req, res) => {
+        const { id } = req.params;
+        try {
+            const { rows: spots } = await db.query(`
+                SELECT ps.*, pl.name as lot_name
+                FROM parking_spots ps 
+                JOIN parking_lots pl ON ps.lot_id = pl.id 
+                WHERE pl.id = $1 OR pl.name = $2
+                ORDER BY ps.block, ps.position
+            `, [id, id]);
+            
+            if (spots.length === 0) return res.status(404).json({ error: 'Lot not found' });
+            
+            const enriched = spots.map(s => ({
+                ...s,
+                id: s.spot_label,
+                daysParked: s.occupied_at ? Math.floor((Date.now() - new Date(s.occupied_at).getTime()) / 86400000) : 0,
+            }));
+
+            res.json({ spots: enriched, total: enriched.length, name: spots[0].lot_name });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
+    });
+
+    router.post('/lots/physical', authenticate, requireRole('supervisor'), async (req, res) => {
+        const { name, blocks } = req.body; // blocks: [{ name: 'A', total: 20, hasSides: true }]
+        if (!name || !blocks || !Array.isArray(blocks)) return res.status(400).json({ error: 'Name and blocks array required' });
+
+        const totalSpots = blocks.reduce((acc, b) => acc + (parseInt(b.total) || 0), 0);
+        const lotId = uuidv4();
+
+        try {
+            await db.query('INSERT INTO parking_lots (id, name, type, total_spots) VALUES ($1, $2, $3, $4)', 
+                [lotId, name, 'physical', totalSpots]);
+            
+            for (const block of blocks) {
+                const bName = block.name.toUpperCase();
+                const bTotal = parseInt(block.total);
+                const bHasSides = block.hasSides;
+
+                for (let i = 1; i <= bTotal; i++) {
+                    const side = bHasSides ? (i <= (bTotal / 2) ? 'left' : 'right') : null;
+                    await db.query(`
+                        INSERT INTO parking_spots (id, lot_id, spot_label, block, side, position) 
+                        VALUES ($1, $2, $3, $4, $5, $6)
+                    `, [uuidv4(), lotId, `${bName}${i}`, bName, side, i]);
+                }
+            }
+            
+            await db.query('INSERT INTO audit_log (id, user_id, action, resource, detail) VALUES ($1, $2, $3, $4, $5)', 
+                [uuidv4(), req.user.id, 'CREATE_PHYSICAL_PARK', lotId, `Created physical park ${name} with ${totalSpots} spots across ${blocks.length} blocks`]);
+                
+            res.status(201).json({ id: lotId, name, totalSpots, status: 'created' });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
+    });
+
     // Virtual Parking Routes
     router.get('/virtual', authenticate, async (req, res) => {
         try {

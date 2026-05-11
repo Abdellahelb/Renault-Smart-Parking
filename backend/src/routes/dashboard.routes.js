@@ -166,7 +166,7 @@ module.exports = () => {
                        u.name as operator_name, u.operator_id
                 FROM audit_log al
                 LEFT JOIN users u ON al.user_id = u.id
-                WHERE al.action IN ('CREATE_VIRTUAL_PARK', 'DELETE_VIRTUAL_PARK', 'TOGGLE_VIRTUAL_PARK')
+                WHERE al.action IN ('CREATE_VIRTUAL_PARK', 'DELETE_VIRTUAL_PARK', 'TOGGLE_VIRTUAL_PARK', 'CREATE_PHYSICAL_PARK')
                 ORDER BY al.timestamp DESC LIMIT 50
             `);
 

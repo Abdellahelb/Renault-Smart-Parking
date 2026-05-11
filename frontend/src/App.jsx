@@ -17,6 +17,7 @@ import UserManagementPage from './pages/UserManagementPage';
 import VirtualParkingPage from './pages/VirtualParkingPage';
 import VirtualMapPage from './pages/VirtualMapPage';
 import HistoryPage from './pages/HistoryPage';
+import PhysicalMapPage from './pages/PhysicalMapPage';
 import ReportsPage from './pages/ReportsPage';
 import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
@@ -62,6 +63,7 @@ function App() {
             <Route path="map/rhl" element={<ParkingMapRHL />} />
             <Route path="map/contine" element={<ParkingMapContine />} />
             <Route path="map/virtual/:id" element={<VirtualMapPage />} />
+            <Route path="map/physical/:id" element={<PhysicalMapPage />} />
             <Route path="scan" element={<ScanPage />} />
             <Route path="search" element={<SearchPage />} />
             <Route path="history" element={<HistoryPage />} />

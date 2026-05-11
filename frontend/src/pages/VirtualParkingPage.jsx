@@ -33,13 +33,30 @@ function calculateLayout(widthM, lengthM, angle = 90) {
 
 import useVirtualStore from '../store/virtualStore';
 
-export default function VirtualParkingPage() {
-    const [width, setWidth] = useState('');
-    const [length, setLength] = useState('');
-    const [name, setName] = useState('');
-    const [layout, setLayout] = useState(null);
-    const navigate = useNavigate();
-    const { virtualLots, loading, createVirtualLot, toggleVirtualLot, deleteVirtualLot } = useVirtualStore();
+    const { virtualLots, loading, createVirtualLot, createPhysicalLot, toggleVirtualLot, deleteVirtualLot } = useVirtualStore();
+    const [creationType, setCreationType] = useState('virtual'); // 'virtual' or 'physical'
+
+    // Physical Builder State
+    const [physName, setPhysName] = useState('');
+    const [blocks, setBlocks] = useState([{ name: 'A', total: 20, hasSides: true }]);
+
+    const addBlock = () => setBlocks([...blocks, { name: String.fromCharCode(65 + blocks.length), total: 20, hasSides: true }]);
+    const removeBlock = (index) => setBlocks(blocks.filter((_, i) => i !== index));
+    const updateBlock = (index, field, value) => {
+        const newBlocks = [...blocks];
+        newBlocks[index][field] = value;
+        setBlocks(newBlocks);
+    };
+
+    const handleCreatePhysical = async () => {
+        if (!physName || loading) return;
+        const res = await createPhysicalLot({ name: physName, blocks });
+        if (res.success) {
+            setPhysName('');
+            setBlocks([{ name: 'A', total: 20, hasSides: true }]);
+            alert('Physical Parking created successfully!');
+        }
+    };
 
     const generate = () => {
         const w = parseFloat(width);
@@ -82,97 +99,120 @@ export default function VirtualParkingPage() {
 
     return (
         <div>
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
+                <button 
+                    className={`btn ${creationType === 'virtual' ? 'btn-primary' : 'btn-secondary'}`} 
+                    onClick={() => setCreationType('virtual')}
+                    style={{ flex: 1 }}
+                >
+                    <Zap size={16} /> Virtual AI Generator
+                </button>
+                <button 
+                    className={`btn ${creationType === 'physical' ? 'btn-primary' : 'btn-secondary'}`} 
+                    onClick={() => setCreationType('physical')}
+                    style={{ flex: 1 }}
+                >
+                    <Grid size={16} /> Real Parking Builder
+                </button>
+            </div>
+
             {/* Generator */}
-            <motion.div className="card" style={{ marginBottom: '24px', borderColor: 'var(--yellow-border)' }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                <div className="card-header">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div className="kpi-icon yellow"><Zap size={20} /></div>
-                        <div>
-                            <div className="card-title">AI Virtual Parking Generator</div>
-                            <div className="card-subtitle">Generate optimal parking layout using Dacia Jogger dimensions (5.2m × 2.4m)</div>
+            {creationType === 'virtual' ? (
+                <motion.div className="card" style={{ marginBottom: '24px', borderColor: 'var(--yellow-border)' }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                    <div className="card-header">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div className="kpi-icon yellow"><Zap size={20} /></div>
+                            <div>
+                                <div className="card-title">AI Virtual Parking Generator</div>
+                                <div className="card-subtitle">Generate optimal parking layout for temporary sectors</div>
+                            </div>
                         </div>
                     </div>
-                    <span className="badge badge-admin">AI</span>
-                </div>
 
-                <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                    <div className="form-group" style={{ marginBottom: 0, flex: 1, minWidth: '150px' }}>
-                        <label className="form-label">Lot Name</label>
-                        <input type="text" className="form-input" placeholder="e.g. Overflow Zone C" value={name} onChange={e => setName(e.target.value)} />
+                    <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                        <div className="form-group" style={{ marginBottom: 0, flex: 1, minWidth: '150px' }}>
+                            <label className="form-label">Lot Name</label>
+                            <input type="text" className="form-input" placeholder="e.g. Overflow Zone C" value={name} onChange={e => setName(e.target.value)} />
+                        </div>
+                        <div className="form-group" style={{ marginBottom: 0, flex: 1, minWidth: '120px' }}>
+                            <label className="form-label">Width (m)</label>
+                            <input type="number" className="form-input" value={width} onChange={e => setWidth(e.target.value)} />
+                        </div>
+                        <div className="form-group" style={{ marginBottom: 0, flex: 1, minWidth: '120px' }}>
+                            <label className="form-label">Length (m)</label>
+                            <input type="number" className="form-input" value={length} onChange={e => setLength(e.target.value)} />
+                        </div>
+                        <button className="btn btn-primary" onClick={generate}>Calculate</button>
                     </div>
-                    <div className="form-group" style={{ marginBottom: 0, flex: 1, minWidth: '120px' }}>
-                        <label className="form-label">Width (meters)</label>
-                        <input type="number" className="form-input" placeholder="e.g. 30" value={width} onChange={e => setWidth(e.target.value)} min="10" />
-                    </div>
-                    <div className="form-group" style={{ marginBottom: 0, flex: 1, minWidth: '120px' }}>
-                        <label className="form-label">Length (meters)</label>
-                        <input type="number" className="form-input" placeholder="e.g. 50" value={length} onChange={e => setLength(e.target.value)} min="15" />
-                    </div>
-                    <button className="btn btn-primary" onClick={generate} style={{ height: '42px' }}>
-                        <Zap size={16} /> Calculate Layout
-                    </button>
-                </div>
 
-                {/* Result */}
-                {layout && (
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ marginTop: '20px' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px', marginBottom: '16px' }}>
-                            {[
-                                { label: 'Total Spots', value: layout.totalSpots, color: 'var(--yellow)' },
-                                { label: 'Rows', value: layout.rows, color: 'var(--blue)' },
-                                { label: 'Spots/Row', value: layout.spotsPerRow, color: 'var(--green)' },
-                                { label: 'Drive Lanes', value: layout.numLanes, color: 'var(--orange)' },
-                            ].map(item => (
-                                <div key={item.label} style={{ background: 'var(--bg-surface)', padding: '12px', borderRadius: '8px', textAlign: 'center' }}>
-                                    <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 700, color: item.color }}>{item.value}</div>
-                                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{item.label}</div>
+                    {layout && (
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ marginTop: '20px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '16px' }}>
+                                <div className="stat-card"><strong>{layout.totalSpots}</strong> <span>Spots</span></div>
+                                <div className="stat-card"><strong>{layout.rows}</strong> <span>Rows</span></div>
+                                <div className="stat-card"><strong>{layout.spotsPerRow}</strong> <span>Spots/Row</span></div>
+                                <div className="stat-card"><strong>{layout.numLanes}</strong> <span>Lanes</span></div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <button className="btn btn-primary" onClick={confirm}>Confirm & Create</button>
+                                <button className="btn btn-secondary" onClick={() => setLayout(null)}>Cancel</button>
+                            </div>
+                        </motion.div>
+                    )}
+                </motion.div>
+            ) : (
+                <motion.div className="card" style={{ marginBottom: '24px', borderColor: 'var(--blue-border)' }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                    <div className="card-header">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div className="kpi-icon blue"><Grid size={20} /></div>
+                            <div>
+                                <div className="card-title">Physical Parking Builder</div>
+                                <div className="card-subtitle">Create permanent storage sectors with custom blocks</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">Parking Name</label>
+                        <input type="text" className="form-input" placeholder="e.g. Park North Extension" value={physName} onChange={e => setPhysName(e.target.value)} />
+                    </div>
+
+                    <div style={{ marginTop: '20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                            <label className="form-label">Blocks Configuration</label>
+                            <button className="btn btn-sm btn-primary" onClick={addBlock}><Plus size={14} /> Add Block</button>
+                        </div>
+                        
+                        {blocks.map((block, i) => (
+                            <div key={i} style={{ display: 'flex', gap: '12px', background: 'var(--bg-surface)', padding: '12px', borderRadius: '8px', marginBottom: '8px', alignItems: 'flex-end' }}>
+                                <div className="form-group" style={{ marginBottom: 0, width: '80px' }}>
+                                    <label className="form-label" style={{ fontSize: '0.65rem' }}>Block</label>
+                                    <input type="text" className="form-input" value={block.name} onChange={e => updateBlock(i, 'name', e.target.value)} />
                                 </div>
-                            ))}
-                        </div>
-
-                        {/* Mini Preview */}
-                        <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', padding: '16px', marginBottom: '12px' }}>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '8px' }}>Layout Preview</div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
-                                {Array(Math.min(layout.numLanes, 4)).fill(0).map((_, lane) => (
-                                    <div key={lane} style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center' }}>
-                                        <div style={{ display: 'flex', gap: '2px' }}>
-                                            {Array(Math.min(layout.spotsPerRow, 12)).fill(0).map((_, s) => (
-                                                <div key={s} style={{ width: '20px', height: '28px', background: 'var(--green-dim)', border: '1px solid var(--green)', borderRadius: '3px', fontSize: '0.45rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--green)' }}>
-                                                    V{lane * layout.spotsPerRow * 2 + s + 1}
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <div style={{ fontSize: '0.5rem', color: 'var(--text-muted)', padding: '1px 0' }}>— lane —</div>
-                                        <div style={{ display: 'flex', gap: '2px' }}>
-                                            {Array(Math.min(layout.spotsPerRow, 12)).fill(0).map((_, s) => (
-                                                <div key={s} style={{ width: '20px', height: '28px', background: 'var(--green-dim)', border: '1px solid var(--green)', borderRadius: '3px', fontSize: '0.45rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--green)' }}>
-                                                    V{lane * layout.spotsPerRow * 2 + layout.spotsPerRow + s + 1}
-                                                </div>
-                                            ))}
-                                        </div>
-                                        {lane < Math.min(layout.numLanes, 4) - 1 && <div style={{ height: '4px' }} />}
-                                    </div>
-                                ))}
+                                <div className="form-group" style={{ marginBottom: 0, flex: 1 }}>
+                                    <label className="form-label" style={{ fontSize: '0.65rem' }}>Total Spots</label>
+                                    <input type="number" className="form-input" value={block.total} onChange={e => updateBlock(i, 'total', e.target.value)} />
+                                </div>
+                                <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <input type="checkbox" checked={block.hasSides} onChange={e => updateBlock(i, 'hasSides', e.target.checked)} />
+                                    <span style={{ fontSize: '0.75rem' }}>Facing Rows</span>
+                                </div>
+                                <button className="btn btn-icon btn-danger" onClick={() => removeBlock(i)} disabled={blocks.length === 1}><Trash2 size={14} /></button>
                             </div>
-                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '8px', textAlign: 'center' }}>
-                                Spot size: {JOGGER.length}m × {JOGGER.width}m · Drive lane: {DRIVE_LANE}m · Angle: 90°
-                            </div>
-                        </div>
+                        ))}
+                    </div>
 
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                            <button className="btn btn-primary" onClick={confirm} disabled={!name}><Plus size={16} /> Confirm & Create</button>
-                            <button className="btn btn-secondary" onClick={() => setLayout(null)}>Cancel</button>
-                        </div>
-                    </motion.div>
-                )}
-            </motion.div>
+                    <button className="btn btn-primary" style={{ width: '100%', marginTop: '20px' }} onClick={handleCreatePhysical} disabled={!physName}>
+                        <Plus size={16} /> Create Physical Parking
+                    </button>
+                </motion.div>
+            )}
 
-            {/* Existing Virtual Parkings */}
+            {/* Existing Parkings */}
             <motion.div className="card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
                 <div className="card-header">
-                    <div className="card-title">Virtual Parking Lots</div>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{virtualLots?.length || 0} lots configured</span>
+                    <div className="card-title">All Storage Sectors</div>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{virtualLots?.length || 0} configured</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {virtualLots?.map(v => (
@@ -180,22 +220,19 @@ export default function VirtualParkingPage() {
                             display: 'flex', alignItems: 'center', gap: '16px', padding: '16px',
                             background: 'var(--bg-surface)', borderRadius: '8px',
                             opacity: v.active ? 1 : 0.5,
-                            border: `1px solid ${v.active ? 'var(--border-color)' : 'transparent'}`,
+                            border: `1px solid ${v.active ? (v.type === 'virtual' ? 'var(--yellow-border)' : 'var(--blue-border)') : 'transparent'}`,
                         }}>
-                            <div className="kpi-icon green" style={{ width: '40px', height: '40px' }}>
-                                <Grid size={18} />
+                            <div className={`kpi-icon ${v.type === 'virtual' ? 'yellow' : 'blue'}`} style={{ width: '40px', height: '40px' }}>
+                                {v.type === 'virtual' ? <Zap size={18} /> : <Grid size={18} />}
                             </div>
                             <div style={{ flex: 1 }}>
-                                <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{v.name}</div>
+                                <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{v.name} <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 400 }}>({v.type.toUpperCase()})</span></div>
                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                    {v.width}m × {v.length}m · {v.spots} spots · Created {v.created}
+                                    {v.spots} spots · Created {new Date(v.created_at).toLocaleDateString()}
                                 </div>
                             </div>
-                            <span className={`badge ${v.active ? 'badge-available' : 'badge-occupied'}`}>
-                                {v.active ? 'Active' : 'Inactive'}
-                            </span>
                             <div style={{ display: 'flex', gap: '6px' }}>
-                                <button className="btn btn-sm btn-primary" onClick={() => navigate(`/map/virtual/${v.id}`)}>
+                                <button className="btn btn-sm btn-primary" onClick={() => navigate(v.type === 'virtual' ? `/map/virtual/${v.id}` : `/map/physical/${v.id}`)}>
                                     <MapIcon size={14} /> View Map
                                 </button>
                                 <button className="btn btn-sm btn-secondary" onClick={() => toggleVirtual(v.id)}>
