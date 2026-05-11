@@ -9,7 +9,7 @@ module.exports = (io) => {
     router.get('/rhl/state', authenticate, async (req, res) => {
         try {
             const { rows } = await db.query(`
-                SELECT ps.spot_label, ps.block, ps.side, ps.position, ps.status, ps.vin, ps.occupied_at, ps.car_color, ps.operator_id, ps.reserved_by, ps.reservation_method
+                SELECT ps.spot_label, ps.block, ps.side, ps.position, ps.status, ps.vin, ps.occupied_at, ps.car_color, ps.operator_id, ps.reserved_by, ps.reservation_method, ps.reservation_subject
                 FROM parking_spots ps JOIN parking_lots pl ON ps.lot_id = pl.id
                 WHERE pl.name = 'Parking RHL' ORDER BY ps.block, ps.position
             `);
@@ -29,7 +29,7 @@ module.exports = (io) => {
     router.get('/contine/state', authenticate, async (req, res) => {
         try {
             const { rows } = await db.query(`
-                SELECT ps.spot_label, ps.block, ps.position, ps.status, ps.vin, ps.occupied_at, ps.car_color, ps.operator_id, ps.reserved_by, ps.reservation_method
+                SELECT ps.spot_label, ps.block, ps.position, ps.status, ps.vin, ps.occupied_at, ps.car_color, ps.operator_id, ps.reserved_by, ps.reservation_method, ps.reservation_subject
                 FROM parking_spots ps JOIN parking_lots pl ON ps.lot_id = pl.id
                 WHERE pl.name = 'Parking Contine' ORDER BY ps.position
             `);
@@ -48,7 +48,7 @@ module.exports = (io) => {
 
     // Spot reservation (Single)
     router.post('/spots/:id/reserve', authenticate, async (req, res) => {
-        const { vin, nom, prenom } = req.body;
+        const { vin, fullName, subject } = req.body;
         const spotId = req.params.id;
         
         try {
@@ -56,12 +56,12 @@ module.exports = (io) => {
             const spot = rows[0];
             if (!spot) return res.status(404).json({ error: 'Spot not available' });
 
-            const reservedBy = (nom && prenom) ? `${nom} ${prenom}` : null;
+            const reservedBy = fullName || null;
 
-            await db.query(`UPDATE parking_spots SET status = $1, vin = $2, reserved_by = $3, operator_id = $4, occupied_at = CURRENT_TIMESTAMP, reservation_method = 'manual' WHERE id = $5`, 
-                ['reserved', vin?.toUpperCase() || null, reservedBy, req.user.id, spot.id]);
+            await db.query(`UPDATE parking_spots SET status = $1, vin = $2, reserved_by = $3, reservation_subject = $4, operator_id = $5, occupied_at = CURRENT_TIMESTAMP, reservation_method = 'manual' WHERE id = $6`, 
+                ['reserved', vin?.toUpperCase() || null, reservedBy, subject || null, req.user.id, spot.id]);
 
-            io.emit('spot:updated', { spot_id: spot.spot_label, status: 'reserved', vin, reserved_by: reservedBy, reservation_method: 'manual' });
+            io.emit('spot:updated', { spot_id: spot.spot_label, status: 'reserved', vin, reserved_by: reservedBy, reservation_subject: subject, reservation_method: 'manual' });
             res.json({ spot: spot.spot_label, status: 'reserved' });
         } catch (err) {
             res.status(500).json({ error: err.message });
@@ -70,11 +70,11 @@ module.exports = (io) => {
 
     // Multiple Reservation
     router.post('/spots/bulk-reserve', authenticate, async (req, res) => {
-        const { spotIds, nom, prenom } = req.body;
+        const { spotIds, fullName, subject } = req.body;
         if (!Array.isArray(spotIds) || spotIds.length === 0) return res.status(400).json({ error: 'spotIds array is required' });
-        if (!nom || !prenom) return res.status(400).json({ error: 'nom and prenom are required' });
+        if (!fullName) return res.status(400).json({ error: 'fullName is required' });
 
-        const reservedBy = `${nom} ${prenom}`;
+        const reservedBy = fullName;
         const updatedSpots = [];
 
         try {
@@ -82,9 +82,9 @@ module.exports = (io) => {
                 const { rows } = await db.query('SELECT * FROM parking_spots WHERE (id = $1 OR spot_label = $2) AND status = $3', [spotId, spotId, 'empty']);
                 const spot = rows[0];
                 if (spot) {
-                    await db.query(`UPDATE parking_spots SET status = $1, reserved_by = $2, operator_id = $3, occupied_at = CURRENT_TIMESTAMP, reservation_method = 'manual' WHERE id = $4`, 
-                        ['reserved', reservedBy, req.user.id, spot.id]);
-                    updatedSpots.push({ spot_id: spot.spot_label, status: 'reserved', reserved_by: reservedBy });
+                    await db.query(`UPDATE parking_spots SET status = $1, reserved_by = $2, reservation_subject = $3, operator_id = $4, occupied_at = CURRENT_TIMESTAMP, reservation_method = 'manual' WHERE id = $5`, 
+                        ['reserved', reservedBy, subject || null, req.user.id, spot.id]);
+                    updatedSpots.push({ spot_id: spot.spot_label, status: 'reserved', reserved_by: reservedBy, reservation_subject: subject });
                 }
             }
             updatedSpots.forEach(s => io.emit('spot:updated', { ...s, reservation_method: 'manual' }));

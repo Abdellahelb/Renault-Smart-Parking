@@ -163,7 +163,15 @@ export default function UserManagementPage() {
                                     {canManageUsers && (
                                         <td>
                                             <div style={{ display: 'flex', gap: '6px' }}>
-                                                {u.id !== user.id && (
+                                                {/* Permission Logic: 
+                                                    1. Can't delete self
+                                                    2. Can't delete Admin
+                                                    3. Engineering can't delete Supervisor
+                                                    4. Supervisor can't delete Engineering
+                                                */}
+                                                {u.id !== user.id && u.role !== 'admin' && 
+                                                 !(user.role === 'engineering' && u.role === 'supervisor') && 
+                                                 !(user.role === 'supervisor' && u.role === 'engineering') && (
                                                     <button className="btn btn-sm btn-secondary" onClick={() => handleDeleteUser(u.id, u.name)} title="Remove account" style={{ color: 'var(--red)' }}>
                                                         <Trash2 size={14} />
                                                     </button>

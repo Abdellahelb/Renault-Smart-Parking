@@ -167,6 +167,7 @@ async function initDatabase() {
     try {
       await query('ALTER TABLE parking_spots ADD COLUMN IF NOT EXISTS reservation_method TEXT DEFAULT \'manual\'');
       await query('ALTER TABLE parking_spots ADD COLUMN IF NOT EXISTS reserved_by TEXT');
+      await query('ALTER TABLE parking_spots ADD COLUMN IF NOT EXISTS reservation_subject TEXT');
       logger.info('✅ Database migrations applied');
     } catch (migErr) {
       logger.warn('⚠️ Migration warning (might already be applied):', migErr.message);

@@ -51,8 +51,19 @@ module.exports = () => {
 
             const { rows } = await db.query('SELECT role FROM users WHERE id = $1', [id]);
             const targetUser = rows[0];
-            if (targetUser && targetUser.role === 'admin' && req.user.role !== 'admin') {
-                return res.status(403).json({ error: 'Supervisors cannot delete admin users' });
+            if (!targetUser) return res.status(404).json({ error: 'User not found' });
+
+            // Admin is untouchable
+            if (targetUser.role === 'admin') {
+                return res.status(403).json({ error: 'Admin accounts cannot be deleted' });
+            }
+
+            // Mutual restriction: engineering vs supervisor
+            if (req.user.role === 'engineering' && targetUser.role === 'supervisor') {
+                return res.status(403).json({ error: 'Engineering users cannot delete Supervisors' });
+            }
+            if (req.user.role === 'supervisor' && targetUser.role === 'engineering') {
+                return res.status(403).json({ error: 'Supervisors cannot delete Engineering users' });
             }
 
             const result = await db.query('DELETE FROM users WHERE id = $1', [id]);

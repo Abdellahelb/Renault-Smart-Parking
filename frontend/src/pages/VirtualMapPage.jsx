@@ -162,8 +162,8 @@ export default function VirtualMapPage() {
         }
     };
 
-    const onReserve = async (spotId, nom, prenom) => {
-        if (!nom || !prenom) return alert('Name and Last Name are required');
+    const onReserve = async (spotId, fullName, subject) => {
+        if (!fullName) return alert('Full Name is required');
         try {
             await fetch(`${API_URL}/spots/${spotId}/reserve`, {
                 method: 'POST',
@@ -171,7 +171,7 @@ export default function VirtualMapPage() {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ nom, prenom })
+                body: JSON.stringify({ fullName, subject })
             });
             setSelectedSpot(null);
             alert('Place reserved successfully');
@@ -382,17 +382,17 @@ export default function VirtualMapPage() {
                                         Spot is available for assignment. Enter identity details to reserve.
                                     </p>
                                     <div className="form-group" style={{ marginBottom: '8px' }}>
-                                        <label className="form-label">Last Name</label>
-                                        <input id="reserve-nom" type="text" className="form-input" placeholder="e.g. Smith" />
+                                        <label className="form-label">Full Name</label>
+                                        <input id="reserve-fullName" type="text" className="form-input" placeholder="e.g. John Smith" />
                                     </div>
                                     <div className="form-group" style={{ marginBottom: '8px' }}>
-                                        <label className="form-label">First Name</label>
-                                        <input id="reserve-prenom" type="text" className="form-input" placeholder="e.g. John" />
+                                        <label className="form-label">Subject / Project</label>
+                                        <input id="reserve-subject" type="text" className="form-input" placeholder="e.g. Maintenance B" />
                                     </div>
                                     <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => {
-                                        const nom = document.getElementById('reserve-nom').value;
-                                        const prenom = document.getElementById('reserve-prenom').value;
-                                        onReserve(selectedSpot.id, nom, prenom);
+                                        const fullName = document.getElementById('reserve-fullName').value;
+                                        const subject = document.getElementById('reserve-subject').value;
+                                        onReserve(selectedSpot.id, fullName, subject);
                                     }}>
                                         Reserve Place
                                     </button>

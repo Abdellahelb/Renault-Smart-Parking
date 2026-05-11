@@ -371,20 +371,20 @@ function SpotDetailModal({ spot, onClose, onRelease, onReserve }) {
                 ) : (
                     <div style={{ marginTop: '16px' }}>
                         <p style={{ color: 'var(--text-muted)', marginBottom: '16px', fontSize: '0.85rem' }}>
-                            Enter Last Name and First Name to reserve this spot.
+                            Enter Full Name and Subject to reserve this spot.
                         </p>
                         <div className="form-group" style={{ marginBottom: '8px' }}>
-                            <label className="form-label">Last Name</label>
-                            <input id="reserve-nom" type="text" className="form-input" placeholder="e.g. Smith" />
+                            <label className="form-label">Full Name</label>
+                            <input id="reserve-fullName" type="text" className="form-input" placeholder="e.g. John Smith" />
                         </div>
                         <div className="form-group" style={{ marginBottom: '16px' }}>
-                            <label className="form-label">First Name</label>
-                            <input id="reserve-prenom" type="text" className="form-input" placeholder="e.g. John" />
+                            <label className="form-label">Subject / Project</label>
+                            <input id="reserve-subject" type="text" className="form-input" placeholder="e.g. Maintenance A" />
                         </div>
                         <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => {
-                            const nom = document.getElementById('reserve-nom').value;
-                            const prenom = document.getElementById('reserve-prenom').value;
-                            onReserve(spot.id, nom, prenom);
+                            const fullName = document.getElementById('reserve-fullName').value;
+                            const subject = document.getElementById('reserve-subject').value;
+                            onReserve(spot.id, fullName, subject);
                         }}>
                             Reserve Spot
                         </button>
@@ -400,11 +400,11 @@ function MultipleReserveModal({ onClose, onMultipleReserve, blocks }) {
     const [block, setBlock] = useState(blocks[0]);
     const [fromNum, setFromNum] = useState('');
     const [toNum, setToNum] = useState('');
-    const [nom, setNom] = useState('');
-    const [prenom, setPrenom] = useState('');
+    const [fullName, setFullName] = useState('');
+    const [subject, setSubject] = useState('');
 
     const handleReserve = () => {
-        if (!nom || !prenom) return alert('Last Name and First Name required');
+        if (!fullName) return alert('Full Name is required');
         const start = parseInt(fromNum);
         const end = parseInt(toNum);
         if (isNaN(start) || isNaN(end) || start > end) return alert('Invalid spot range');
@@ -413,7 +413,7 @@ function MultipleReserveModal({ onClose, onMultipleReserve, blocks }) {
         for (let i = start; i <= end; i++) {
             spotIds.push(`${block}${i}`);
         }
-        onMultipleReserve(spotIds, nom, prenom);
+        onMultipleReserve(spotIds, fullName, subject);
     };
 
     return (
@@ -440,12 +440,12 @@ function MultipleReserveModal({ onClose, onMultipleReserve, blocks }) {
                     </div>
                 </div>
                 <div className="form-group" style={{ marginBottom: '8px' }}>
-                    <label className="form-label">Last Name</label>
-                    <input type="text" className="form-input" placeholder="e.g. Smith" value={nom} onChange={e => setNom(e.target.value)} />
+                    <label className="form-label">Full Name</label>
+                    <input type="text" className="form-input" placeholder="e.g. John Smith" value={fullName} onChange={e => setFullName(e.target.value)} />
                 </div>
                 <div className="form-group" style={{ marginBottom: '16px' }}>
-                    <label className="form-label">First Name</label>
-                    <input type="text" className="form-input" placeholder="e.g. John" value={prenom} onChange={e => setPrenom(e.target.value)} />
+                    <label className="form-label">Subject / Project</label>
+                    <input type="text" className="form-input" placeholder="e.g. Project X" value={subject} onChange={e => setSubject(e.target.value)} />
                 </div>
                 <button className="btn btn-primary" style={{ width: '100%' }} onClick={handleReserve}>
                     Reserve Range
@@ -731,8 +731,8 @@ export default function ParkingMapRHL() {
                                 window.location.reload();
                             } catch (err) { console.error(err); }
                         }}
-                        onReserve={async (id, nom, prenom) => {
-                            if (!nom || !prenom) return alert('Last Name and First Name required');
+                        onReserve={async (id, fullName, subject) => {
+                            if (!fullName) return alert('Full Name is required');
                             try {
                                 await fetch(`${API_URL}/spots/${id}/reserve`, {
                                     method: 'POST',
@@ -740,7 +740,7 @@ export default function ParkingMapRHL() {
                                         'Authorization': `Bearer ${token}`,
                                         'Content-Type': 'application/json'
                                     },
-                                    body: JSON.stringify({ nom, prenom })
+                                    body: JSON.stringify({ fullName, subject })
                                 });
                                 setSelectedSpot(null);
                                 alert('Place reserved successfully');
@@ -753,7 +753,7 @@ export default function ParkingMapRHL() {
                     <MultipleReserveModal
                         blocks={blockKeys}
                         onClose={() => setShowMultipleReserve(false)}
-                        onMultipleReserve={async (spotIds, nom, prenom) => {
+                        onMultipleReserve={async (spotIds, fullName, subject) => {
                             try {
                                 await fetch(`${API_URL}/spots/bulk-reserve`, {
                                     method: 'POST',
@@ -761,7 +761,7 @@ export default function ParkingMapRHL() {
                                         'Authorization': `Bearer ${token}`,
                                         'Content-Type': 'application/json'
                                     },
-                                    body: JSON.stringify({ spotIds, nom, prenom })
+                                    body: JSON.stringify({ spotIds, fullName, subject })
                                 });
                                 setShowMultipleReserve(false);
                                 alert('Places réservées avec succès');
