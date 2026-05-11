@@ -88,26 +88,62 @@ export default function VirtualParkingPage() {
                             <div className="stat-card"><strong>{layout.numLanes}</strong> <span>Lanes</span></div>
                         </div>
                         
-                        <div style={{ marginBottom: '20px' }}>
-                            <div className="form-label">Layout Preview</div>
+                        <div style={{ marginBottom: '24px' }}>
+                            <div className="form-label" style={{ fontSize: '1rem', marginBottom: '12px', color: 'var(--yellow)' }}>Layout Preview (Interactive Simulation)</div>
                             <div style={{ 
-                                background: 'var(--bg-card)', 
-                                padding: '12px', 
-                                borderRadius: '8px', 
-                                maxHeight: '400px', 
+                                background: '#111', 
+                                padding: '24px', 
+                                borderRadius: '12px', 
+                                maxHeight: '600px', 
                                 overflowY: 'auto',
+                                border: '1px solid var(--bg-surface)',
                                 display: 'flex',
                                 flexDirection: 'column',
-                                gap: '8px'
+                                gap: '16px',
+                                boxShadow: 'inset 0 0 40px rgba(0,0,0,0.5)'
                             }}>
                                 {[...Array(layout.numLanes)].map((_, laneIdx) => (
-                                    <div key={laneIdx} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                        <div style={{ display: 'flex', gap: '3px', justifyContent: 'center' }}>
-                                            {[...Array(layout.spotsPerRow)].map((_, i) => <div key={i} style={{ width: '12px', height: '24px', background: 'var(--green-dim)', border: '1px solid var(--green)', borderRadius: '2px' }} />)}
+                                    <div key={laneIdx} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                        {/* Row A */}
+                                        <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                                            {[...Array(layout.spotsPerRow)].map((_, i) => (
+                                                <div key={i} style={{ 
+                                                    width: '20px', 
+                                                    height: '42px', 
+                                                    background: 'var(--green-dim)', 
+                                                    border: '1px solid var(--green)', 
+                                                    borderRadius: '3px',
+                                                    opacity: 0.8
+                                                }} />
+                                            ))}
                                         </div>
-                                        <div style={{ height: '12px', background: 'rgba(255,255,255,0.05)', borderTop: '1px dashed rgba(255,255,255,0.1)', borderBottom: '1px dashed rgba(255,255,255,0.1)' }} />
-                                        <div style={{ display: 'flex', gap: '3px', justifyContent: 'center' }}>
-                                            {[...Array(layout.spotsPerRow)].map((_, i) => <div key={i} style={{ width: '12px', height: '24px', background: 'var(--green-dim)', border: '1px solid var(--green)', borderRadius: '2px' }} />)}
+                                        {/* Road / Lane */}
+                                        <div style={{ 
+                                            height: '24px', 
+                                            background: 'rgba(255,255,255,0.03)', 
+                                            borderTop: '1px dashed rgba(255,255,255,0.1)', 
+                                            borderBottom: '1px dashed rgba(255,255,255,0.1)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '0.6rem',
+                                            color: 'rgba(255,255,255,0.2)',
+                                            letterSpacing: '2px'
+                                        }}>
+                                            LANE {laneIdx + 1}
+                                        </div>
+                                        {/* Row B */}
+                                        <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                                            {[...Array(layout.spotsPerRow)].map((_, i) => (
+                                                <div key={i} style={{ 
+                                                    width: '20px', 
+                                                    height: '42px', 
+                                                    background: 'var(--green-dim)', 
+                                                    border: '1px solid var(--green)', 
+                                                    borderRadius: '3px',
+                                                    opacity: 0.8
+                                                }} />
+                                            ))}
                                         </div>
                                     </div>
                                 ))}
