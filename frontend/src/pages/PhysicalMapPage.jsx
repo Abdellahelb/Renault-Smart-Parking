@@ -133,8 +133,9 @@ function SpotDetailModal({ spot, onClose, onRelease, onReserve }) {
     );
 }
 
-export default function PhysicalMapPage() {
-    const { id } = useParams();
+export default function PhysicalMapPage({ id: propId }) {
+    const { id: paramId } = useParams();
+    const id = propId || paramId;
     const [spots, setSpots] = useState([]);
     const [lotName, setLotName] = useState('Loading...');
     const [selectedSpot, setSelectedSpot] = useState(null);
