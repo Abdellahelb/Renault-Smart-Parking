@@ -306,6 +306,24 @@ module.exports = (io) => {
         }
     });
 
+    router.delete('/lots/:id', authenticate, requireRole('supervisor'), async (req, res) => {
+        const { id } = req.params;
+        try {
+            const { rows } = await db.query('SELECT name, type FROM parking_lots WHERE id = $1', [id]);
+            const lot = rows[0];
+            if (!lot) return res.status(404).json({ error: 'Lot not found' });
+            
+            await db.query('DELETE FROM parking_spots WHERE lot_id = $1', [id]);
+            await db.query('DELETE FROM parking_lots WHERE id = $1', [id]);
+            await db.query('INSERT INTO audit_log (id, user_id, action, resource, detail) VALUES ($1, $2, $3, $4, $5)', 
+                [uuidv4(), req.user.id, 'DELETE_PARKING_LOT', id, `Deleted ${lot.type} lot ${lot.name}`]);
+            
+            res.json({ message: 'Lot deleted successfully' });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
+    });
+
     router.delete('/virtual/:id', authenticate, requireRole('supervisor'), async (req, res) => {
         const { id } = req.params;
         try {

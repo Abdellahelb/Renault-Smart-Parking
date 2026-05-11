@@ -48,6 +48,22 @@ export default function Layout() {
     const location = useLocation();
     const navigate = useNavigate();
     const [headerSearch, setHeaderSearch] = useState('');
+    const [showHeader, setShowHeader] = useState(true);
+    const [lastScrollY, setLastScrollY] = useState(0);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const currentScrollY = window.scrollY;
+            if (currentScrollY > lastScrollY && currentScrollY > 100) {
+                setShowHeader(false); // Scrolling down
+            } else {
+                setShowHeader(true); // Scrolling up
+            }
+            setLastScrollY(currentScrollY);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [lastScrollY]);
 
     const handleSearchSubmit = (e) => {
         if (e.key === 'Enter' && headerSearch.trim()) {
@@ -168,7 +184,13 @@ export default function Layout() {
             {/* Main Content */}
             <div className="main-content">
                 {/* Header */}
-                <header className="top-header">
+                <motion.header 
+                    className="top-header"
+                    initial={{ y: 0 }}
+                    animate={{ y: showHeader ? 0 : -80 }}
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    style={{ position: 'sticky', top: 0, zIndex: 1000 }}
+                >
                     <div className="header-left">
                         <h2 className="page-title">{getPageTitle()}</h2>
                     </div>
@@ -191,7 +213,7 @@ export default function Layout() {
                             <User size={18} />
                         </NavLink>
                     </div>
-                </header>
+                </motion.header>
 
                 {/* Page Content */}
                 <motion.div

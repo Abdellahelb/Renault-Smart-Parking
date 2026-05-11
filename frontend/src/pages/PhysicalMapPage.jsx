@@ -122,7 +122,7 @@ function SpotDetailModal({ spot, onClose, onRelease, onReserve }) {
                 ) : (
                     <div>
                         <div className="form-group"><label className="form-label">VIN (Optional)</label><input id="res-vin" type="text" className="form-input" placeholder="VF1..." /></div>
-                        <div className="form-group"><label className="form-label">Full Name</label><input id="res-name" type="text" className="form-input" placeholder="Operator Name" /></div>
+                        <div className="form-group"><label className="form-label">Full Name</label><input id="res-name" type="text" className="form-input" placeholder="Abdellah Elberkaoui" /></div>
                         <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => onReserve(spot.id, document.getElementById('res-vin').value, document.getElementById('res-name').value)}>Reserve Spot</button>
                     </div>
                 )}

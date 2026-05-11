@@ -88,7 +88,7 @@ const useVirtualStore = create((set, get) => ({
     deleteVirtualLot: async (id) => {
         set({ loading: true });
         try {
-            await fetch(`${API_URL}/virtual/${id}`, {
+            await fetch(`${API_URL}/lots/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${useAuthStore.getState().token}` }
             });

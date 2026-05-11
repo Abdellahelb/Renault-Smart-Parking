@@ -375,7 +375,7 @@ function SpotDetailModal({ spot, onClose, onRelease, onReserve }) {
                         </p>
                         <div className="form-group" style={{ marginBottom: '8px' }}>
                             <label className="form-label">Full Name</label>
-                            <input id="reserve-fullName" type="text" className="form-input" placeholder="e.g. John Smith" />
+                            <input id="reserve-fullName" type="text" className="form-input" placeholder="Abdellah Elberkaoui" />
                         </div>
                         <div className="form-group" style={{ marginBottom: '16px' }}>
                             <label className="form-label">Subject / Project</label>
@@ -441,7 +441,7 @@ function MultipleReserveModal({ onClose, onMultipleReserve, blocks }) {
                 </div>
                 <div className="form-group" style={{ marginBottom: '8px' }}>
                     <label className="form-label">Full Name</label>
-                    <input type="text" className="form-input" placeholder="e.g. John Smith" value={fullName} onChange={e => setFullName(e.target.value)} />
+                    <input type="text" className="form-input" placeholder="Abdellah Elberkaoui" value={fullName} onChange={e => setFullName(e.target.value)} />
                 </div>
                 <div className="form-group" style={{ marginBottom: '16px' }}>
                     <label className="form-label">Subject / Project</label>

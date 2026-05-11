@@ -87,7 +87,7 @@ export default function UserManagementPage() {
                     <form onSubmit={handleAddUser} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
                         <div className="form-group">
                             <label className="form-label">Full Name</label>
-                            <input type="text" className="form-input" required value={newUser.name} onChange={e => setNewUser({ ...newUser, name: e.target.value })} placeholder="e.g. Jean Dupont" />
+                            <input type="text" className="form-input" required value={newUser.name} onChange={e => setNewUser({ ...newUser, name: e.target.value })} placeholder="Abdellah Elberkaoui" />
                         </div>
                         <div className="form-group">
                             <label className="form-label">Operator ID</label>
