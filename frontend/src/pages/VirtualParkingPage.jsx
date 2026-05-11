@@ -67,29 +67,6 @@ export default function VirtualParkingPage() {
 
     return (
         <div className="parking-lots-container">
-            {/* Existing Sectors List */}
-            <motion.div className="card" style={{ marginBottom: '24px' }}>
-                <div className="card-header">
-                    <div className="card-title">Active Storage Sectors</div>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {virtualLots?.map(v => (
-                        <div key={v.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: 'var(--bg-surface)', borderRadius: '8px' }}>
-                            <div className={`kpi-icon ${v.type === 'virtual' ? 'yellow' : 'blue'}`} style={{ width: '32px', height: '32px' }}>
-                                {v.type === 'virtual' ? <Zap size={16} /> : <Grid size={16} />}
-                            </div>
-                            <div style={{ flex: 1 }}>
-                                <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{v.name}</div>
-                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{v.type?.toUpperCase()} · {v.total_spots_actual || v.total_spots || 0} spots</div>
-                            </div>
-                            <div style={{ display: 'flex', gap: '4px' }}>
-                                <button className="btn btn-sm btn-primary" onClick={() => navigate(v.type === 'virtual' ? `/map/virtual/${v.id}` : `/map/physical/${v.id}`)}><MapIcon size={12} /></button>
-                                <button className="btn btn-sm btn-danger" onClick={() => deleteLot(v.id)}><Trash2 size={12} /></button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </motion.div>
 
             {/* AI Virtual Generator */}
             <motion.div className="card" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
