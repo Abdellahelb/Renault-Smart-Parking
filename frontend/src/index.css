@@ -13,6 +13,7 @@
   --bg-hover: rgba(255, 255, 255, 0.05);
   --bg-input: rgba(30, 30, 30, 0.4);
   --bg-sidebar: linear-gradient(180deg, rgba(15, 15, 15, 0.95) 0%, rgba(5, 5, 5, 1) 100%);
+  --bg-card-gradient: linear-gradient(135deg, var(--bg-card) 0%, rgba(10, 10, 10, 0.8) 100%);
 
   --text-primary: #FFFFFF;
   --text-secondary: #C4C4C4;
@@ -74,10 +75,11 @@
   --bg-hover: rgba(0, 0, 0, 0.05);
   --bg-input: #FFFFFF;
   --bg-sidebar: #FFFFFF;
+  --bg-card-gradient: linear-gradient(135deg, #FFFFFF 0%, #F3F4F6 100%);
 
   --text-primary: #111827;
   --text-secondary: #374151;
-  --text-muted: #6B7280;
+  --text-muted: #4B5563;
   --text-accent: #B45309;
 
   --yellow: #D97706;
@@ -516,7 +518,7 @@ h6 {
 }
 
 .kpi-card {
-  background: linear-gradient(135deg, var(--bg-card) 0%, rgba(10, 10, 10, 0.8) 100%);
+  background: var(--bg-card-gradient);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-color);
