@@ -3,20 +3,24 @@ const crypto = require('crypto');
 const db = require('../config/db'); // kept in case other middleware need it, or we can remove if unused
 
 const JWT_SECRET = process.env.JWT_SECRET || 'spm-fallback-secret-2026';
-const HARDWARE_API_KEY = process.env.HARDWARE_API_KEY;
+const HARDWARE_API_KEY = process.env.HARDWARE_API_KEY || null;
 
 function validateConfig() {
-    if (!JWT_SECRET || !HARDWARE_API_KEY) {
-        const missing = [];
-        if (!JWT_SECRET) missing.push('JWT_SECRET');
-        if (!HARDWARE_API_KEY) missing.push('HARDWARE_API_KEY');
-        throw new Error(`FATAL ERROR: Missing environment variables: ${missing.join(', ')}`);
+    if (!process.env.JWT_SECRET) {
+        console.warn('⚠️ JWT_SECRET is not defined in environment. Using fallback secret.');
+    }
+    if (!process.env.HARDWARE_API_KEY) {
+        console.warn('⚠️ HARDWARE_API_KEY is not defined. Hardware authentication will be disabled.');
     }
 }
 
-let hardwareKeyBuffer;
+let hardwareKeyBuffer = null;
 if (HARDWARE_API_KEY) {
-    hardwareKeyBuffer = Buffer.from(HARDWARE_API_KEY);
+    try {
+        hardwareKeyBuffer = Buffer.from(HARDWARE_API_KEY);
+    } catch (err) {
+        console.error('Failed to initialize hardware key buffer:', err.message);
+    }
 }
 
 async function authenticate(req, res, next) {

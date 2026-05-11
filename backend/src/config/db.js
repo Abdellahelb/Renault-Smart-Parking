@@ -174,6 +174,10 @@ async function query(text, params) {
  * Called once at server startup or via a setup script.
  */
 async function initDatabase() {
+  if (!process.env.POSTGRES_URL) {
+    logger.info('Skipping DB init (Mock Mode active)');
+    return;
+  }
   logger.info('🏛️ Initializing PostgreSQL database...');
   
   try {
