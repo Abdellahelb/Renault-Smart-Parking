@@ -12,12 +12,7 @@ import {
     ParkingSquare, ShieldAlert, Plus
 } from 'lucide-react';
 
-const RenaultLogo = ({ size = 22 }) => (
-    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M50 5 L15 50 L50 95 L85 50 L50 5 Z M50 22 L70 50 L50 78 L30 50 L50 22 Z" fill="currentColor" />
-        <path d="M50 36 L40 50 L50 64 L60 50 L50 36 Z M50 46 L47 50 L50 54 L53 50 L50 46 Z" fill="currentColor" />
-    </svg>
-);
+import RenaultLogoImg from '../assets/renault-logo.png';
 
 const baseNavItems = [
     {
@@ -114,12 +109,12 @@ export default function Layout() {
             {/* Sidebar */}
             <aside className="sidebar">
                 <div className="sidebar-brand">
+                    <div className="brand-icon">
+                        <img src={RenaultLogoImg} alt="Renault" style={{ width: '28px', height: 'auto' }} />
+                    </div>
                     <div className="brand-text">
                         <h1 style={{ fontSize: '0.95rem', whiteSpace: 'nowrap' }}>Smart Parking Manager</h1>
                         <span>RTMA</span>
-                    </div>
-                    <div className="brand-icon">
-                        <RenaultLogo size={24} />
                     </div>
                 </div>
 

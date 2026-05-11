@@ -8,12 +8,7 @@ import './LoginPage.css';
 
 const TOTAL_FRAMES = 181;
 
-const RenaultLogo = ({ size = 22 }) => (
-    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M50 5 L15 50 L50 95 L85 50 L50 5 Z M50 22 L70 50 L50 78 L30 50 L50 22 Z" fill="currentColor" />
-        <path d="M50 36 L40 50 L50 64 L60 50 L50 36 Z M50 46 L47 50 L50 54 L53 50 L50 46 Z" fill="currentColor" />
-    </svg>
-);
+import RenaultLogoImg from '../assets/renault-logo.png';
 
 export default function LoginPage() {
     const [username, setUsername] = useState('');
@@ -224,7 +219,7 @@ export default function LoginPage() {
                     <div className="login-card">
                         <div className="login-header">
                             <div className="login-logo">
-                                <RenaultLogo size={32} />
+                                <img src={RenaultLogoImg} alt="Renault" style={{ width: '48px', height: 'auto' }} />
                             </div>
                             <h2 className="login-title" style={{ fontSize: '1.2rem' }}>Smart Parking Manager</h2>
                             <div className="login-subtitle">RTMA</div>
