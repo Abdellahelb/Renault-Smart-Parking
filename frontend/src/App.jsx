@@ -60,8 +60,8 @@ function App() {
           }>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="map/rhl" element={<PhysicalMapPage id="2d69f4ac-0efd-4812-bdf6-d62e1d27bb69" />} />
-            <Route path="map/contine" element={<PhysicalMapPage id="83943c3a-a562-4749-b9d2-d55faad8913f" />} />
+            <Route path="map/rhl" element={<ParkingMapRHL />} />
+            <Route path="map/contine" element={<ParkingMapContine />} />
             <Route path="map/virtual/:id" element={<VirtualMapPage />} />
             <Route path="map/physical/:id" element={<PhysicalMapPage />} />
             <Route path="scan" element={<ScanPage />} />
