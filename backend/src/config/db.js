@@ -87,7 +87,7 @@ async function query(text, params) {
     if (textLower.includes('select count(*)')) {
       const isOccupied = textLower.includes("status != 'empty'");
       const isAlert = textLower.includes("status in ('occupied','alert')");
-      return { rows: [{ count: isAlert ? '5' : (isOccupied ? '45' : '334') }] };
+      return { rows: [{ count: isAlert ? '5' : (isOccupied ? '45' : '344') }] };
     }
 
     // 5. Lots management
