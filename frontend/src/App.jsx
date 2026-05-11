@@ -79,9 +79,6 @@ function App() {
             <Route path="admin/virtual" element={
               <ProtectedRoute requiredRole="supervisor"><VirtualParkingPage /></ProtectedRoute>
             } />
-            <Route path="admin/physical-build" element={
-              <ProtectedRoute requiredRole="supervisor"><VirtualParkingPage defaultType="physical" /></ProtectedRoute>
-            } />
             <Route path="admin/settings" element={
               <ProtectedRoute requiredRole="supervisor"><SettingsPage /></ProtectedRoute>
             } />

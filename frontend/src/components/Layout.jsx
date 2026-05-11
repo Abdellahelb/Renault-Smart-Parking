@@ -37,7 +37,6 @@ const baseNavItems = [
         section: 'Administration', items: [
             { path: '/admin/users', icon: Users, label: 'Personnel Access', role: 'supervisor' },
             { path: '/admin/virtual', icon: Zap, label: 'Virtual Sector AI', role: 'supervisor' },
-            { path: '/admin/physical-build', icon: ParkingSquare, label: 'Physical Sector Build', role: 'supervisor' },
             { path: '/admin/settings', icon: Settings, label: 'Settings', role: 'supervisor' },
         ]
     },
@@ -97,8 +96,7 @@ export default function Layout() {
             '/alerts': 'Alerts',
             '/reports': 'Reports',
             '/admin/users': 'Personnel Access',
-            '/admin/virtual': 'Virtual Sector AI',
-            '/admin/physical-build': 'Real Sector Builder',
+            '/admin/virtual': 'Parking Sector AI',
             '/admin/settings': 'Settings',
             '/profile': 'Profile',
         };
