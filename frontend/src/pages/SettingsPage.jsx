@@ -6,9 +6,9 @@ import useAuthStore from '../store/authStore';
 import useSettingsStore from '../store/settingsStore';
 
 export default function SettingsPage() {
-    const { token } = useAuthStore();
+    const { token, user } = useAuthStore();
     const { theme, setTheme, fetchSettings } = useSettingsStore();
-    const [apiKey, setApiKey] = useState('ESP32-HW-KEY-••••••••••');
+    const [apiKey] = useState('ESP32-RENAULT-PROD-2026'); // Hardcoded fixed key
     const [frontendUrl, setFrontendUrl] = useState('https://parking.renault-internal.com');
     const [alertEmail, setAlertEmail] = useState('supervisor@renault.com');
     const [alertDays, setAlertDays] = useState(null); // Null to indicate loading
@@ -73,32 +73,35 @@ export default function SettingsPage() {
         }
     };
 
-    const regenerateKey = () => {
-        const newKey = 'ESP32-' + Math.random().toString(36).substring(2, 14).toUpperCase();
-        setApiKey(newKey);
-    };
-
     return (
         <div style={{ maxWidth: '700px', margin: '0 auto' }}>
-            {/* Hardware API Keys */}
-            <motion.div className="card" style={{ marginBottom: '16px' }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                <div className="card-header">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <Key size={18} style={{ color: 'var(--yellow)' }} />
-                        <div className="card-title">Hardware API Keys</div>
+            {/* Hardware API Keys (Admin Only) */}
+            {user?.role === 'admin' && (
+                <motion.div className="card" style={{ marginBottom: '16px' }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                    <div className="card-header">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <Key size={18} style={{ color: 'var(--yellow)' }} />
+                            <div className="card-title">Hardware API Keys</div>
+                        </div>
                     </div>
-                </div>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                    API key for ESP32 device authentication. Rotate monthly for security.
-                </p>
-                <div className="form-group">
-                    <label className="form-label">ESP32 Hardware Key</label>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                        <input type="text" className="form-input" value={apiKey} onChange={e => setApiKey(e.target.value)} style={{ fontFamily: 'monospace' }} />
-                        <button className="btn btn-secondary" onClick={regenerateKey} title="Regenerate"><RefreshCw size={16} /></button>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
+                        API key for ESP32 device authentication. This is a permanent production key.
+                    </p>
+                    <div className="form-group">
+                        <label className="form-label">ESP32 Hardware Key</label>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <input 
+                                type="text" 
+                                className="form-input" 
+                                value={apiKey} 
+                                readOnly 
+                                style={{ fontFamily: 'monospace', cursor: 'default' }} 
+                            />
+                            <div className="badge badge-available" style={{ display: 'flex', alignItems: 'center' }}>Active</div>
+                        </div>
                     </div>
-                </div>
-            </motion.div>
+                </motion.div>
+            )}
 
             {/* CORS & Network */}
             <motion.div className="card" style={{ marginBottom: '16px' }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
