@@ -49,21 +49,20 @@ export default function Layout() {
     const navigate = useNavigate();
     const [headerSearch, setHeaderSearch] = useState('');
     const [showHeader, setShowHeader] = useState(true);
-    const [lastScrollY, setLastScrollY] = useState(0);
-
     useEffect(() => {
+        let lastScroll = 0;
         const handleScroll = () => {
-            const currentScrollY = window.scrollY;
-            if (currentScrollY > lastScrollY && currentScrollY > 100) {
-                setShowHeader(false); // Scrolling down
+            const currentScrollY = window.pageYOffset || document.documentElement.scrollTop;
+            if (currentScrollY > lastScroll && currentScrollY > 70) {
+                setShowHeader(false);
             } else {
-                setShowHeader(true); // Scrolling up
+                setShowHeader(true);
             }
-            setLastScrollY(currentScrollY);
+            lastScroll = currentScrollY;
         };
-        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
-    }, [lastScrollY]);
+    }, []);
 
     const handleSearchSubmit = (e) => {
         if (e.key === 'Enter' && headerSearch.trim()) {
