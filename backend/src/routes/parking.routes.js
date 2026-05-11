@@ -12,7 +12,7 @@ module.exports = (io) => {
                 SELECT ps.spot_label, ps.block, ps.side, ps.position, ps.status, ps.vin, ps.occupied_at, ps.car_color, ps.operator_id, ps.reserved_by, ps.reservation_method, ps.reservation_subject
                 FROM parking_spots ps JOIN parking_lots pl ON ps.lot_id = pl.id
                 FROM parking_spots ps JOIN parking_lots pl ON ps.lot_id = pl.id
-                WHERE pl.name = 'Parking RHL' ORDER BY ps.block, ps.position
+                WHERE pl.name LIKE '%RHL%' ORDER BY ps.block, ps.position
             `);
 
             const enriched = rows.map(s => ({
@@ -33,7 +33,8 @@ module.exports = (io) => {
                 SELECT ps.spot_label, ps.block, ps.position, ps.status, ps.vin, ps.occupied_at, ps.car_color, ps.operator_id, ps.reserved_by, ps.reservation_method, ps.reservation_subject
                 FROM parking_spots ps JOIN parking_lots pl ON ps.lot_id = pl.id
                 FROM parking_spots ps JOIN parking_lots pl ON ps.lot_id = pl.id
-                WHERE pl.name = 'Parking Contine' ORDER BY ps.position
+                FROM parking_spots ps JOIN parking_lots pl ON ps.lot_id = pl.id
+                WHERE pl.name LIKE '%Cantine%' ORDER BY ps.position
             `);
 
             const enriched = rows.map(s => ({
