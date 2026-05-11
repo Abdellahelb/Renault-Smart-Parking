@@ -8,6 +8,13 @@ import './LoginPage.css';
 
 const TOTAL_FRAMES = 181;
 
+const RenaultLogo = ({ size = 22 }) => (
+    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M50 2L10 50L50 98L90 50L50 2ZM50 18L74 50L50 82L26 50L50 18Z" fill="currentColor" />
+        <path d="M50 36L40 50L50 64L60 50L50 36Z" fill="currentColor" />
+    </svg>
+);
+
 export default function LoginPage() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -217,10 +224,10 @@ export default function LoginPage() {
                     <div className="login-card">
                         <div className="login-header">
                             <div className="login-logo">
-                                <Zap size={32} />
+                                <RenaultLogo size={32} />
                             </div>
-                            <h2 className="login-title">RENAULT SPM</h2>
-                            <div className="login-subtitle">Core VIN Tracking Engine</div>
+                            <h2 className="login-title">SPM</h2>
+                            <div className="login-subtitle">RTMA</div>
                         </div>
 
                         <form onSubmit={handleSubmit} className="login-form">
