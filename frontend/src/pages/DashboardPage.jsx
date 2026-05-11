@@ -53,10 +53,16 @@ const weeklyData = [
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
         return (
-            <div style={{ background: '#111', border: '1px solid #333', padding: '8px 12px', borderRadius: '4px' }}>
-                <p style={{ margin: 0, fontSize: '12px', color: '#888' }}>{label}</p>
+            <div style={{ 
+                background: 'var(--bg-card)', 
+                backdropFilter: 'blur(8px)',
+                border: '1px solid var(--border-color)', 
+                padding: '6px 10px', 
+                borderRadius: '8px',
+                boxShadow: 'var(--shadow-lg)'
+            }}>
                 {payload.map((entry, index) => (
-                    <p key={index} style={{ margin: '4px 0 0', fontSize: '13px', color: entry.color, fontWeight: 'bold' }}>
+                    <p key={index} style={{ margin: 0, fontSize: '13px', color: entry.color, fontWeight: '600' }}>
                         {entry.name}: {entry.value}
                     </p>
                 ))}
@@ -202,9 +208,9 @@ export default function DashboardPage() {
                                 </linearGradient>
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" />
-                            <XAxis dataKey="time" stroke="#666" fontSize={12} />
+                             <XAxis dataKey="time" stroke="#666" fontSize={12} />
                             <YAxis stroke="#666" fontSize={12} />
-                            <Tooltip cursor={false} />
+                            <Tooltip content={<CustomTooltip />} cursor={false} />
                             <Area type="monotone" dataKey="count" name="Vehicles" stroke="#F7C948" fillOpacity={1} fill="url(#colorCount)" strokeWidth={2} />
                         </AreaChart>
                     </ResponsiveContainer>
