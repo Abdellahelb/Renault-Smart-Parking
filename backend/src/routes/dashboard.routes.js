@@ -49,13 +49,13 @@ module.exports = () => {
 
             // Block utilization
             const { rows: blockStats } = await db.query(`
-                SELECT block as name, 
+                SELECT COALESCE(ps.block, pl.name) as name, 
                        COUNT(*) as capacity,
-                       SUM(CASE WHEN status != 'empty' THEN 1 ELSE 0 END) as vehicles
-                FROM parking_spots 
-                WHERE block IS NOT NULL AND block != ''
-                GROUP BY block 
-                ORDER BY block
+                       SUM(CASE WHEN ps.status != 'empty' THEN 1 ELSE 0 END) as vehicles
+                FROM parking_spots ps
+                JOIN parking_lots pl ON ps.lot_id = pl.id
+                GROUP BY COALESCE(ps.block, pl.name)
+                ORDER BY name
             `);
 
             // Average Dwell Days
