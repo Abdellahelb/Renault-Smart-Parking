@@ -202,8 +202,6 @@ h6 {
 .sidebar-brand .brand-icon {
   width: 40px;
   height: 40px;
-  background: var(--yellow);
-  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;

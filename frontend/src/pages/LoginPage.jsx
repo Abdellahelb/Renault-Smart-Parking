@@ -10,8 +10,8 @@ const TOTAL_FRAMES = 181;
 
 const RenaultLogo = ({ size = 22 }) => (
     <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M50 0 L10 50 L50 100 L90 50 L50 0 Z M50 15 L75 50 L50 88 L25 50 L50 15 Z" fill="currentColor" />
-        <path d="M50 30 L35 50 L50 70 L65 50 L50 30 Z" fill="currentColor" />
+        <path d="M50 5 L15 50 L50 95 L85 50 L50 5 Z M50 22 L70 50 L50 78 L30 50 L50 22 Z" fill="currentColor" />
+        <path d="M50 36 L40 50 L50 64 L60 50 L50 36 Z M50 46 L47 50 L50 54 L53 50 L50 46 Z" fill="currentColor" />
     </svg>
 );
 
