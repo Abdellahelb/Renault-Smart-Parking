@@ -109,12 +109,12 @@ export default function VirtualParkingPage({ defaultType = 'virtual' }) {
                             </div>
                             <div style={{ flex: 1 }}>
                                 <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{v.name}</div>
-                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{v.type.toUpperCase()} · {v.spots} spots</div>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{v.type.toUpperCase()} · {v.total_spots_actual || v.total_spots || 0} spots</div>
                             </div>
                             <div style={{ display: 'flex', gap: '4px' }}>
                                 <button className="btn btn-sm btn-primary" onClick={() => navigate(v.type === 'virtual' ? `/map/virtual/${v.id}` : `/map/physical/${v.id}`)}><MapIcon size={12} /></button>
                                 <button className="btn btn-sm btn-secondary" onClick={() => toggleVirtual(v.id)}>{v.active ? 'Off' : 'On'}</button>
-                                {!['Park RHL', 'Park Cantine', 'Parking RHL', 'Parking Contine'].includes(v.name) && (
+                                {!['Park RHL', 'Park Cantine'].includes(v.name) && (
                                     <button className="btn btn-sm btn-danger" onClick={() => deleteVirtual(v.id)}><Trash2 size={12} /></button>
                                 )}
                             </div>
