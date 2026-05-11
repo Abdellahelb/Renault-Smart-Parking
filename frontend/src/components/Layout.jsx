@@ -36,6 +36,7 @@ const baseNavItems = [
         section: 'Administration', items: [
             { path: '/admin/users', icon: Users, label: 'Personnel Access', role: 'supervisor' },
             { path: '/admin/virtual', icon: Plus, label: 'Virtual Parking', role: 'supervisor' },
+            { path: '/admin/physical-build', icon: ParkingSquare, label: 'Real Parking Build', role: 'supervisor' },
             { path: '/admin/settings', icon: Settings, label: 'Settings', role: 'supervisor' },
         ]
     },
@@ -95,8 +96,9 @@ export default function Layout() {
             '/alerts': 'Alerts',
             '/reports': 'Reports',
             '/admin/users': 'Personnel Access',
-            '/admin/virtual': 'Virtual Parking',
-            '/admin/settings': 'System Settings',
+            '/admin/virtual': 'Virtual Sector AI',
+            '/admin/physical-build': 'Real Sector Builder',
+            '/admin/settings': 'Settings',
             '/profile': 'Profile',
         };
         return titles[location.pathname] || 'Intelligent Parking Management';

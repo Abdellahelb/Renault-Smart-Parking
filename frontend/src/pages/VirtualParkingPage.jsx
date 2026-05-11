@@ -34,7 +34,11 @@ function calculateLayout(widthM, lengthM, angle = 90) {
 import useVirtualStore from '../store/virtualStore';
 
     const { virtualLots, loading, createVirtualLot, createPhysicalLot, toggleVirtualLot, deleteVirtualLot } = useVirtualStore();
-    const [creationType, setCreationType] = useState('virtual'); // 'virtual' or 'physical'
+    const [creationType, setCreationType] = useState(defaultType); // 'virtual' or 'physical'
+
+    useEffect(() => {
+        setCreationType(defaultType);
+    }, [defaultType]);
 
     // Physical Builder State
     const [physName, setPhysName] = useState('');
