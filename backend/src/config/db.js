@@ -129,7 +129,7 @@ async function query(text, params) {
     // 7. Generic modifications (DELETE, UPDATE, INSERT)
     if (textLower.includes('insert into parking_lots')) {
       // Mock persistence for new lots
-      const id = params[0];
+      const id = params[0] || uuidv4();
       const name = params[1];
       const type = params[2];
       const total = params[3];
@@ -137,7 +137,7 @@ async function query(text, params) {
         id, name, type, total_spots: total, total_spots_actual: total, 
         active: 1, created_at: new Date().toISOString(), occupied_count: 0 
       });
-      return { rows: [], rowCount: 1 };
+      return { rows: [{ id }], rowCount: 1 };
     }
 
     if (textLower.includes('delete from parking_lots')) {
