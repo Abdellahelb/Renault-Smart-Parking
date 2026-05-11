@@ -91,11 +91,11 @@ async function query(text, params) {
       };
     }
 
-    // Specific Lot State (Maps)
-    if (textLower.includes('parking_spots') && (textLower.includes('join') || textLower.includes('where'))) {
+    // Specific Lot State (Maps / Parking Spots)
+    if (textLower.includes('from parking_spots') || textLower.includes('ps.*')) {
       const lotId = params && params[0];
-      const isCantine = lotId === '83943c3a-a562-4749-b9d2-d55faad8913f' || textLower.includes('cantine');
-      const isVirtual = lotId === 'v-lot-001' || textLower.includes('virtual');
+      const isCantine = (lotId && lotId.includes('83943c3a')) || textLower.includes('cantine');
+      const isVirtual = (lotId && lotId.includes('v-lot')) || textLower.includes('virtual');
       const name = isCantine ? 'Park Cantine' : (isVirtual ? 'Virtual Zone Alpha' : 'Park RHL');
       const rows = [];
       
