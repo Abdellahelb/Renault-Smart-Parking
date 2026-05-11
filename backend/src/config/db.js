@@ -9,12 +9,15 @@ if (!process.env.POSTGRES_URL) {
   logger.error('Please add POSTGRES_URL to your .env file or Vercel environment.');
 }
 
-const pool = new Pool({
-  connectionString: process.env.POSTGRES_URL,
-  ssl: process.env.NODE_ENV === 'production' ? {
-    rejectUnauthorized: false // Required for Vercel/Neon Postgres
-  } : false
-});
+let pool = null;
+if (process.env.POSTGRES_URL) {
+  pool = new Pool({
+    connectionString: process.env.POSTGRES_URL,
+    ssl: process.env.NODE_ENV === 'production' ? {
+      rejectUnauthorized: false
+    } : false
+  });
+}
 
 /**
  * Executes a SQL query with parameters.
@@ -24,11 +27,12 @@ async function query(text, params) {
   
   // Mock mode for local testing if POSTGRES_URL is missing or a placeholder
   if (!process.env.POSTGRES_URL || isPlaceholder) {
-    const isUserQuery = text.includes('FROM users WHERE operator_id = $1');
-    if (isUserQuery) {
+    const textLower = text.toLowerCase();
+    
+    // Auth: Login ADMIN001
+    if (textLower.includes('from users where operator_id = $1')) {
       const opId = params[0] ? params[0].toUpperCase() : '';
       if (opId === 'ADMIN001') {
-        logger.info('👤 Mock Login matched: ADMIN001');
         return {
           rows: [{
             id: 'mock-admin-id',
@@ -41,6 +45,85 @@ async function query(text, params) {
         };
       }
     }
+
+    // Dashboard: System Settings
+    if (textLower.includes('from system_settings where key = $1')) {
+      return { rows: [{ value: '15' }] };
+    }
+
+    // Dashboard: Summary counts
+    if (textLower.includes('select count(*) as count from parking_spots')) {
+      const isOccupied = textLower.includes("status != 'empty'");
+      return { rows: [{ count: isOccupied ? '45' : '334' }] };
+    }
+
+    // Dashboard: Block stats
+    if (textLower.includes('group by coalesce(ps.block, pl.name)')) {
+      return {
+        rows: [
+          { name: 'A', capacity: 20, vehicles: 5 },
+          { name: 'B', capacity: 30, vehicles: 12 },
+          { name: 'Park Cantine', capacity: 42, vehicles: 0 },
+          { name: 'Park RHL', capacity: 292, vehicles: 45 }
+        ]
+      };
+    }
+
+    // Lots management
+    if (textLower.includes('from parking_lots')) {
+      return {
+        rows: [
+          { id: '2d69f4ac-0efd-4812-bdf6-d62e1d27bb69', name: 'Park RHL', type: 'physical', total_spots: 292 },
+          { id: '83943c3a-a562-4749-b9d2-d55faad8913f', name: 'Park Cantine', type: 'physical', total_spots: 42 }
+        ]
+      };
+    }
+
+    // Specific Lot State (Maps)
+    if (textLower.includes('from parking_spots ps join parking_lots pl')) {
+      const isCantine = textLower.includes('park cantine') || (params && (params[0] === '83943c3a-a562-4749-b9d2-d55faad8913f' || params[1] === 'Park Cantine'));
+      const count = isCantine ? 42 : 20; // Default to 20 for RHL block A for simplicity in mock
+      const name = isCantine ? 'Park Cantine' : 'Park RHL';
+      const rows = [];
+      for (let i = 1; i <= count; i++) {
+        rows.push({
+          id: `${isCantine ? 'CT' : 'A'}${i}`,
+          spot_label: `${isCantine ? 'CT' : 'A'}${i}`,
+          lot_id: 'mock-lot-id',
+          block: isCantine ? null : 'A',
+          status: 'empty',
+          lot_name: name,
+          position: i
+        });
+      }
+      return { rows };
+    }
+
+    // Dwell time / Avg Days
+    if (textLower.includes('avg(extract(day from')) {
+      return { rows: [{ avg: '3.5' }] };
+    }
+
+    // Flow Data (Charts)
+    if (textLower.includes('group by date_val')) {
+      return {
+        rows: [
+          { date_val: '2026-05-05', entries: 12, exits: 8 },
+          { date_val: '2026-05-06', entries: 15, exits: 10 },
+          { date_val: '2026-05-07', entries: 20, exits: 14 },
+          { date_val: '2026-05-08', entries: 18, exits: 22 },
+          { date_val: '2026-05-09', entries: 10, exits: 5 },
+          { date_val: '2026-05-10', entries: 5, exits: 2 }
+        ]
+      };
+    }
+
+    // Recent activity
+    if (textLower.includes('from vehicle_history')) {
+      return { rows: [] };
+    }
+
+    // Default mock return
     return { rows: [], rowCount: 0 };
   }
 
