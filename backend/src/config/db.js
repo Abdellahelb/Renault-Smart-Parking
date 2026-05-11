@@ -15,8 +15,8 @@ const uuidv4 = () => Math.random().toString(36).substring(2, 15) + Math.random()
 
 // In-memory store for mock mode persistence during demo session
 const mockLots = [
-  { id: '2d69f4ac-0efd-4812-bdf6-d62e1d27bb69', name: 'Park RHL', type: 'physical', total_spots: 302, active: 1, created_at: new Date().toISOString(), total_spots_actual: 302, occupied_count: 45 },
-  { id: '83943c3a-a562-4749-b9d2-d55faad8913f', name: 'Park Cantine', type: 'physical', total_spots: 42, active: 1, created_at: new Date().toISOString(), total_spots_actual: 42, occupied_count: 5 }
+  { id: '2d69f4ac-0efd-4812-bdf6-d62e1d27bb69', name: 'Parking RHL', type: 'physical', total_spots: 302, active: 1, created_at: new Date().toISOString(), total_spots_actual: 302, occupied_count: 45 },
+  { id: '83943c3a-a562-4749-b9d2-d55faad8913f', name: 'Parking Contine', type: 'physical', total_spots: 42, active: 1, created_at: new Date().toISOString(), total_spots_actual: 42, occupied_count: 5 }
 ];
 
 /**
