@@ -57,7 +57,7 @@ export default function AlertsPage() {
         setAlerts(prev => prev.map(a => a.id === id ? { ...a, status: 'resolved', resolvedAt: new Date().toISOString() } : a));
     };
 
-    const severityColors = { critical: 'var(--red)', high: 'var(--orange)', medium: 'var(--yellow)' };
+    const severityColors = { critical: 'var(--red)', high: 'var(--red)', medium: 'var(--yellow)' };
     const statusIcons = {
         active: <AlertTriangle size={16} />,
         acknowledged: <Eye size={16} />,
@@ -76,13 +76,13 @@ export default function AlertsPage() {
                     <div className="kpi-value">{activeCount}</div>
                     <div className="kpi-label">Active Alerts</div>
                 </motion.div>
-                <motion.div className="kpi-card orange" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-                    <div className="kpi-icon orange"><Bell size={22} /></div>
+                <motion.div className="kpi-card red" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+                    <div className="kpi-icon red"><Bell size={22} /></div>
                     <div className="kpi-value">{criticalCount}</div>
                     <div className="kpi-label">Critical (≥8 days)</div>
                 </motion.div>
-                <motion.div className="kpi-card green" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                    <div className="kpi-icon green"><CheckCircle2 size={22} /></div>
+                <motion.div className="kpi-card yellow" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                    <div className="kpi-icon yellow"><CheckCircle2 size={22} /></div>
                     <div className="kpi-value">{alerts.filter(a => a.status === 'resolved').length}</div>
                     <div className="kpi-label">Resolved This Week</div>
                 </motion.div>
@@ -117,8 +117,8 @@ export default function AlertsPage() {
                             <div style={{
                                 width: '44px', height: '44px', borderRadius: '10px',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                background: alert.status === 'resolved' ? 'var(--green-dim)' : alert.severity === 'critical' ? 'var(--red-dim)' : 'var(--orange-dim)',
-                                color: alert.status === 'resolved' ? 'var(--green)' : severityColors[alert.severity],
+                                background: alert.status === 'resolved' ? 'var(--yellow-dim)' : alert.severity === 'critical' ? 'var(--red-dim)' : 'var(--red-dim)',
+                                color: alert.status === 'resolved' ? 'var(--yellow)' : severityColors[alert.severity],
                                 flexShrink: 0,
                             }}>
                                 {statusIcons[alert.status]}
@@ -157,7 +157,7 @@ export default function AlertsPage() {
                                     </div>
                                 )}
                                 {alert.status === 'resolved' && alert.resolvedAt && (
-                                    <span style={{ fontSize: '0.75rem', color: 'var(--green)' }}>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--yellow)' }}>
                                         ✓ Resolved on {new Date(alert.resolvedAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                                     </span>
                                 )}

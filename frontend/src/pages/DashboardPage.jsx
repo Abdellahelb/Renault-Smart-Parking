@@ -174,15 +174,15 @@ export default function DashboardPage() {
                     <div className="kpi-trend up"><ArrowUpRight size={14} /> LIVE UPDATE</div>
                 </div>
 
-                <div className="kpi-card green">
-                    <div className="kpi-icon green"><BarChart3 size={22} /></div>
+                <div className="kpi-card yellow">
+                    <div className="kpi-icon yellow"><BarChart3 size={22} /></div>
                     <div className="kpi-value">{stats.saturation}%</div>
                     <div className="kpi-label">Parking Saturation Level</div>
                     <div className="kpi-trend up"><ArrowUpRight size={14} /> Global Capacity</div>
                 </div>
 
-                <div className="kpi-card blue">
-                    <div className="kpi-icon blue"><Clock size={22} /></div>
+                <div className="kpi-card yellow">
+                    <div className="kpi-icon yellow"><Clock size={22} /></div>
                     <div className="kpi-value">{stats.avgDwellDays || stats.avgDwell || 0}d</div>
                     <div className="kpi-label">Mean Storage Duration</div>
                     <div className="kpi-trend down"><ArrowDownRight size={14} /> Historical Avg</div>
@@ -258,7 +258,7 @@ export default function DashboardPage() {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
                         {(stats.blockStats && stats.blockStats.length > 0 ? stats.blockStats : blockData).map(block => {
                             const pct = block.pct || Math.round((block.vehicles / block.capacity) * 100);
-                            const color = pct > 85 ? '#E53935' : pct > 60 ? '#FF9800' : '#43A047';
+                            const color = pct > 75 ? 'var(--red)' : 'var(--yellow)';
                             return (
                                 <div key={block.name} style={{
                                     background: 'var(--bg-card)',
@@ -303,13 +303,13 @@ export default function DashboardPage() {
                             📊 <strong style={{ color: 'var(--yellow)' }}>Current Saturation: {stats.saturation}%</strong>. {stats.saturation > 80 ? 'Parking is nearing capacity. Recommend optimizing intake.' : 'Parking levels are stable. No immediate overflow risk.'}
                         </p>
                         <p style={{ marginBottom: '12px' }}>
-                            ⚠️ <strong style={{ color: stats.criticalAlerts > 0 ? 'var(--red)' : 'var(--green)' }}>{stats.criticalAlerts || 0} critical alerts detected.</strong> {stats.criticalAlerts > 0 ? `Attention required for ${stats.criticalAlerts} vehicles exceeding SLA limits.` : 'All vehicles are currently within their storage duration limits.'}
+                            ⚠️ <strong style={{ color: stats.criticalAlerts > 0 ? 'var(--red)' : 'var(--yellow)' }}>{stats.criticalAlerts || 0} critical alerts detected.</strong> {stats.criticalAlerts > 0 ? `Attention required for ${stats.criticalAlerts} vehicles exceeding SLA limits.` : 'All vehicles are currently within their storage duration limits.'}
                         </p>
                         <p style={{ marginBottom: '12px' }}>
                             ⏰ <strong style={{ color: 'var(--text-primary)' }}>Flow Metrics:</strong> {stats.dailyVolume} total movements processed today. Pattern suggests standard operational load.
                         </p>
                         <p>
-                            👤 <strong style={{ color: 'var(--green)' }}>Real-time Monitoring:</strong> System is synchronized with live telemetry. Telemetry feed is active and stable.
+                            👤 <strong style={{ color: 'var(--yellow)' }}>Real-time Monitoring:</strong> System is synchronized with live telemetry. Telemetry feed is active and stable.
                         </p>
                     </div>
                 </motion.div>
@@ -331,7 +331,7 @@ export default function DashboardPage() {
                                 background: 'var(--bg-surface)',
                                 borderRadius: '8px',
                                 padding: '12px',
-                                borderLeft: `3px solid ${alert.severity === 'critical' ? 'var(--red)' : alert.severity === 'high' ? 'var(--orange)' : 'var(--yellow)'}`,
+                                borderLeft: `3px solid ${alert.severity === 'critical' ? 'var(--red)' : alert.severity === 'high' ? 'var(--red)' : 'var(--yellow)'}`,
                                 animation: alert.severity === 'critical' ? 'pulse-badge 2s infinite' : 'none',
                             }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
@@ -380,8 +380,8 @@ export default function DashboardPage() {
                             <div style={{
                                 width: '32px', height: '32px', borderRadius: '8px',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                background: item.action === 'CHECK_IN' ? 'var(--green-dim)' : 'var(--blue-dim)',
-                                color: item.action === 'CHECK_IN' ? 'var(--green)' : 'var(--blue)',
+                                background: item.action === 'CHECK_IN' ? 'var(--yellow-dim)' : 'var(--red-dim)',
+                                color: item.action === 'CHECK_IN' ? 'var(--yellow)' : 'var(--red)',
                             }}>
                                 {item.action === 'CHECK_IN' ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
                             </div>

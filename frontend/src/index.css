@@ -782,13 +782,13 @@ h6 {
 }
 
 .badge-reserved {
-  background: var(--orange-dim);
-  color: var(--orange);
+  background: var(--yellow-dim);
+  color: var(--yellow);
 }
 
 .badge-available {
-  background: var(--green-dim);
-  color: var(--green);
+  background: var(--yellow-dim);
+  color: var(--yellow);
 }
 
 .badge-alert {
