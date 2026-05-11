@@ -82,19 +82,41 @@ async function query(text, params) {
     // Specific Lot State (Maps)
     if (textLower.includes('from parking_spots ps join parking_lots pl')) {
       const isCantine = textLower.includes('park cantine') || (params && (params[0] === '83943c3a-a562-4749-b9d2-d55faad8913f' || params[1] === 'Park Cantine'));
-      const count = isCantine ? 42 : 20; // Default to 20 for RHL block A for simplicity in mock
       const name = isCantine ? 'Park Cantine' : 'Park RHL';
       const rows = [];
-      for (let i = 1; i <= count; i++) {
-        rows.push({
-          id: `${isCantine ? 'CT' : 'A'}${i}`,
-          spot_label: `${isCantine ? 'CT' : 'A'}${i}`,
-          lot_id: 'mock-lot-id',
-          block: isCantine ? null : 'A',
-          status: 'empty',
-          lot_name: name,
-          position: i
-        });
+      
+      if (isCantine) {
+        for (let i = 1; i <= 42; i++) {
+          rows.push({
+            id: `CT${i}`,
+            spot_label: `CT${i}`,
+            lot_id: '83943c3a-a562-4749-b9d2-d55faad8913f',
+            block: null,
+            status: i % 5 === 0 ? 'occupied' : 'empty',
+            lot_name: name,
+            position: i,
+            occupied_at: i % 5 === 0 ? new Date().toISOString() : null
+          });
+        }
+      } else {
+        const blocks = { A: 20, B: 30, C: 36, D: 36, E: 36, F: 36, G: 36, H: 36, I: 36 };
+        for (const [block, total] of Object.entries(blocks)) {
+          for (let i = 1; i <= total; i++) {
+            const side = i <= (total / 2) ? 'left' : 'right';
+            const status = (i + block.charCodeAt(0)) % 7 === 0 ? 'occupied' : 'empty';
+            rows.push({
+              id: `${block}${i}`,
+              spot_label: `${block}${i}`,
+              lot_id: '2d69f4ac-0efd-4812-bdf6-d62e1d27bb69',
+              block: block,
+              side: side,
+              status: status,
+              lot_name: name,
+              position: i,
+              occupied_at: status === 'occupied' ? new Date().toISOString() : null
+            });
+          }
+        }
       }
       return { rows };
     }

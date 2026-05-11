@@ -146,20 +146,35 @@ export default function PhysicalMapPage({ id: propId }) {
         let socket;
         const fetchState = async () => {
             try {
-                const res = await fetch(`${API_URL}/lots/${id}/state`, { headers: { Authorization: `Bearer ${token}` } });
-                const data = await res.json();
+                const res = await fetch(`${API_URL}/lots/${id}/state`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
                 if (res.ok) {
-                    setSpots(data.spots);
-                    setLotName(data.name);
+                    const data = await res.json();
+                    setSpots(data.spots || []);
+                    setLotName(data.name || 'Parking Map');
+                } else {
+                    console.error('Fetch failed with status:', res.status);
+                    setLotName('Map Unavailable');
                 }
-            } catch (err) { console.error(err); }
-            finally { setLoading(false); }
+            } catch (err) { 
+                console.error('Fetch error:', err); 
+                setLotName('Connection Error');
+            } finally { 
+                setLoading(false); 
+            }
         };
 
-        if (token) {
+        if (token && id) {
             fetchState();
             socket = io(SOCKET_URL);
             socket.on('spot:updated', () => fetchState());
+        } else if (!token) {
+            setLoading(false);
+            setLotName('Authentication Required');
+        } else {
+            setLoading(false);
+            setLotName('No Sector Selected');
         }
         return () => socket?.disconnect();
     }, [id, token]);
