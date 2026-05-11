@@ -35,8 +35,8 @@ const baseNavItems = [
     {
         section: 'Administration', items: [
             { path: '/admin/users', icon: Users, label: 'Personnel Access', role: 'supervisor' },
-            { path: '/admin/virtual', icon: Plus, label: 'Virtual Parking', role: 'supervisor' },
-            { path: '/admin/physical-build', icon: ParkingSquare, label: 'Real Parking Build', role: 'supervisor' },
+            { path: '/admin/virtual', icon: Zap, label: 'Virtual Sector AI', role: 'supervisor' },
+            { path: '/admin/physical-build', icon: ParkingSquare, label: 'Physical Sector Build', role: 'supervisor' },
             { path: '/admin/settings', icon: Settings, label: 'Settings', role: 'supervisor' },
         ]
     },
