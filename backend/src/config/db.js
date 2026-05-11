@@ -38,11 +38,10 @@ async function query(text, params) {
     if (textLower.includes('parking_spots')) {
       const lotId = params && params[0];
       const isCantine = (lotId && lotId.includes('83943c3a')) || textLower.includes('cantine');
-      const isVirtual = (lotId && lotId.includes('v-lot')) || textLower.includes('virtual');
-      const name = isCantine ? 'Park Cantine' : (isVirtual ? 'Virtual Zone Alpha' : 'Park RHL');
+      const name = isCantine ? 'Park Cantine' : 'Park RHL';
       const rows = [];
       
-      if (isCantine || isVirtual) {
+      if (isCantine) {
         const count = isCantine ? 42 : 100;
         for (let i = 1; i <= count; i++) {
           const status = i % 7 === 0 ? 'occupied' : 'empty';
@@ -102,8 +101,7 @@ async function query(text, params) {
     if (textLower.includes('from parking_lots')) {
       const rows = [
         { id: '2d69f4ac-0efd-4812-bdf6-d62e1d27bb69', name: 'Park RHL', type: 'physical', total_spots: 292, active: 1, created_at: '2026-05-01T10:00:00Z', total_spots_actual: 292, occupied_count: 45 },
-        { id: '83943c3a-a562-4749-b9d2-d55faad8913f', name: 'Park Cantine', type: 'physical', total_spots: 42, active: 1, created_at: '2026-05-01T11:00:00Z', total_spots_actual: 42, occupied_count: 5 },
-        { id: 'v-lot-001', name: 'Virtual Zone Alpha', type: 'virtual', total_spots: 100, active: 1, created_at: '2026-05-05T09:00:00Z', total_spots_actual: 100, occupied_count: 15 }
+        { id: '83943c3a-a562-4749-b9d2-d55faad8913f', name: 'Park Cantine', type: 'physical', total_spots: 42, active: 1, created_at: '2026-05-01T11:00:00Z', total_spots_actual: 42, occupied_count: 5 }
       ];
       return { rows, rowCount: rows.length };
     }
