@@ -125,15 +125,42 @@ export default function VirtualParkingPage({ defaultType = 'virtual' }) {
                         <button className="btn btn-primary" onClick={generate} style={{ height: '42px' }}>Calculate</button>
                     </div>
                     {layout && (
-                        <div style={{ marginTop: '20px' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '16px' }}>
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ marginTop: '20px', padding: '16px', background: 'var(--bg-surface)', borderRadius: '12px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '20px' }}>
                                 <div className="stat-card"><strong>{layout.totalSpots}</strong> <span>Spots</span></div>
                                 <div className="stat-card"><strong>{layout.rows}</strong> <span>Rows</span></div>
                                 <div className="stat-card"><strong>{layout.spotsPerRow}</strong> <span>S/Row</span></div>
                                 <div className="stat-card"><strong>{layout.numLanes}</strong> <span>Lanes</span></div>
                             </div>
-                            <button className="btn btn-primary" onClick={confirm}>Confirm & Create</button>
-                        </div>
+                            
+                            <div style={{ marginBottom: '20px' }}>
+                                <div className="form-label">Layout Preview</div>
+                                <div style={{ 
+                                    background: 'var(--bg-card)', 
+                                    padding: '12px', 
+                                    borderRadius: '8px', 
+                                    maxHeight: '150px', 
+                                    overflowY: 'auto',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '8px'
+                                }}>
+                                    {[...Array(layout.numLanes)].map((_, laneIdx) => (
+                                        <div key={laneIdx} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                            <div style={{ display: 'flex', gap: '2px', justifyContent: 'center' }}>
+                                                {[...Array(layout.spotsPerRow)].map((_, i) => <div key={i} style={{ width: '8px', height: '16px', background: 'var(--green-dim)', border: '1px solid var(--green)', borderRadius: '1px' }} />)}
+                                            </div>
+                                            <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderTop: '1px dashed rgba(255,255,255,0.1)', borderBottom: '1px dashed rgba(255,255,255,0.1)' }} />
+                                            <div style={{ display: 'flex', gap: '2px', justifyContent: 'center' }}>
+                                                {[...Array(layout.spotsPerRow)].map((_, i) => <div key={i} style={{ width: '8px', height: '16px', background: 'var(--green-dim)', border: '1px solid var(--green)', borderRadius: '1px' }} />)}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <button className="btn btn-primary" onClick={confirm} style={{ width: '100%' }}>Confirm & Create Sector</button>
+                        </motion.div>
                     )}
                 </motion.div>
             ) : (
@@ -151,7 +178,29 @@ export default function VirtualParkingPage({ defaultType = 'virtual' }) {
                         ))}
                         <button className="btn btn-sm btn-secondary" onClick={addBlock} style={{ marginTop: '8px' }}><Plus size={14} /> Add Block</button>
                     </div>
-                    <button className="btn btn-primary" style={{ width: '100%', marginTop: '16px' }} onClick={handleCreatePhysical}>Create Physical Parking</button>
+
+                    {/* Physical Preview */}
+                    {physName && (
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ marginTop: '20px', padding: '16px', background: 'var(--bg-surface)', borderRadius: '12px', border: '1px solid var(--blue-border)' }}>
+                            <div className="form-label">Structure Preview</div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+                                {blocks.map((b, idx) => (
+                                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <div style={{ background: 'var(--blue)', color: 'white', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.8rem' }}>{b.name}</div>
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{b.total} Spots</div>
+                                            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{b.hasSides ? 'Dual facing rows with drive lane' : 'Single row structure'}</div>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '2px' }}>
+                                            {[...Array(Math.min(5, b.total))].map((_, i) => <div key={i} style={{ width: '6px', height: '12px', background: 'var(--blue-dim)', border: '1px solid var(--blue)', borderRadius: '1px' }} />)}
+                                            {b.total > 5 && <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>...</span>}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <button className="btn btn-primary" style={{ width: '100%' }} onClick={handleCreatePhysical}>Confirm & Create Physical Parking</button>
+                        </motion.div>
+                    )}
                 </motion.div>
             )}
 
