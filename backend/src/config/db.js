@@ -213,10 +213,10 @@ async function seedDatabase() {
 
     // Seed Parking Lots
     const rhlId = uuidv4();
-    await query(`INSERT INTO parking_lots (id, name, type, total_spots) VALUES ($1, $2, $3, $4)`, [rhlId, 'Parking RHL', 'physical', 292]);
+    await query(`INSERT INTO parking_lots (id, name, type, total_spots) VALUES ($1, $2, $3, $4)`, [rhlId, 'Park RHL', 'physical', 292]);
 
     const contineId = uuidv4();
-    await query(`INSERT INTO parking_lots (id, name, type, total_spots) VALUES ($1, $2, $3, $4)`, [contineId, 'Parking Contine', 'physical', 42]);
+    await query(`INSERT INTO parking_lots (id, name, type, total_spots) VALUES ($1, $2, $3, $4)`, [contineId, 'Park Cantine', 'physical', 42]);
 
     // Seed Spots (Simplified for demo)
     const blocks = {

@@ -81,31 +81,22 @@ function ParkingSpot({ spot, onClick, facing }) {
     const isReserved = spot.status === 'reserved';
 
     return (
-        <motion.div
-            onClick={() => onClick(spot)}
-            whileHover={{ scale: 1.06, boxShadow: '0 0 12px rgba(247,201,72,0.2)' }}
-            whileTap={{ scale: 0.97 }}
-            style={{
-                width: '58px',
-                height: '100px',
-                background: isEmpty ? 'rgba(240,245,240,0.03)' : 'rgba(30,30,30,0.6)',
-                border: isEmpty
-                    ? '1.5px dashed rgba(67,160,71,0.3)'
-                    : isAlert
-                        ? '2px solid var(--red)'
-                        : '1px solid rgba(255,255,255,0.06)',
-                borderRadius: '8px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                position: 'relative',
-                transition: 'all 0.2s ease',
-                animation: isAlert ? 'pulse-border 2s infinite' : 'none',
-                overflow: 'hidden',
-            }}
-        >
+            <motion.div
+                onClick={() => onClick(spot)}
+                className="parking-spot"
+                whileHover={{ scale: 1.05 }}
+                style={{
+                    width: '46px', height: '90px',
+                    border: `2px solid ${isEmpty ? 'var(--green)' : isReserved ? 'var(--orange)' : isAlert ? 'var(--red)' : 'transparent'}`,
+                    background: isEmpty ? 'var(--green-dim)' : isReserved ? 'var(--orange-dim)' : isAlert ? 'var(--red-dim)' : 'transparent',
+                    borderRadius: '6px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer',
+                    position: 'relative',
+                    boxShadow: isAlert ? '0 0 12px rgba(229,57,53,0.3)' : 'none',
+                    transition: 'all 0.2s ease'
+                }}
+            >
             {isEmpty ? (
                 <>
                     <span style={{
