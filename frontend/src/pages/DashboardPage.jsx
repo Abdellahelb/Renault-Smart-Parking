@@ -18,6 +18,9 @@ const fadeIn = {
 };
 
 const occupancyData = [
+    { time: '00:00', count: 45 },
+    { time: '02:00', count: 32 },
+    { time: '04:00', count: 18 },
     { time: '06:00', count: 25 },
     { time: '08:00', count: 85 },
     { time: '10:00', count: 142 },
@@ -27,6 +30,7 @@ const occupancyData = [
     { time: '18:00', count: 165 },
     { time: '20:00', count: 120 },
     { time: '22:00', count: 95 },
+    { time: '23:59', count: 65 },
 ];
 
 const blockData = [
