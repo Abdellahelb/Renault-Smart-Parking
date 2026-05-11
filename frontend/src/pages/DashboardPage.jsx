@@ -239,7 +239,7 @@ export default function DashboardPage() {
                             <YAxis stroke="#666" fontSize={12} />
                             <Tooltip content={<CustomTooltip />} cursor={false} wrapperStyle={{ outline: 'none' }} />
                             <Bar dataKey="entries" name="Entries" fill="#F7C948" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="exits" name="Exits" fill="var(--red)" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="exits" name="Exits" fill="#E53935" radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </motion.div>
@@ -258,7 +258,7 @@ export default function DashboardPage() {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
                         {(stats.blockStats && stats.blockStats.length > 0 ? stats.blockStats : blockData).map(block => {
                             const pct = block.pct || Math.round((block.vehicles / block.capacity) * 100);
-                            const color = pct > 75 ? 'var(--red)' : 'var(--yellow)';
+                            const color = pct > 75 ? '#E53935' : '#F7C948';
                             return (
                                 <div key={block.name} style={{
                                     background: 'var(--bg-card)',
