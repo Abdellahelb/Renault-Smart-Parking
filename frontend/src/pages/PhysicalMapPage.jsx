@@ -46,8 +46,8 @@ function ParkingSpot({ spot, onClick, facing }) {
             whileHover={{ scale: 1.05 }}
             style={{
                 width: '46px', height: '90px',
-                border: `2px solid ${isEmpty ? 'var(--green)' : isReserved ? 'var(--orange)' : isAlert ? 'var(--red)' : 'transparent'}`,
-                background: isEmpty ? 'var(--green-dim)' : isReserved ? 'var(--orange-dim)' : isAlert ? 'var(--red-dim)' : 'transparent',
+                border: `2px solid ${isEmpty ? 'var(--yellow-border)' : isReserved ? 'var(--yellow)' : isAlert ? 'var(--red)' : 'transparent'}`,
+                background: isEmpty ? 'var(--bg-input)' : isReserved ? 'var(--yellow-dim)' : isAlert ? 'var(--red-dim)' : 'transparent',
                 borderRadius: '6px',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 cursor: 'pointer',
@@ -55,7 +55,7 @@ function ParkingSpot({ spot, onClick, facing }) {
             }}
         >
             {isEmpty ? (
-                <span style={{ fontSize: '0.72rem', color: 'rgba(67,160,71,0.6)', fontWeight: 600 }}>{spot.id}</span>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>{spot.id}</span>
             ) : (
                 <div style={{ transform: facing === 'down' ? 'rotate(180deg)' : 'none' }}>
                     <TopDownCar color={carColor} width={42} isReserved={isReserved} />
@@ -80,10 +80,12 @@ function BlockRow({ block, spots, onSpotClick }) {
 
     return (
         <div style={{ marginBottom: '28px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
-                <div style={{ background: 'var(--green-dim)', color: 'var(--green)', padding: '4px 12px', borderRadius: '6px', fontSize: '0.9rem', fontWeight: 700 }}>Block {block}</div>
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{occupied}/{total} · {pct}% Occupancy</span>
-            </div>
+            {block && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
+                    <div style={{ background: 'var(--yellow-dim)', color: 'var(--yellow)', padding: '4px 12px', borderRadius: '6px', fontSize: '0.9rem', fontWeight: 700 }}>Block {block}</div>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{occupied}/{total} · {pct}% Occupancy</span>
+                </div>
+            )}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <div style={{ display: 'flex', gap: '4px', justifyContent: 'center', flexWrap: 'wrap', width: '100%', padding: '10px' }}>
                     {leftSpots.map(spot => <ParkingSpot key={spot.id} spot={spot} onClick={onSpotClick} facing="up" />)}

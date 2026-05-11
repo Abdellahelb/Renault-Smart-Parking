@@ -55,8 +55,8 @@ function ParkingSpot({ spot, onClick }) {
             animate={{ opacity: 1, scale: 1 }}
             style={{
                 width: '52px', height: '104px',
-                border: `2px solid ${isEmpty ? 'var(--green)' : isReserved ? 'var(--orange)' : isAlert ? 'var(--red)' : 'transparent'}`,
-                background: isEmpty ? 'var(--green-dim)' : isReserved ? 'var(--orange-dim)' : isAlert ? 'var(--red-dim)' : 'transparent',
+                border: `2px solid ${isEmpty ? 'var(--yellow-border)' : isReserved ? 'var(--yellow)' : isAlert ? 'var(--red)' : 'transparent'}`,
+                background: isEmpty ? 'var(--bg-input)' : isReserved ? 'var(--yellow-dim)' : isAlert ? 'var(--red-dim)' : 'transparent',
                 borderRadius: '8px',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 cursor: 'pointer',
@@ -66,7 +66,7 @@ function ParkingSpot({ spot, onClick }) {
             }}
         >
             {isEmpty ? (
-                <span style={{ fontSize: '0.9rem', color: 'var(--green)', fontFamily: 'var(--font-display)', fontWeight: 600 }}>
+                <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontWeight: 600 }}>
                     {spot.spot_label}
                 </span>
             ) : (
