@@ -42,24 +42,23 @@ async function query(text, params) {
       const rows = [];
       
       if (isCantine) {
-        const count = isCantine ? 42 : 100;
-        for (let i = 1; i <= count; i++) {
+        for (let i = 1; i <= 42; i++) {
           const status = i % 7 === 0 ? 'occupied' : 'empty';
           rows.push({
-            id: `${isCantine ? 'CT' : 'V'}${i}`, spot_label: `${isCantine ? 'CT' : 'V'}${i}`, lot_id: lotId || 'mock-id',
+            id: `CT${i}`, spot_label: `CT${i}`, lot_id: '83943c3a-a562-4749-b9d2-d55faad8913f',
             block: null, status: status, lot_name: name, position: i,
             occupied_at: status === 'occupied' ? '2026-05-10T14:00:00Z' : null, vin: status === 'occupied' ? 'VF1DEMO00X123456' : null
           });
         }
       } else {
-        const blocks = { A: 20, B: 30, C: 36, D: 36, E: 36, F: 36, G: 36, H: 36, I: 36 };
+        const blocks = { A: 20, B: 30, C: 36, D: 36, E: 36, F: 36, G: 36, H: 36, I: 36 }; // Sum = 302
         for (const [block, total] of Object.entries(blocks)) {
           for (let i = 1; i <= total; i++) {
             const side = i <= (total / 2) ? 'left' : 'right';
             const status = (i + block.charCodeAt(0)) % 8 === 0 ? 'occupied' : 'empty';
             rows.push({
               id: `${block}${i}`, spot_label: `${block}${i}`, lot_id: '2d69f4ac-0efd-4812-bdf6-d62e1d27bb69',
-              block: block, side: side, status: status, lot_name: name, position: i,
+              block: block.toUpperCase(), side: side, status: status, lot_name: name, position: i,
               occupied_at: status === 'occupied' ? '2026-05-09T08:00:00Z' : null, vin: status === 'occupied' ? 'VF1RHL00X654321' : null
             });
           }
@@ -100,7 +99,7 @@ async function query(text, params) {
     // Lots management (Admin/Virtual list)
     if (textLower.includes('from parking_lots')) {
       const rows = [
-        { id: '2d69f4ac-0efd-4812-bdf6-d62e1d27bb69', name: 'Park RHL', type: 'physical', total_spots: 292, active: 1, created_at: '2026-05-01T10:00:00Z', total_spots_actual: 292, occupied_count: 45 },
+        { id: '2d69f4ac-0efd-4812-bdf6-d62e1d27bb69', name: 'Park RHL', type: 'physical', total_spots: 302, active: 1, created_at: '2026-05-01T10:00:00Z', total_spots_actual: 302, occupied_count: 45 },
         { id: '83943c3a-a562-4749-b9d2-d55faad8913f', name: 'Park Cantine', type: 'physical', total_spots: 42, active: 1, created_at: '2026-05-01T11:00:00Z', total_spots_actual: 42, occupied_count: 5 }
       ];
       return { rows, rowCount: rows.length };
