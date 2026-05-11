@@ -10,6 +10,7 @@ import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, R
 import io from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
+import RenaultLogoImg from '../assets/renault-logo.png';
 
 const fadeIn = {
     initial: { opacity: 0, y: 20 },
@@ -165,6 +166,12 @@ export default function DashboardPage() {
 
     return (
         <div className="dashboard">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', opacity: 0.8 }}>
+                <img src={RenaultLogoImg} alt="Renault" style={{ width: '24px', height: 'auto' }} />
+                <span style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>
+                    Renault Group Official Telemetry
+                </span>
+            </div>
             {/* KPI Cards */}
             <motion.div className="kpi-grid" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                 <div className="kpi-card yellow">
