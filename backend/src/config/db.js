@@ -13,6 +13,12 @@ if (process.env.POSTGRES_URL) {
 
 const uuidv4 = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
+// In-memory store for mock mode persistence during demo session
+const mockLots = [
+  { id: '2d69f4ac-0efd-4812-bdf6-d62e1d27bb69', name: 'Park RHL', type: 'physical', total_spots: 302, active: 1, created_at: new Date().toISOString(), total_spots_actual: 302, occupied_count: 45 },
+  { id: '83943c3a-a562-4749-b9d2-d55faad8913f', name: 'Park Cantine', type: 'physical', total_spots: 42, active: 1, created_at: new Date().toISOString(), total_spots_actual: 42, occupied_count: 5 }
+];
+
 /**
  * Executes a SQL query with parameters.
  * Supports a robust Mock Mode for local development and demo purposes.
@@ -31,31 +37,43 @@ async function query(text, params) {
     // 1. Specific Lot State (Maps / Parking Spots) - HIGHEST PRIORITY
     if (textLower.includes('parking_spots')) {
       const lotId = params && params[0];
-      const isCantine = (lotId && lotId.includes('83943c3a')) || textLower.includes('cantine');
-      const name = isCantine ? 'Park Cantine' : 'Park RHL';
+      const lot = mockLots.find(l => l.id === lotId) || {};
+      const isCantine = (lotId && lotId.includes('83943c3a')) || textLower.includes('cantine') || lot.name === 'Park Cantine';
+      const name = isCantine ? 'Park Cantine' : (lot.name || 'Park RHL');
       const rows = [];
+      const totalSpots = lot.total_spots || (isCantine ? 42 : 302);
       
       if (isCantine) {
         for (let i = 1; i <= 42; i++) {
           const status = i % 7 === 0 ? 'occupied' : 'empty';
           rows.push({
-            id: `CT${i}`, spot_label: `CT${i}`, lot_id: '83943c3a-a562-4749-b9d2-d55faad8913f',
+            id: `CT${i}`, spot_label: `CT${i}`, lot_id: lotId || '83943c3a-a562-4749-b9d2-d55faad8913f',
             block: null, status: status, lot_name: name, position: i,
             occupied_at: status === 'occupied' ? '2026-05-10T14:00:00Z' : null, vin: status === 'occupied' ? 'VF1DEMO00X123456' : null
           });
         }
-      } else {
-        const blocks = { A: 20, B: 30, C: 36, D: 36, E: 36, F: 36, G: 36, H: 36, I: 36 }; // Total = 302
+      } else if (lot.name === 'Park RHL' || !lot.type || lot.type === 'physical') {
+        const blocks = { A: 20, B: 30, C: 36, D: 36, E: 36, F: 36, G: 36, H: 36, I: 36 };
         for (const [block, total] of Object.entries(blocks)) {
           for (let i = 1; i <= total; i++) {
             const side = i <= (total / 2) ? 'left' : 'right';
             const status = (i + block.charCodeAt(0)) % 8 === 0 ? 'occupied' : 'empty';
             rows.push({
-              id: `${block}${i}`, spot_label: `${block}${i}`, lot_id: '2d69f4ac-0efd-4812-bdf6-d62e1d27bb69',
+              id: `${block}${i}`, spot_label: `${block}${i}`, lot_id: lotId || '2d69f4ac-0efd-4812-bdf6-d62e1d27bb69',
               block: block.toUpperCase(), side: side, status: status, lot_name: name, position: i,
               occupied_at: status === 'occupied' ? '2026-05-09T08:00:00Z' : null, vin: status === 'occupied' ? 'VF1RHL00X654321' : null
             });
           }
+        }
+      } else {
+        // Generic Virtual Lot
+        for (let i = 1; i <= totalSpots; i++) {
+          const status = i % 10 === 0 ? 'occupied' : 'empty';
+          rows.push({
+            id: `V${i}`, spot_label: `V${i}`, lot_id: lotId,
+            block: 'V', status: status, lot_name: name, position: i,
+            occupied_at: status === 'occupied' ? new Date().toISOString() : null
+          });
         }
       }
       return { rows, rowCount: rows.length };
@@ -90,14 +108,9 @@ async function query(text, params) {
       return { rows: [{ count: isAlert ? '5' : (isOccupied ? '45' : '344') }] };
     }
 
-    // 5. Lots management
+    // 5. Lots management (Fetch from mockLots)
     if (textLower.includes('from parking_lots')) {
-      return {
-        rows: [
-          { id: '2d69f4ac-0efd-4812-bdf6-d62e1d27bb69', name: 'Park RHL', type: 'physical', total_spots: 302, active: 1 },
-          { id: '83943c3a-a562-4749-b9d2-d55faad8913f', name: 'Park Cantine', type: 'physical', total_spots: 42, active: 1 }
-        ]
-      };
+      return { rows: mockLots, rowCount: mockLots.length };
     }
 
     // 6. Block stats / Saturation
@@ -114,11 +127,34 @@ async function query(text, params) {
     }
 
     // 7. Generic modifications (DELETE, UPDATE, INSERT)
+    if (textLower.includes('insert into parking_lots')) {
+      // Mock persistence for new lots
+      const id = params[0];
+      const name = params[1];
+      const type = params[2];
+      const total = params[3];
+      mockLots.push({ 
+        id, name, type, total_spots: total, total_spots_actual: total, 
+        active: 1, created_at: new Date().toISOString(), occupied_count: 0 
+      });
+      return { rows: [], rowCount: 1 };
+    }
+
+    if (textLower.includes('delete from parking_lots')) {
+      const id = params[0];
+      const idx = mockLots.findIndex(l => l.id === id);
+      if (idx !== -1) mockLots.splice(idx, 1);
+      return { rows: [], rowCount: 1 };
+    }
+
     if (textLower.includes('delete') || textLower.includes('update') || textLower.includes('insert')) {
       return { rows: [], rowCount: 1 };
     }
 
     // 8. Fallback for health check or unhandled queries
+    if (textLower.includes('select 1')) {
+      return { rows: [{ '?column?': 1 }] };
+    }
 
     return { rows: [], rowCount: 0 };
   }
