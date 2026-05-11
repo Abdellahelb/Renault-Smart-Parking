@@ -113,7 +113,7 @@ export default function VirtualParkingPage() {
                                                         width: '64px', 
                                                         height: '110px', 
                                                         background: 'rgba(255,255,255,0.02)', 
-                                                        border: '1px solid rgba(247,201,72,0.3)', 
+                                                        border: '1px solid var(--green)', 
                                                         borderRadius: '8px',
                                                         display: 'flex',
                                                         alignItems: 'center',
