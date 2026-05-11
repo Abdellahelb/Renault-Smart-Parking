@@ -52,13 +52,14 @@ async function query(text, params) {
     }
 
     // Dashboard: Summary counts
-    if (textLower.includes('select count(*) as count from parking_spots')) {
+    if (textLower.includes('select count(*)')) {
       const isOccupied = textLower.includes("status != 'empty'");
-      return { rows: [{ count: isOccupied ? '45' : '334' }] };
+      const isAlert = textLower.includes("status in ('occupied','alert')");
+      return { rows: [{ count: isAlert ? '5' : (isOccupied ? '45' : '334') }] };
     }
 
     // Dashboard: Block stats
-    if (textLower.includes('group by coalesce(ps.block, pl.name)')) {
+    if (textLower.includes('group by') && (textLower.includes('block') || textLower.includes('coalesce'))) {
       return {
         rows: [
           { name: 'A', capacity: 20, vehicles: 5 },
@@ -69,29 +70,50 @@ async function query(text, params) {
       };
     }
 
-    // Lots management
+    // Lots management (Admin/Virtual list)
     if (textLower.includes('from parking_lots')) {
+      const rows = [
+        { id: '2d69f4ac-0efd-4812-bdf6-d62e1d27bb69', name: 'Park RHL', type: 'physical', total_spots: 292, active: 1, created_at: '2026-05-01T10:00:00Z', total_spots_actual: 292, occupied_count: 45 },
+        { id: '83943c3a-a562-4749-b9d2-d55faad8913f', name: 'Park Cantine', type: 'physical', total_spots: 42, active: 1, created_at: '2026-05-01T11:00:00Z', total_spots_actual: 42, occupied_count: 5 },
+        { id: 'v-lot-001', name: 'Virtual Zone Alpha', type: 'virtual', total_spots: 100, active: 1, created_at: '2026-05-05T09:00:00Z', total_spots_actual: 100, occupied_count: 15 }
+      ];
+      return { rows, rowCount: rows.length };
+    }
+
+    // Virtual Lot Stats (inside /virtual route)
+    if (textLower.includes('count(*)') && textLower.includes('lot_id = $1')) {
+      return { rows: [{ spots: 100, occupied: 15 }] };
+    }
+
+    // Dashboard: Block stats / Saturation
+    if (textLower.includes('group by') && (textLower.includes('block') || textLower.includes('coalesce'))) {
       return {
         rows: [
-          { id: '2d69f4ac-0efd-4812-bdf6-d62e1d27bb69', name: 'Park RHL', type: 'physical', total_spots: 292 },
-          { id: '83943c3a-a562-4749-b9d2-d55faad8913f', name: 'Park Cantine', type: 'physical', total_spots: 42 }
+          { name: 'A', capacity: 20, vehicles: 8 },
+          { name: 'B', capacity: 30, vehicles: 12 },
+          { name: 'C', capacity: 36, vehicles: 15 },
+          { name: 'Park Cantine', capacity: 42, vehicles: 5 },
+          { name: 'Park RHL', capacity: 292, vehicles: 45 }
         ]
       };
     }
 
-    // Specific Lot State (Maps) - Dynamic check
-    if (textLower.includes('from parking_spots') && textLower.includes('join parking_lots')) {
+    // Specific Lot State (Maps)
+    if (textLower.includes('parking_spots') && (textLower.includes('join') || textLower.includes('where'))) {
       const lotId = params && params[0];
       const isCantine = lotId === '83943c3a-a562-4749-b9d2-d55faad8913f' || textLower.includes('cantine');
-      const name = isCantine ? 'Park Cantine' : 'Park RHL';
+      const isVirtual = lotId === 'v-lot-001' || textLower.includes('virtual');
+      const name = isCantine ? 'Park Cantine' : (isVirtual ? 'Virtual Zone Alpha' : 'Park RHL');
       const rows = [];
       
-      if (isCantine) {
-        for (let i = 1; i <= 42; i++) {
+      if (isCantine || isVirtual) {
+        const count = isCantine ? 42 : 100;
+        for (let i = 1; i <= count; i++) {
+          const status = i % 7 === 0 ? 'occupied' : 'empty';
           rows.push({
-            id: `CT${i}`, spot_label: `CT${i}`, lot_id: '83943c3a-a562-4749-b9d2-d55faad8913f',
-            block: null, status: i % 5 === 0 ? 'occupied' : 'empty', lot_name: name,
-            position: i, occupied_at: i % 5 === 0 ? new Date().toISOString() : null
+            id: `${isCantine ? 'CT' : 'V'}${i}`, spot_label: `${isCantine ? 'CT' : 'V'}${i}`, lot_id: lotId || 'mock-id',
+            block: null, status: status, lot_name: name, position: i,
+            occupied_at: status === 'occupied' ? '2026-05-10T14:00:00Z' : null, vin: status === 'occupied' ? 'VF1DEMO00X123456' : null
           });
         }
       } else {
@@ -99,20 +121,18 @@ async function query(text, params) {
         for (const [block, total] of Object.entries(blocks)) {
           for (let i = 1; i <= total; i++) {
             const side = i <= (total / 2) ? 'left' : 'right';
-            const status = (i + block.charCodeAt(0)) % 7 === 0 ? 'occupied' : 'empty';
+            const status = (i + block.charCodeAt(0)) % 8 === 0 ? 'occupied' : 'empty';
             rows.push({
               id: `${block}${i}`, spot_label: `${block}${i}`, lot_id: '2d69f4ac-0efd-4812-bdf6-d62e1d27bb69',
-              block: block, side: side, status: status, lot_name: name,
-              position: i, occupied_at: status === 'occupied' ? new Date().toISOString() : null
+              block: block, side: side, status: status, lot_name: name, position: i,
+              occupied_at: status === 'occupied' ? '2026-05-09T08:00:00Z' : null, vin: status === 'occupied' ? 'VF1RHL00X654321' : null
             });
           }
         }
       }
-      return { rows };
-    }
-
+      return { rows, rowCount: rows.length };
     // Dwell time / Avg Days
-    if (textLower.includes('avg(extract(day from')) {
+    if (textLower.includes('avg(')) {
       return { rows: [{ avg: '3.5' }] };
     }
 
@@ -135,7 +155,6 @@ async function query(text, params) {
       return { rows: [] };
     }
 
-    // Default mock return
     return { rows: [], rowCount: 0 };
   }
 
