@@ -79,23 +79,19 @@ async function query(text, params) {
       };
     }
 
-    // Specific Lot State (Maps)
-    if (textLower.includes('from parking_spots ps join parking_lots pl')) {
-      const isCantine = textLower.includes('park cantine') || (params && (params[0] === '83943c3a-a562-4749-b9d2-d55faad8913f' || params[1] === 'Park Cantine'));
+    // Specific Lot State (Maps) - Dynamic check
+    if (textLower.includes('from parking_spots') && textLower.includes('join parking_lots')) {
+      const lotId = params && params[0];
+      const isCantine = lotId === '83943c3a-a562-4749-b9d2-d55faad8913f' || textLower.includes('cantine');
       const name = isCantine ? 'Park Cantine' : 'Park RHL';
       const rows = [];
       
       if (isCantine) {
         for (let i = 1; i <= 42; i++) {
           rows.push({
-            id: `CT${i}`,
-            spot_label: `CT${i}`,
-            lot_id: '83943c3a-a562-4749-b9d2-d55faad8913f',
-            block: null,
-            status: i % 5 === 0 ? 'occupied' : 'empty',
-            lot_name: name,
-            position: i,
-            occupied_at: i % 5 === 0 ? new Date().toISOString() : null
+            id: `CT${i}`, spot_label: `CT${i}`, lot_id: '83943c3a-a562-4749-b9d2-d55faad8913f',
+            block: null, status: i % 5 === 0 ? 'occupied' : 'empty', lot_name: name,
+            position: i, occupied_at: i % 5 === 0 ? new Date().toISOString() : null
           });
         }
       } else {
@@ -105,15 +101,9 @@ async function query(text, params) {
             const side = i <= (total / 2) ? 'left' : 'right';
             const status = (i + block.charCodeAt(0)) % 7 === 0 ? 'occupied' : 'empty';
             rows.push({
-              id: `${block}${i}`,
-              spot_label: `${block}${i}`,
-              lot_id: '2d69f4ac-0efd-4812-bdf6-d62e1d27bb69',
-              block: block,
-              side: side,
-              status: status,
-              lot_name: name,
-              position: i,
-              occupied_at: status === 'occupied' ? new Date().toISOString() : null
+              id: `${block}${i}`, spot_label: `${block}${i}`, lot_id: '2d69f4ac-0efd-4812-bdf6-d62e1d27bb69',
+              block: block, side: side, status: status, lot_name: name,
+              position: i, occupied_at: status === 'occupied' ? new Date().toISOString() : null
             });
           }
         }
