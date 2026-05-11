@@ -114,12 +114,12 @@ export default function Layout() {
             {/* Sidebar */}
             <aside className="sidebar">
                 <div className="sidebar-brand">
-                    <div className="brand-icon">
-                        <RenaultLogo size={24} />
-                    </div>
                     <div className="brand-text">
                         <h1 style={{ fontSize: '0.95rem', whiteSpace: 'nowrap' }}>Smart Parking Manager</h1>
                         <span>RTMA</span>
+                    </div>
+                    <div className="brand-icon">
+                        <RenaultLogo size={24} />
                     </div>
                 </div>
 
