@@ -205,9 +205,13 @@ export default function VirtualParkingPage({ defaultType = 'virtual' }) {
             )}
 
             <motion.div className="card" style={{ marginTop: '24px' }}>
-                <div className="card-header"><div className="card-title">All Storage Sectors</div></div>
+                <div className="card-header">
+                    <div className="card-title">
+                        {creationType === 'virtual' ? 'Virtual AI Sectors' : 'Physical Storage Sectors'}
+                    </div>
+                </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {virtualLots?.map(v => (
+                    {virtualLots?.filter(v => v.type === creationType).map(v => (
                         <div key={v.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', background: 'var(--bg-surface)', borderRadius: '8px' }}>
                             <div className={`kpi-icon ${v.type === 'virtual' ? 'yellow' : 'blue'}`} style={{ width: '32px', height: '32px' }}>
                                 {v.type === 'virtual' ? <Zap size={16} /> : <Grid size={16} />}
