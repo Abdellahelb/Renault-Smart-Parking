@@ -23,7 +23,12 @@ if (process.env.POSTGRES_URL) {
  * Executes a SQL query with parameters.
  */
 async function query(text, params) {
-  const isPlaceholder = process.env.POSTGRES_URL && (process.env.POSTGRES_URL.includes('localhost') || process.env.POSTGRES_URL.includes('user:password'));
+  const pgUrl = process.env.POSTGRES_URL || '';
+  const isPlaceholder = pgUrl === '' || 
+                       pgUrl.includes('localhost') || 
+                       pgUrl.includes('user:password') || 
+                       pgUrl.includes('YOUR_POSTGRES_URL') ||
+                       pgUrl.startsWith('postgres://username:password');
   
   // Mock mode for local testing if POSTGRES_URL is missing or a placeholder
   if (!process.env.POSTGRES_URL || isPlaceholder) {
@@ -56,18 +61,6 @@ async function query(text, params) {
       const isOccupied = textLower.includes("status != 'empty'");
       const isAlert = textLower.includes("status in ('occupied','alert')");
       return { rows: [{ count: isAlert ? '5' : (isOccupied ? '45' : '334') }] };
-    }
-
-    // Dashboard: Block stats
-    if (textLower.includes('group by') && (textLower.includes('block') || textLower.includes('coalesce'))) {
-      return {
-        rows: [
-          { name: 'A', capacity: 20, vehicles: 5 },
-          { name: 'B', capacity: 30, vehicles: 12 },
-          { name: 'Park Cantine', capacity: 42, vehicles: 0 },
-          { name: 'Park RHL', capacity: 292, vehicles: 45 }
-        ]
-      };
     }
 
     // Lots management (Admin/Virtual list)
@@ -131,6 +124,7 @@ async function query(text, params) {
         }
       }
       return { rows, rowCount: rows.length };
+    }
     // Dwell time / Avg Days
     if (textLower.includes('avg(')) {
       return { rows: [{ avg: '3.5' }] };
@@ -160,8 +154,19 @@ async function query(text, params) {
   }
 
   // Real Database Path (Postgres)
+  if (!pool && process.env.POSTGRES_URL) {
+    try {
+      pool = new Pool({
+        connectionString: process.env.POSTGRES_URL,
+        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+      });
+    } catch (e) {
+      logger.error('Failed to initialize database pool:', e.message);
+    }
+  }
+
   if (!pool) {
-    throw new Error('Database pool not initialized. POSTGRES_URL might be missing.');
+    throw new Error('Database pool not initialized. POSTGRES_URL might be missing or invalid.');
   }
 
   const start = Date.now();

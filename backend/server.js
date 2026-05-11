@@ -24,6 +24,10 @@ try {
 
 const PORT = process.env.PORT || 3001;
 const app = express();
+
+// 1. Raw Health Check (No dependencies, should always work if server starts)
+app.get('/health-raw', (req, res) => res.status(200).send('OK'));
+
 const httpServer = createServer(app);
 
 const corsOptions = {
@@ -36,7 +40,9 @@ app.use(helmet({
     contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false
 }));
 app.use(express.json());
-app.use(morgan('dev'));
+if (process.env.NODE_ENV !== 'production') {
+    app.use(morgan('dev'));
+}
 
 // Socket.io Setup (Conditional for local dev)
 let io;
@@ -59,38 +65,33 @@ if (process.env.NODE_ENV !== 'production') {
     };
 }
 
-// Database Initialization Middleware
+// 2. Main API Health Check (Available before DB init)
+app.get('/api/v1/health', (req, res) => {
+    res.json({ 
+        status: 'ok', 
+        timestamp: new Date().toISOString(),
+        db: dbInitialized ? 'ready' : 'initializing',
+        env: process.env.NODE_ENV
+    });
+});
+
+// Database Initialization Middleware (Only for routes below)
 let dbInitialized = false;
 app.use(async (req, res, next) => {
-    // Skip DB init for health check
-    if (req.path === '/api/v1/health') return next();
-    
     if (!dbInitialized) {
         try {
             await db.initDatabase();
             dbInitialized = true;
-            logger.info('Database initialized on first request');
         } catch (err) {
-            logger.error('Database initialization failed:', err);
+            logger.error('💥 Database initialization failed:', err);
         }
     }
     next();
 });
 
-// Health check
-app.get('/api/v1/health', (req, res) => {
-    res.json({ 
-        status: 'ok', 
-        timestamp: new Date().toISOString(),
-        env: process.env.NODE_ENV,
-        db: dbInitialized ? 'ready' : 'pending'
-    });
-});
-
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/vehicles', vehicleRoutes(io));
 app.use('/api/v1/parking', parkingRoutes(io));
-app.use('/api/v1', parkingRoutes(io)); 
 app.use('/api/v1', dashboardRoutes());
 app.use('/api/v1', adminRoutes());
 
