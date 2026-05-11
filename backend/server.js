@@ -91,7 +91,7 @@ app.use(async (req, res, next) => {
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/vehicles', vehicleRoutes(io));
-app.use('/api/v1/parking', parkingRoutes(io));
+app.use('/api/v1', parkingRoutes(io));
 app.use('/api/v1', dashboardRoutes());
 app.use('/api/v1', adminRoutes());
 
