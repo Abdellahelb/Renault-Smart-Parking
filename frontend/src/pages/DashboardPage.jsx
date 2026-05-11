@@ -50,21 +50,25 @@ const weeklyData = [
     { day: 'Sat', entries: 22, exits: 30 },
     { day: 'Sun', entries: 15, exits: 20 },
 ];
-const CustomTooltip = ({ active, payload, label }) => {
+const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
         return (
             <div style={{ 
-                background: 'var(--bg-card)', 
-                backdropFilter: 'blur(8px)',
-                border: '1px solid var(--border-color)', 
-                padding: '6px 10px', 
-                borderRadius: '8px',
-                boxShadow: 'var(--shadow-lg)'
+                background: 'rgba(17, 17, 17, 0.9)', 
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)', 
+                padding: '10px 14px', 
+                borderRadius: '12px',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+                color: '#fff'
             }}>
                 {payload.map((entry, index) => (
-                    <p key={index} style={{ margin: 0, fontSize: '13px', color: entry.color, fontWeight: '600' }}>
-                        {entry.name}: {entry.value}
-                    </p>
+                    <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: entry.color }} />
+                        <span style={{ fontSize: '13px', fontWeight: '600', color: entry.color }}>
+                            {entry.name}: {entry.value}
+                        </span>
+                    </div>
                 ))}
             </div>
         );
@@ -210,7 +214,7 @@ export default function DashboardPage() {
                             <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" />
                              <XAxis dataKey="time" stroke="#666" fontSize={12} />
                             <YAxis stroke="#666" fontSize={12} />
-                            <Tooltip content={<CustomTooltip />} cursor={false} />
+                            <Tooltip content={<CustomTooltip />} cursor={false} wrapperStyle={{ outline: 'none' }} />
                             <Area type="monotone" dataKey="count" name="Vehicles" stroke="#F7C948" fillOpacity={1} fill="url(#colorCount)" strokeWidth={2} />
                         </AreaChart>
                     </ResponsiveContainer>
@@ -229,7 +233,7 @@ export default function DashboardPage() {
                             <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" />
                              <XAxis dataKey="day" stroke="#666" fontSize={12} />
                             <YAxis stroke="#666" fontSize={12} />
-                            <Tooltip content={<CustomTooltip />} cursor={false} />
+                            <Tooltip content={<CustomTooltip />} cursor={false} wrapperStyle={{ outline: 'none' }} />
                             <Bar dataKey="entries" name="Entries" fill="#F7C948" radius={[4, 4, 0, 0]} />
                             <Bar dataKey="exits" name="Exits" fill="#2D2D2D" radius={[4, 4, 0, 0]} />
                         </BarChart>

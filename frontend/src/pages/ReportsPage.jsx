@@ -15,19 +15,25 @@ const blockUtilization = [
     { block: 'I', utilization: 56 },
 ];
 
-const CustomTooltip = ({ active, payload, label }) => {
+const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
         return (
             <div style={{ 
-                background: 'var(--bg-card)', 
-                backdropFilter: 'blur(8px)',
-                border: '1px solid var(--border-color)', 
-                padding: '6px 10px', 
-                borderRadius: '8px',
-                boxShadow: 'var(--shadow-lg)'
+                background: 'rgba(17, 17, 17, 0.9)', 
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)', 
+                padding: '10px 14px', 
+                borderRadius: '12px',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+                color: '#fff'
             }}>
                 {payload.map((e, i) => (
-                    <p key={i} style={{ margin: 0, color: e.color, fontSize: '0.85rem', fontWeight: 600 }}>{e.name}: {e.value}</p>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: e.color }} />
+                        <span style={{ fontSize: '13px', fontWeight: '600', color: e.color }}>
+                            {e.name}: {e.value}
+                        </span>
+                    </div>
                 ))}
             </div>
         );
@@ -190,7 +196,7 @@ export default function ReportsPage() {
                             <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" />
                             <XAxis dataKey="month" stroke="#666" fontSize={12} />
                             <YAxis stroke="#666" fontSize={12} />
-                            <Tooltip content={<CustomTooltip />} cursor={false} />
+                            <Tooltip content={<CustomTooltip />} cursor={false} wrapperStyle={{ outline: 'none' }} />
                             <Bar dataKey="entries" name="Entries" fill="#F7C948" radius={[4, 4, 0, 0]} />
                             <Bar dataKey="exits" name="Exits" fill="#2D2D2D" radius={[4, 4, 0, 0]} />
                         </BarChart>
@@ -206,7 +212,7 @@ export default function ReportsPage() {
                             <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" />
                              <XAxis type="number" domain={[0, 100]} stroke="#666" fontSize={12} />
                             <YAxis dataKey="name" type="category" stroke="#666" fontSize={12} width={30} />
-                            <Tooltip content={<CustomTooltip />} cursor={false} />
+                            <Tooltip content={<CustomTooltip />} cursor={false} wrapperStyle={{ outline: 'none' }} />
                             <Bar dataKey="pct" name="Utilization %" fill="#F7C948" radius={[0, 4, 4, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
