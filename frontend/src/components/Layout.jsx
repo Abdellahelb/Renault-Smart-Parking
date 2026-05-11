@@ -190,7 +190,8 @@ export default function Layout() {
                     transition={{ duration: 0.3, ease: 'easeInOut' }}
                     style={{ position: 'sticky', top: 0, zIndex: 1000 }}
                 >
-                    <div className="header-left">
+                    <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <img src={RenaultLogoImg} alt="Renault" style={{ width: '24px', height: 'auto' }} />
                         <h2 className="page-title">{getPageTitle()}</h2>
                     </div>
                     <div className="header-right">

@@ -46,8 +46,8 @@ function ParkingSpot({ spot, onClick, facing }) {
             whileHover={{ scale: 1.05 }}
             style={{
                 width: '46px', height: '90px',
-                border: `2px solid ${isEmpty ? 'var(--yellow-border)' : isReserved ? 'var(--yellow)' : isAlert ? 'var(--red)' : 'transparent'}`,
-                background: isEmpty ? 'var(--bg-input)' : isReserved ? 'var(--yellow-dim)' : isAlert ? 'var(--red-dim)' : 'transparent',
+                border: `1.5px solid ${isEmpty ? 'rgba(247, 201, 72, 0.3)' : isReserved ? 'var(--yellow)' : isAlert ? 'var(--red)' : 'var(--yellow)'}`,
+                background: isEmpty ? 'rgba(255, 255, 255, 0.02)' : isReserved ? 'var(--yellow-dim)' : isAlert ? 'var(--red-dim)' : 'var(--yellow-dim)',
                 borderRadius: '6px',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 cursor: 'pointer',
@@ -55,7 +55,7 @@ function ParkingSpot({ spot, onClick, facing }) {
             }}
         >
             {isEmpty ? (
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>{spot.id}</span>
+                <span style={{ fontSize: '0.72rem', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 600 }}>{spot.id}</span>
             ) : (
                 <div style={{ transform: facing === 'down' ? 'rotate(180deg)' : 'none' }}>
                     <TopDownCar color={carColor} width={42} isReserved={isReserved} />
