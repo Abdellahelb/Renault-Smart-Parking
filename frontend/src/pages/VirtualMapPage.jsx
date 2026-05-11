@@ -9,7 +9,7 @@ import useVirtualStore from '../store/virtualStore';
 import useSettingsStore from '../store/settingsStore';
 
 // Reuse TopDownCar logic
-function TopDownCar({ color = '#2D3436', width = 48, isReserved = false }) {
+function TopDownCar({ color = '#2D3436', width = 56, isReserved = false }) {
     const bodyColor = isReserved ? '#FF9800' : color;
     const glassColor = isReserved ? '#FFB74D' : (color === '#F5F5F5' || color === '#E0E0E0') ? '#B0BEC5' : '#1a1a1a';
     const highlightOpacity = (color === '#F5F5F5' || color === '#E0E0E0') ? '0.15' : '0.2';
@@ -54,7 +54,7 @@ function ParkingSpot({ spot, onClick }) {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             style={{
-                width: '52px', height: '104px',
+                width: '64px', height: '120px',
                 border: `1.5px solid ${isEmpty ? 'rgba(247, 201, 72, 0.3)' : isReserved ? 'var(--yellow)' : isAlert ? 'var(--red)' : 'var(--yellow)'}`,
                 background: isEmpty ? 'rgba(255, 255, 255, 0.02)' : isReserved ? 'var(--yellow-dim)' : isAlert ? 'var(--red-dim)' : 'var(--yellow-dim)',
                 borderRadius: '8px',
@@ -70,7 +70,7 @@ function ParkingSpot({ spot, onClick }) {
                     {spot.spot_label}
                 </span>
             ) : (
-                <TopDownCar color={carColor} width={46} isReserved={isReserved} />
+                <TopDownCar color={carColor} width={56} isReserved={isReserved} />
             )}
             {!isEmpty && (
                 <div style={{

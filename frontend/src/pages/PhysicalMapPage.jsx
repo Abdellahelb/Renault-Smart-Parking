@@ -8,7 +8,7 @@ import useAuthStore from '../store/authStore';
 import useSettingsStore from '../store/settingsStore';
 
 // Realistic top-down car SVG
-function TopDownCar({ color = '#2D3436', width = 48, isReserved = false }) {
+function TopDownCar({ color = '#2D3436', width = 54, isReserved = false }) {
     const bodyColor = isReserved ? '#FF9800' : color;
     const glassColor = isReserved ? '#FFB74D' : (color === '#F5F5F5' || color === '#E0E0E0') ? '#B0BEC5' : '#1a1a1a';
     const highlightOpacity = (color === '#F5F5F5' || color === '#E0E0E0') ? '0.15' : '0.2';
@@ -45,7 +45,7 @@ function ParkingSpot({ spot, onClick, facing }) {
             className="parking-spot"
             whileHover={{ scale: 1.05 }}
             style={{
-                width: '46px', height: '90px',
+                width: '60px', height: '110px',
                 border: `1.5px solid ${isEmpty ? 'rgba(247, 201, 72, 0.3)' : isReserved ? 'var(--yellow)' : isAlert ? 'var(--red)' : 'var(--yellow)'}`,
                 background: isEmpty ? 'rgba(255, 255, 255, 0.02)' : isReserved ? 'var(--yellow-dim)' : isAlert ? 'var(--red-dim)' : 'var(--yellow-dim)',
                 borderRadius: '6px',
@@ -58,7 +58,7 @@ function ParkingSpot({ spot, onClick, facing }) {
                 <span style={{ fontSize: '0.72rem', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 600 }}>{spot.id}</span>
             ) : (
                 <div style={{ transform: facing === 'down' ? 'rotate(180deg)' : 'none' }}>
-                    <TopDownCar color={carColor} width={42} isReserved={isReserved} />
+                    <TopDownCar color={carColor} width={54} isReserved={isReserved} />
                 </div>
             )}
             {!isEmpty && (

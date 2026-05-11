@@ -165,7 +165,7 @@ export default function VirtualParkingPage({ defaultType = 'virtual' }) {
                                     background: 'var(--bg-card)', 
                                     padding: '12px', 
                                     borderRadius: '8px', 
-                                    maxHeight: '150px', 
+                                    maxHeight: '400px', 
                                     overflowY: 'auto',
                                     display: 'flex',
                                     flexDirection: 'column',
@@ -173,12 +173,12 @@ export default function VirtualParkingPage({ defaultType = 'virtual' }) {
                                 }}>
                                     {[...Array(layout.numLanes)].map((_, laneIdx) => (
                                         <div key={laneIdx} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                            <div style={{ display: 'flex', gap: '2px', justifyContent: 'center' }}>
-                                                {[...Array(layout.spotsPerRow)].map((_, i) => <div key={i} style={{ width: '8px', height: '16px', background: 'var(--green-dim)', border: '1px solid var(--green)', borderRadius: '1px' }} />)}
+                                            <div style={{ display: 'flex', gap: '3px', justifyContent: 'center' }}>
+                                                {[...Array(layout.spotsPerRow)].map((_, i) => <div key={i} style={{ width: '12px', height: '24px', background: 'var(--green-dim)', border: '1px solid var(--green)', borderRadius: '2px' }} />)}
                                             </div>
-                                            <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderTop: '1px dashed rgba(255,255,255,0.1)', borderBottom: '1px dashed rgba(255,255,255,0.1)' }} />
-                                            <div style={{ display: 'flex', gap: '2px', justifyContent: 'center' }}>
-                                                {[...Array(layout.spotsPerRow)].map((_, i) => <div key={i} style={{ width: '8px', height: '16px', background: 'var(--green-dim)', border: '1px solid var(--green)', borderRadius: '1px' }} />)}
+                                            <div style={{ height: '12px', background: 'rgba(255,255,255,0.05)', borderTop: '1px dashed rgba(255,255,255,0.1)', borderBottom: '1px dashed rgba(255,255,255,0.1)' }} />
+                                            <div style={{ display: 'flex', gap: '3px', justifyContent: 'center' }}>
+                                                {[...Array(layout.spotsPerRow)].map((_, i) => <div key={i} style={{ width: '12px', height: '24px', background: 'var(--green-dim)', border: '1px solid var(--green)', borderRadius: '2px' }} />)}
                                             </div>
                                         </div>
                                     ))}
