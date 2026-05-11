@@ -204,7 +204,7 @@ export default function DashboardPage() {
                             <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" />
                             <XAxis dataKey="time" stroke="#666" fontSize={12} />
                             <YAxis stroke="#666" fontSize={12} />
-                            <Tooltip />
+                            <Tooltip cursor={false} />
                             <Area type="monotone" dataKey="count" name="Vehicles" stroke="#F7C948" fillOpacity={1} fill="url(#colorCount)" strokeWidth={2} />
                         </AreaChart>
                     </ResponsiveContainer>
@@ -221,9 +221,9 @@ export default function DashboardPage() {
                     <ResponsiveContainer width="100%" height={250}>
                         <BarChart data={weeklyData} barGap={4}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" />
-                            <XAxis dataKey="day" stroke="#666" fontSize={12} />
+                             <XAxis dataKey="day" stroke="#666" fontSize={12} />
                             <YAxis stroke="#666" fontSize={12} />
-                            <Tooltip content={<CustomTooltip />} />
+                            <Tooltip content={<CustomTooltip />} cursor={false} />
                             <Bar dataKey="entries" name="Entries" fill="#F7C948" radius={[4, 4, 0, 0]} />
                             <Bar dataKey="exits" name="Exits" fill="#2D2D2D" radius={[4, 4, 0, 0]} />
                         </BarChart>
