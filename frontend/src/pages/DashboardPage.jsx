@@ -239,7 +239,7 @@ export default function DashboardPage() {
                             <YAxis stroke="#666" fontSize={12} />
                             <Tooltip content={<CustomTooltip />} cursor={false} wrapperStyle={{ outline: 'none' }} />
                             <Bar dataKey="entries" name="Entries" fill="#F7C948" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="exits" name="Exits" fill="#2D2D2D" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="exits" name="Exits" fill="var(--red)" radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </motion.div>
