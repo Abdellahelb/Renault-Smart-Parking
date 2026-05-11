@@ -18,10 +18,16 @@ const blockUtilization = [
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
         return (
-            <div style={{ background: '#1E1E1E', border: '1px solid #2A2A2A', borderRadius: '8px', padding: '10px 14px' }}>
-                <p style={{ color: '#B0B0B0', fontSize: '0.75rem', marginBottom: '4px' }}>{label}</p>
+            <div style={{ 
+                background: 'var(--bg-card)', 
+                backdropFilter: 'blur(8px)',
+                border: '1px solid var(--border-color)', 
+                padding: '6px 10px', 
+                borderRadius: '8px',
+                boxShadow: 'var(--shadow-lg)'
+            }}>
                 {payload.map((e, i) => (
-                    <p key={i} style={{ color: e.color, fontSize: '0.85rem', fontWeight: 600 }}>{e.name}: {e.value}</p>
+                    <p key={i} style={{ margin: 0, color: e.color, fontSize: '0.85rem', fontWeight: 600 }}>{e.name}: {e.value}</p>
                 ))}
             </div>
         );
@@ -184,7 +190,7 @@ export default function ReportsPage() {
                             <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" />
                             <XAxis dataKey="month" stroke="#666" fontSize={12} />
                             <YAxis stroke="#666" fontSize={12} />
-                            <Tooltip content={<CustomTooltip />} />
+                            <Tooltip content={<CustomTooltip />} cursor={false} />
                             <Bar dataKey="entries" name="Entries" fill="#F7C948" radius={[4, 4, 0, 0]} />
                             <Bar dataKey="exits" name="Exits" fill="#2D2D2D" radius={[4, 4, 0, 0]} />
                         </BarChart>
@@ -198,9 +204,9 @@ export default function ReportsPage() {
                     <ResponsiveContainer width="100%" height={280}>
                         <BarChart data={stats?.blockStats || []} layout="vertical">
                             <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" />
-                            <XAxis type="number" domain={[0, 100]} stroke="#666" fontSize={12} />
+                             <XAxis type="number" domain={[0, 100]} stroke="#666" fontSize={12} />
                             <YAxis dataKey="name" type="category" stroke="#666" fontSize={12} width={30} />
-                            <Tooltip content={<CustomTooltip />} />
+                            <Tooltip content={<CustomTooltip />} cursor={false} />
                             <Bar dataKey="pct" name="Utilization %" fill="#F7C948" radius={[0, 4, 4, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
