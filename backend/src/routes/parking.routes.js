@@ -6,37 +6,6 @@ const { authenticate, requireRole } = require('../middleware/authMiddleware');
 module.exports = (io) => {
     const router = express.Router();
 
-    router.get('/seeder-debug', async (req, res) => {
-        try {
-            const lotsCount = await db.query('SELECT COUNT(*) FROM parking_lots');
-            const spotsCount = await db.query('SELECT COUNT(*) FROM parking_spots');
-            const usersCount = await db.query('SELECT COUNT(*) FROM users');
-            
-            const rhlSpots = await db.query("SELECT COUNT(*) FROM parking_spots WHERE lot_id = '2d69f4ac-0efd-4812-bdf6-d62e1d27bb69'");
-            const cantineSpots = await db.query("SELECT COUNT(*) FROM parking_spots WHERE lot_id = '83943c3a-a562-4749-b9d2-d55faad8913f'");
-            const likeRhlSpots = await db.query("SELECT COUNT(*) FROM parking_spots ps JOIN parking_lots pl ON ps.lot_id = pl.id WHERE pl.name LIKE '%RHL%'");
-
-            let seedError = null;
-            try {
-                await db.initDatabase();
-            } catch (e) {
-                seedError = e.message;
-            }
-
-            res.json({
-                lots: lotsCount.rows[0].count,
-                spots: spotsCount.rows[0].count,
-                users: usersCount.rows[0].count,
-                rhlSpots: rhlSpots.rows[0].count,
-                cantineSpots: cantineSpots.rows[0].count,
-                likeRhlSpots: likeRhlSpots.rows[0].count,
-                seedError
-            });
-        } catch (err) {
-            res.status(500).json({ error: err.message });
-        }
-    });
-
     router.get(['/rhl/state', '/parking/rhl/state'], authenticate, async (req, res) => {
         try {
             const { rows } = await db.query(`
