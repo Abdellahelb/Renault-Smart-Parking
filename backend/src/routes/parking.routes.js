@@ -6,6 +6,30 @@ const { authenticate, requireRole } = require('../middleware/authMiddleware');
 module.exports = (io) => {
     const router = express.Router();
 
+    router.get('/seeder-debug', async (req, res) => {
+        try {
+            const lotsCount = await db.query('SELECT COUNT(*) FROM parking_lots');
+            const spotsCount = await db.query('SELECT COUNT(*) FROM parking_spots');
+            const usersCount = await db.query('SELECT COUNT(*) FROM users');
+            
+            let seedError = null;
+            try {
+                await db.initDatabase();
+            } catch (e) {
+                seedError = e.message;
+            }
+
+            res.json({
+                lots: lotsCount.rows[0].count,
+                spots: spotsCount.rows[0].count,
+                users: usersCount.rows[0].count,
+                seedError
+            });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
+    });
+
     router.get(['/rhl/state', '/parking/rhl/state'], authenticate, async (req, res) => {
         try {
             const { rows } = await db.query(`
