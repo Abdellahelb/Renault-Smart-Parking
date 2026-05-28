@@ -53,7 +53,6 @@ async function query(text, params) {
             occupied_at: status === 'occupied' ? '2026-05-10T14:00:00Z' : null, vin: status === 'occupied' ? 'VF1DEMO00X123456' : null
           });
         }
-        }
       } else if (isRHL) {
         const blocks = { A: 20, B: 30, C: 36, D: 36, E: 36, F: 36, G: 36, H: 36, I: 36 };
         for (const [block, total] of Object.entries(blocks)) {
@@ -108,6 +107,29 @@ async function query(text, params) {
       const isOccupied = textLower.includes("status != 'empty'");
       const isAlert = textLower.includes("status in ('occupied','alert')");
       return { rows: [{ count: isAlert ? '5' : (isOccupied ? '45' : '344') }] };
+    }
+
+    if (textLower.includes('select avg(extract')) {
+      return { rows: [{ avg: '3.2' }] };
+    }
+
+    if (textLower.includes("to_char(timestamp, 'yyyy-mm-dd')")) {
+      return {
+        rows: [
+          { date_val: '2026-05-10', entries: 12, exits: 10 },
+          { date_val: '2026-05-11', entries: 15, exits: 14 }
+        ]
+      };
+    }
+
+    if (textLower.includes('extract(day from (current_timestamp - ps.occupied_at))')) {
+      return { 
+        rows: [{
+          spot_label: 'A12', block: 'A', vin: 'VF1CRITICAL', occupied_at: '2026-04-20T10:00:00Z', car_color: '#2D3436', parking: 'Park RHL', days_parked: 20
+        }, {
+          spot_label: 'B5', block: 'B', vin: 'VF1ALERT00X', occupied_at: '2026-04-25T10:00:00Z', car_color: '#E53935', parking: 'Park RHL', days_parked: 15
+        }] 
+      };
     }
 
     // 5. Lots management (Fetch from mockLots)

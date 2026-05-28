@@ -6,11 +6,10 @@ const { authenticate, requireRole } = require('../middleware/authMiddleware');
 module.exports = (io) => {
     const router = express.Router();
 
-    router.get('/rhl/state', authenticate, async (req, res) => {
+    router.get(['/rhl/state', '/parking/rhl/state'], authenticate, async (req, res) => {
         try {
             const { rows } = await db.query(`
                 SELECT ps.spot_label, ps.block, ps.side, ps.position, ps.status, ps.vin, ps.occupied_at, ps.car_color, ps.operator_id, ps.reserved_by, ps.reservation_method, ps.reservation_subject
-                FROM parking_spots ps JOIN parking_lots pl ON ps.lot_id = pl.id
                 FROM parking_spots ps JOIN parking_lots pl ON ps.lot_id = pl.id
                 WHERE pl.name LIKE '%RHL%' ORDER BY ps.block, ps.position
             `);
@@ -27,12 +26,10 @@ module.exports = (io) => {
         }
     });
 
-    router.get('/contine/state', authenticate, async (req, res) => {
+    router.get(['/contine/state', '/parking/contine/state'], authenticate, async (req, res) => {
         try {
             const { rows } = await db.query(`
                 SELECT ps.spot_label, ps.block, ps.position, ps.status, ps.vin, ps.occupied_at, ps.car_color, ps.operator_id, ps.reserved_by, ps.reservation_method, ps.reservation_subject
-                FROM parking_spots ps JOIN parking_lots pl ON ps.lot_id = pl.id
-                FROM parking_spots ps JOIN parking_lots pl ON ps.lot_id = pl.id
                 FROM parking_spots ps JOIN parking_lots pl ON ps.lot_id = pl.id
                 WHERE pl.name LIKE '%Cantine%' ORDER BY ps.position
             `);
