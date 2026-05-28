@@ -203,7 +203,80 @@ async function initDatabase() {
     logger.info('Skipping DB init (Mock Mode active)');
     return;
   }
-  // (Full Postgres init logic would go here if needed)
+  
+  try {
+    logger.info('Checking database schema seeding status...');
+
+    // 1. Ensure ADMIN001 user exists
+    const { rows: adminUser } = await pool.query("SELECT id FROM users WHERE operator_id = 'ADMIN001'");
+    if (adminUser.length === 0) {
+      logger.info('Seeding default Admin User ADMIN001...');
+      const passwordHash = bcrypt.hashSync('admin123', 10);
+      await pool.query(`
+        INSERT INTO users (id, name, operator_id, email, password_hash, role, active)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `, ['205a493a-7ba6-48c1-b469-bd9b2b292456', 'Abdellah Elberkaoui', 'ADMIN001', 'a.elberkaoui@renault.com', passwordHash, 'admin', 1]);
+    }
+
+    // 2. Ensure Park RHL lot and its 302 spots exist
+    const { rows: rhlLots } = await pool.query("SELECT id FROM parking_lots WHERE name = 'Park RHL'");
+    if (rhlLots.length === 0) {
+      logger.info('Seeding Park RHL Lot and its 302 spots...');
+      const lotId = '2d69f4ac-0efd-4812-bdf6-d62e1d27bb69';
+      await pool.query("INSERT INTO parking_lots (id, name, type, total_spots) VALUES ($1, $2, $3, $4)", [lotId, 'Park RHL', 'physical', 302]);
+
+      const rhlBlocks = { A: 20, B: 30, C: 36, D: 36, E: 36, F: 36, G: 36, H: 36, I: 36 };
+      for (const [block, total] of Object.entries(rhlBlocks)) {
+        for (let i = 1; i <= total; i++) {
+          const side = i <= (total / 2) ? 'left' : 'right';
+          const spotLabel = `${block}${i}`;
+          const spotId = `rhl-${block}-${i}`;
+          // Deterministically occupied to add mock realistic vehicles on first seed
+          const status = (i + block.charCodeAt(0)) % 8 === 0 ? 'occupied' : 'empty';
+          const occupiedAt = status === 'occupied' ? new Date(Date.now() - Math.random() * 5 * 86400000).toISOString() : null;
+          const vin = status === 'occupied' ? 'VF1RHL00X' + Math.floor(100000 + Math.random() * 900000) : null;
+          const carColor = status === 'occupied' ? ['#2D3436', '#E53935', '#1565C0', '#F5F5F5'][Math.floor(Math.random() * 4)] : null;
+
+          await pool.query(`
+            INSERT INTO parking_spots (id, lot_id, spot_label, block, side, position, status, vin, occupied_at, car_color, reservation_method)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            ON CONFLICT (id) DO NOTHING
+          `, [spotId, lotId, spotLabel, block, side, i, status, vin, occupiedAt, carColor, 'manual']);
+        }
+      }
+      logger.info('Park RHL Lot and spots successfully seeded!');
+    }
+
+    // 3. Ensure Park Cantine lot and its 42 spots exist
+    const { rows: cantineLots } = await pool.query("SELECT id FROM parking_lots WHERE name = 'Park Cantine'");
+    if (cantineLots.length === 0) {
+      logger.info('Seeding Park Cantine Lot and its 42 spots...');
+      const lotId = '83943c3a-a562-4749-b9d2-d55faad8913f';
+      await pool.query("INSERT INTO parking_lots (id, name, type, total_spots) VALUES ($1, $2, $3, $4)", [lotId, 'Park Cantine', 'physical', 42]);
+
+      for (let i = 1; i <= 42; i++) {
+        const spotLabel = `CT${i}`;
+        const spotId = `cantine-ct-${i}`;
+        // Deterministically occupied for realistic feel
+        const status = i % 10 === 0 ? 'occupied' : 'empty';
+        const occupiedAt = status === 'occupied' ? new Date(Date.now() - Math.random() * 3 * 86400000).toISOString() : null;
+        const vin = status === 'occupied' ? 'VF1CAN00X' + Math.floor(100000 + Math.random() * 900000) : null;
+        const carColor = status === 'occupied' ? '#1565C0' : null;
+
+        await pool.query(`
+          INSERT INTO parking_spots (id, lot_id, spot_label, block, side, position, status, vin, occupied_at, car_color, reservation_method)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+          ON CONFLICT (id) DO NOTHING
+        `, [spotId, lotId, spotLabel, null, null, i, status, vin, occupiedAt, carColor, 'manual']);
+      }
+      logger.info('Park Cantine Lot and spots successfully seeded!');
+    }
+
+    logger.info('Database self-healing verification completed successfully.');
+  } catch (err) {
+    logger.error('💥 Database self-healing seeder failed:', err);
+    throw err;
+  }
 }
 
 module.exports = {
