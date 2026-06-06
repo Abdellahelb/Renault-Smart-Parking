@@ -221,6 +221,7 @@ module.exports = (io) => {
             await db.query('INSERT INTO parking_lots (id, name, type, total_spots) VALUES ($1, $2, $3, $4)', 
                 [lotId, name, 'physical', totalSpots]);
             
+            const spotsToInsert = [];
             for (const block of blocks) {
                 const bName = block.name.toUpperCase();
                 const bTotal = parseInt(block.total);
@@ -228,11 +229,31 @@ module.exports = (io) => {
 
                 for (let i = 1; i <= bTotal; i++) {
                     const side = bHasSides ? (i <= (bTotal / 2) ? 'left' : 'right') : null;
-                    await db.query(`
-                        INSERT INTO parking_spots (id, lot_id, spot_label, block, side, position) 
-                        VALUES ($1, $2, $3, $4, $5, $6)
-                    `, [uuidv4(), lotId, `${bName}${i}`, bName, side, i]);
+                    spotsToInsert.push({
+                        id: uuidv4(),
+                        lotId,
+                        spotLabel: `${bName}${i}`,
+                        block: bName,
+                        side,
+                        position: i
+                    });
                 }
+            }
+
+            if (spotsToInsert.length > 0) {
+                const valueRows = [];
+                const values = [];
+                for (let i = 0; i < spotsToInsert.length; i++) {
+                    const s = spotsToInsert[i];
+                    const idx = valueRows.length * 6;
+                    valueRows.push(`($${idx + 1}, $${idx + 2}, $${idx + 3}, $${idx + 4}, $${idx + 5}, $${idx + 6})`);
+                    values.push(s.id, s.lotId, s.spotLabel, s.block, s.side, s.position);
+                }
+                const queryText = `
+                    INSERT INTO parking_spots (id, lot_id, spot_label, block, side, position) 
+                    VALUES ${valueRows.join(', ')}
+                `;
+                await db.query(queryText, values);
             }
             
             await db.query('INSERT INTO audit_log (id, user_id, action, resource, detail) VALUES ($1, $2, $3, $4, $5)', 
@@ -292,9 +313,19 @@ module.exports = (io) => {
             await db.query('INSERT INTO parking_lots (id, name, type, total_spots, width, length) VALUES ($1, $2, $3, $4, $5, $6)', 
                 [lotId, name, 'virtual', totalSpots, width || null, length || null]);
             
-            for (let i = 1; i <= totalSpots; i++) {
-                await db.query('INSERT INTO parking_spots (id, lot_id, spot_label, position) VALUES ($1, $2, $3, $4)', 
-                    [uuidv4(), lotId, `V${i}`, i]);
+            if (totalSpots > 0) {
+                const valueRows = [];
+                const values = [];
+                for (let i = 1; i <= totalSpots; i++) {
+                    const idx = valueRows.length * 4;
+                    valueRows.push(`($${idx + 1}, $${idx + 2}, $${idx + 3}, $${idx + 4})`);
+                    values.push(uuidv4(), lotId, `V${i}`, i);
+                }
+                const queryText = `
+                    INSERT INTO parking_spots (id, lot_id, spot_label, position) 
+                    VALUES ${valueRows.join(', ')}
+                `;
+                await db.query(queryText, values);
             }
             
             await db.query('INSERT INTO audit_log (id, user_id, action, resource, detail) VALUES ($1, $2, $3, $4, $5)', 
@@ -313,6 +344,13 @@ module.exports = (io) => {
             const lot = rows[0];
             if (!lot) return res.status(404).json({ error: 'Lot not found' });
             
+            // Release active vehicles referencing spots in this lot
+            await db.query(`
+                UPDATE vehicles 
+                SET spot_id = NULL 
+                WHERE spot_id IN (SELECT id FROM parking_spots WHERE lot_id = $1)
+            `, [id]);
+            
             await db.query('DELETE FROM parking_spots WHERE lot_id = $1', [id]);
             await db.query('DELETE FROM parking_lots WHERE id = $1', [id]);
             await db.query('INSERT INTO audit_log (id, user_id, action, resource, detail) VALUES ($1, $2, $3, $4, $5)', 
@@ -330,6 +368,13 @@ module.exports = (io) => {
             const { rows } = await db.query('SELECT name FROM parking_lots WHERE id = $1', [id]);
             const lot = rows[0];
             if (!lot) return res.status(404).json({ error: 'Virtual lot not found' });
+            
+            // Release active vehicles referencing spots in this lot
+            await db.query(`
+                UPDATE vehicles 
+                SET spot_id = NULL 
+                WHERE spot_id IN (SELECT id FROM parking_spots WHERE lot_id = $1)
+            `, [id]);
             
             await db.query('DELETE FROM parking_spots WHERE lot_id = $1', [id]);
             await db.query('DELETE FROM parking_lots WHERE id = $1', [id]);
