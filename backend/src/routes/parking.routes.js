@@ -297,6 +297,7 @@ module.exports = (io) => {
                 FROM parking_spots ps 
                 JOIN parking_lots pl ON ps.lot_id = pl.id 
                 WHERE pl.id = $1
+                ORDER BY ps.position ASC
             `, [id]);
             res.json({ vehicles: spots });
         } catch (err) {
