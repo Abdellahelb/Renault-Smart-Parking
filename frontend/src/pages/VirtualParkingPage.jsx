@@ -37,9 +37,7 @@ export default function VirtualParkingPage() {
 
     // Physical Generator State
     const [physName, setPhysName] = useState('');
-    const [physBlocks, setPhysBlocks] = useState('');
-    const [physSpots, setPhysSpots] = useState('');
-    const [physHasSides, setPhysHasSides] = useState(true);
+    const [physBlocks, setPhysBlocks] = useState([{ name: 'A', total: '20', hasSides: true }]);
 
     const generate = () => {
         const w = parseFloat(width);
@@ -67,27 +65,43 @@ export default function VirtualParkingPage() {
         }
     };
 
+    const handleAddBlock = () => {
+        const nextChar = String.fromCharCode(65 + physBlocks.length); // 65 is 'A'
+        const defaultName = physBlocks.length < 26 ? nextChar : `Block${physBlocks.length + 1}`;
+        setPhysBlocks([...physBlocks, { name: defaultName, total: '20', hasSides: true }]);
+    };
+
+    const handleUpdateBlock = (index, field, value) => {
+        const updated = [...physBlocks];
+        updated[index] = { ...updated[index], [field]: value };
+        setPhysBlocks(updated);
+    };
+
+    const handleRemoveBlock = (index) => {
+        const updated = physBlocks.filter((_, idx) => idx !== index);
+        setPhysBlocks(updated);
+    };
+
     const confirmPhysical = async () => {
-        if (!physName || !physBlocks || !physSpots || loading) return;
-        const blocksList = physBlocks.split(',')
-            .map(b => b.trim().toUpperCase())
-            .filter(b => b.length > 0);
+        if (!physName || physBlocks.length === 0 || loading) return;
 
-        if (blocksList.length === 0) {
-            alert('Please enter at least one block name (e.g. A, B).');
-            return;
+        // Validate all blocks
+        for (const block of physBlocks) {
+            if (!block.name.trim()) {
+                alert('Please provide a name for all blocks.');
+                return;
+            }
+            const spotsCount = parseInt(block.total, 10);
+            if (isNaN(spotsCount) || spotsCount <= 0) {
+                alert(`Please enter a valid number of spots for block ${block.name}.`);
+                return;
+            }
         }
 
-        const spotsCount = parseInt(physSpots, 10);
-        if (isNaN(spotsCount) || spotsCount <= 0) {
-            alert('Please enter a valid number of spots per block.');
-            return;
-        }
-
-        const blocksData = blocksList.map(bName => ({
-            name: bName,
-            total: spotsCount,
-            hasSides: physHasSides
+        const blocksData = physBlocks.map(block => ({
+            name: block.name.trim().toUpperCase(),
+            total: parseInt(block.total, 10),
+            hasSides: block.hasSides
         }));
 
         const result = await createPhysicalLot({
@@ -97,8 +111,7 @@ export default function VirtualParkingPage() {
 
         if (result && result.success) {
             setPhysName('');
-            setPhysBlocks('');
-            setPhysSpots('');
+            setPhysBlocks([{ name: 'A', total: '20', hasSides: true }]);
             if (window.confirm('Physical Park created successfully! Would you like to view the interactive map now?')) {
                 navigate(`/map/physical/${result.id}`);
             }
@@ -249,47 +262,72 @@ export default function VirtualParkingPage() {
                                 onChange={e => setPhysName(e.target.value)} 
                             />
                         </div>
-                        <div className="form-group">
-                            <label className="form-label">Block Prefix Names (comma separated)</label>
-                            <input 
-                                type="text" 
-                                className="form-input" 
-                                placeholder="e.g. A, B, C" 
-                                value={physBlocks} 
-                                onChange={e => setPhysBlocks(e.target.value)} 
-                            />
-                        </div>
-                        <div style={{ display: 'flex', gap: '16px' }}>
-                            <div className="form-group" style={{ flex: 1 }}>
-                                <label className="form-label">Spots per Block</label>
-                                <input 
-                                    type="number" 
-                                    className="form-input" 
-                                    placeholder="e.g. 20" 
-                                    value={physSpots} 
-                                    onChange={e => setPhysSpots(e.target.value)} 
-                                />
-                            </div>
-                            <div className="form-group" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginTop: '24px' }}>
-                                    <input 
-                                        type="checkbox" 
-                                        checked={physHasSides} 
-                                        onChange={e => setPhysHasSides(e.target.checked)} 
-                                        style={{ accentColor: 'var(--yellow)', width: '16px', height: '16px' }}
-                                    />
-                                    Divide Left/Right
-                                </label>
-                            </div>
-                        </div>
                         
-                        {physName && physBlocks && physSpots && (
+                        <div style={{ marginBottom: '8px' }}>
+                            <div className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                <span>Blocks & Layout Configuration</span>
+                                <button 
+                                    type="button" 
+                                    className="btn btn-sm btn-primary"
+                                    onClick={handleAddBlock}
+                                    style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                >
+                                    <Plus size={12} /> Add Block
+                                </button>
+                            </div>
+                            
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '240px', overflowY: 'auto', paddingRight: '4px' }}>
+                                {physBlocks.map((block, idx) => (
+                                    <div key={idx} style={{ display: 'flex', gap: '10px', alignItems: 'center', background: 'var(--bg-surface)', padding: '10px', borderRadius: '8px' }}>
+                                        <div style={{ width: '60px' }}>
+                                            <label style={{ fontSize: '0.65rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Name</label>
+                                            <input 
+                                                type="text" 
+                                                className="form-input" 
+                                                style={{ padding: '6px 8px', fontSize: '0.8rem', textAlign: 'center' }}
+                                                value={block.name}
+                                                onChange={e => handleUpdateBlock(idx, 'name', e.target.value)}
+                                            />
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <label style={{ fontSize: '0.65rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Places</label>
+                                            <input 
+                                                type="number" 
+                                                className="form-input" 
+                                                style={{ padding: '6px 8px', fontSize: '0.8rem' }}
+                                                value={block.total}
+                                                onChange={e => handleUpdateBlock(idx, 'total', e.target.value)}
+                                            />
+                                        </div>
+                                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                            <label style={{ fontSize: '0.65rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>L/R Lanes</label>
+                                            <input 
+                                                type="checkbox" 
+                                                style={{ accentColor: 'var(--yellow)', width: '16px', height: '16px', marginTop: '6px' }}
+                                                checked={block.hasSides}
+                                                onChange={e => handleUpdateBlock(idx, 'hasSides', e.target.checked)}
+                                            />
+                                        </div>
+                                        {physBlocks.length > 1 && (
+                                            <button 
+                                                type="button" 
+                                                className="btn btn-sm btn-danger" 
+                                                style={{ padding: '6px', marginTop: '16px' }}
+                                                onClick={() => handleRemoveBlock(idx)}
+                                            >
+                                                <Trash2 size={12} />
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {physName && physBlocks.length > 0 && (
                             <div style={{ padding: '12px', background: 'var(--bg-surface)', borderRadius: '8px', fontSize: '0.85rem' }}>
                                 <div style={{ color: 'var(--yellow)', fontWeight: 600, marginBottom: '6px' }}>Configuration Summary</div>
-                                <div>Total Blocks: <strong>{physBlocks.split(',').filter(b => b.trim()).length}</strong></div>
-                                <div>Spots per Block: <strong>{physSpots}</strong></div>
-                                <div>Total Spots: <strong>{physBlocks.split(',').filter(b => b.trim()).length * (parseInt(physSpots, 10) || 0)}</strong></div>
-                                <div>Layout: <strong>{physHasSides ? 'Two-sided with Drive Lane' : 'Single Row Grid'}</strong></div>
+                                <div>Total Blocks/Lines: <strong>{physBlocks.length}</strong></div>
+                                <div>Total Spots: <strong>{physBlocks.reduce((acc, b) => acc + (parseInt(b.total, 10) || 0), 0)}</strong></div>
                             </div>
                         )}
 
