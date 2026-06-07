@@ -34,12 +34,19 @@ async function query(text, params) {
   if (!process.env.POSTGRES_URL || isPlaceholder) {
     const textLower = text.toLowerCase();
 
+    // 0. Dashboard: Summary counts (Must be checked before general parking_spots query to avoid intercepting COUNT(*) queries)
+    if (textLower.includes('select count(*)')) {
+      const isOccupied = textLower.includes("status != 'empty'");
+      const isAlert = textLower.includes("status in ('occupied','alert')");
+      return { rows: [{ count: isAlert ? '5' : (isOccupied ? '45' : '344') }] };
+    }
+
     // 1. Specific Lot State (Maps / Parking Spots) - HIGHEST PRIORITY
-    if (textLower.includes('parking_spots')) {
+    if (textLower.includes('parking_spots') && !textLower.includes('group by')) {
       const lotId = params && params[0];
-      const lot = mockLots.find(l => l.id === lotId) || {};
-      const isCantine = textLower.includes('cantine') || (lotId && lotId.includes('83943c3a'));
-      const isRHL = textLower.includes('rhl') || (lotId && lotId.includes('2d69f4ac')) || (!isCantine && (lot.name?.includes('RHL') || !lot.id));
+      const lot = (lotId && typeof lotId === 'string') ? (mockLots.find(l => l.id === lotId) || {}) : {};
+      const isCantine = textLower.includes('cantine') || (lotId && typeof lotId === 'string' && lotId.includes('83943c3a'));
+      const isRHL = textLower.includes('rhl') || (lotId && typeof lotId === 'string' && lotId.includes('2d69f4ac')) || (!isCantine && (lot.name?.includes('RHL') || !lot.id));
       const name = isCantine ? 'Park Cantine' : (isRHL ? 'Park RHL' : (lot.name || 'Virtual Lot'));
       const rows = [];
       const totalSpots = isCantine ? 42 : (isRHL ? 302 : (lot.total_spots || 100));
@@ -102,12 +109,7 @@ async function query(text, params) {
       return { rows: [{ value: '15' }] };
     }
 
-    // 4. Dashboard: Summary counts
-    if (textLower.includes('select count(*)')) {
-      const isOccupied = textLower.includes("status != 'empty'");
-      const isAlert = textLower.includes("status in ('occupied','alert')");
-      return { rows: [{ count: isAlert ? '5' : (isOccupied ? '45' : '344') }] };
-    }
+    // 4. Dashboard: Summary counts (Handled above)
 
     if (textLower.includes('select avg(extract')) {
       return { rows: [{ avg: '3.2' }] };
