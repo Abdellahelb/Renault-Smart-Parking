@@ -8,7 +8,7 @@ import useAuthStore from '../store/authStore';
 export default function AlertsPage() {
     const [alerts, setAlerts] = useState([]);
     const [filter, setFilter] = useState('all');
-    const { token } = useAuthStore();
+    const { token, logout } = useAuthStore();
 
     const fetchAlerts = async () => {
         if (!token) return;
@@ -16,18 +16,27 @@ export default function AlertsPage() {
             const res = await fetch(`${API_URL}/alerts`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+            if (res.status === 401) {
+                logout();
+                return;
+            }
+            if (!res.ok) {
+                throw new Error(`Failed to fetch alerts: ${res.statusText}`);
+            }
             const data = await res.json();
-            // Retain acknowledged/resolved state matching alerts since backend only gives 'active' state
-            setAlerts(prev => {
-                const existingState = new Map(prev.map(a => [a.id, a]));
-                return data.alerts.map(newAlert => {
-                    const existing = existingState.get(newAlert.id);
-                    if (existing && existing.status !== 'active') {
-                        return { ...newAlert, status: existing.status, acknowledgedBy: existing.acknowledgedBy, resolvedAt: existing.resolvedAt };
-                    }
-                    return newAlert;
+            if (data && Array.isArray(data.alerts)) {
+                // Retain acknowledged/resolved state matching alerts since backend only gives 'active' state
+                setAlerts(prev => {
+                    const existingState = new Map(prev.map(a => [a.id, a]));
+                    return data.alerts.map(newAlert => {
+                        const existing = existingState.get(newAlert.id);
+                        if (existing && existing.status !== 'active') {
+                            return { ...newAlert, status: existing.status, acknowledgedBy: existing.acknowledgedBy, resolvedAt: existing.resolvedAt };
+                        }
+                        return newAlert;
+                    });
                 });
-            });
+            }
         } catch (err) {
             console.error('Failed to fetch live alerts:', err);
         }
