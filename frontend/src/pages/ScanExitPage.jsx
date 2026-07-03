@@ -109,7 +109,7 @@ export default function ScanExitPage() {
                             style={{
                                 marginTop: '16px', padding: '20px', borderRadius: '12px',
                                 background: result.success ? 'var(--blue-dim)' : 'var(--red-dim)',
-                                border: \`1px solid \${result.success ? 'rgba(33,150,243,0.3)' : 'rgba(229,57,53,0.3)'}\`,
+                                border: `1px solid ${result.success ? 'rgba(33,150,243,0.3)' : 'rgba(229,57,53,0.3)'}`,
                             }}
                         >
                             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
@@ -126,7 +126,7 @@ export default function ScanExitPage() {
                                         {result.success ? 'PLACE LIBÉRÉE' : 'ERREUR'}
                                     </div>
                                     <div style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>
-                                        {result.success ? \`La place \${result.place} a bien été libérée.\` : result.error}
+                                        {result.success ? `La place ${result.place} a bien été libérée.` : result.error}
                                     </div>
                                 </div>
                             </div>

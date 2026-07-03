@@ -111,7 +111,7 @@ export default function ScanEntryPage() {
                             style={{
                                 marginTop: '16px', padding: '20px', borderRadius: '12px',
                                 background: result.success ? 'var(--green-dim)' : 'var(--red-dim)',
-                                border: \`1px solid \${result.success ? 'rgba(67,160,71,0.3)' : 'rgba(229,57,53,0.3)'}\`,
+                                border: `1px solid ${result.success ? 'rgba(67,160,71,0.3)' : 'rgba(229,57,53,0.3)'}`,
                             }}
                         >
                             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
@@ -128,7 +128,7 @@ export default function ScanEntryPage() {
                                         {result.success ? 'PLACE ASSIGNÉE' : 'ERREUR'}
                                     </div>
                                     <div style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>
-                                        {result.success ? \`Veuillez vous diriger vers la place : \${result.place}\` : result.error}
+                                        {result.success ? `Veuillez vous diriger vers la place : ${result.place}` : result.error}
                                     </div>
                                     {result.success && (
                                          <div style={{
