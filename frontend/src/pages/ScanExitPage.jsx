@@ -22,13 +22,11 @@ export default function ScanExitPage() {
             setScanning(true);
             
             try {
-                const apiKey = import.meta.env.VITE_ESP_API_KEY || 'default-esp-key';
-                
                 const res = await fetch(`${API_URL}/esp/scan-exit`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'x-api-key': apiKey
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({ vin: decodedText })
                 });

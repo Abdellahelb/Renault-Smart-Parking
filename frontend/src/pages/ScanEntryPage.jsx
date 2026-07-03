@@ -22,17 +22,11 @@ export default function ScanEntryPage() {
             setScanning(true);
             
             try {
-                // Fetch to /api/v1/esp/scan-entry
-                // In a real app we might not put the API key in the frontend,
-                // but since the user requested this exact flow and we have a Vite env setup:
-                // We will rely on a VITE_ESP_API_KEY environment variable.
-                const apiKey = import.meta.env.VITE_ESP_API_KEY || 'default-esp-key';
-                
                 const res = await fetch(`${API_URL}/esp/scan-entry`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'x-api-key': apiKey
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({ vin: decodedText })
                 });

@@ -2,7 +2,9 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 
-// Middleware to verify the ESP API key
+const { authenticate } = require('../middleware/authMiddleware');
+
+// Middleware to verify the ESP API key for hardware
 const verifyEspKey = (req, res, next) => {
     const apiKey = req.headers['x-api-key'];
     if (!apiKey || apiKey !== process.env.ESP_API_KEY) {
@@ -11,12 +13,10 @@ const verifyEspKey = (req, res, next) => {
     next();
 };
 
-router.use(verifyEspKey);
-
 // POST /api/v1/esp/scan-entry
 // Input: { vin: '...' }
 // Output: { success: true, place: 'A1' } or 409
-router.post('/scan-entry', async (req, res) => {
+router.post('/scan-entry', authenticate, async (req, res) => {
     const { vin } = req.body;
     if (!vin) {
         return res.status(400).json({ error: 'VIN is required' });
@@ -68,7 +68,7 @@ router.post('/scan-entry', async (req, res) => {
 // POST /api/v1/esp/scan-exit
 // Input: { vin: '...' }
 // Output: { success: true, place: 'A1' } or 404
-router.post('/scan-exit', async (req, res) => {
+router.post('/scan-exit', authenticate, async (req, res) => {
     const { vin } = req.body;
     if (!vin) {
         return res.status(400).json({ error: 'VIN is required' });
@@ -116,7 +116,7 @@ router.post('/scan-exit', async (req, res) => {
 
 // GET /api/v1/esp/status?device=xxx
 // Output: { message: { text: '...' } } or { message: null }
-router.get('/status', async (req, res) => {
+router.get('/status', verifyEspKey, async (req, res) => {
     const device = req.query.device;
     if (!device) {
         return res.status(400).json({ error: 'Device parameter is required' });
