@@ -25,9 +25,11 @@ router.post('/scan-entry', async (req, res) => {
     try {
         // Find the first available empty spot (ordered by position or id)
         const findSpotQuery = `
-            SELECT id, spot_label FROM parking_spots 
-            WHERE status = 'empty' 
-            ORDER BY spot_label ASC 
+            SELECT ps.id, ps.spot_label 
+            FROM parking_spots ps
+            JOIN parking_lots pl ON ps.lot_id = pl.id
+            WHERE ps.status = 'empty' AND pl.type = 'physical'
+            ORDER BY ps.spot_label ASC 
             LIMIT 1
         `;
         const { rows: emptySpots } = await db.query(findSpotQuery);
