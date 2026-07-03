@@ -130,7 +130,7 @@ function ParkingSpot({ spot, onClick, facing }) {
             className="parking-spot"
             whileHover={{ scale: 1.05 }}
             style={{
-                width: '46px', height: '90px',
+                width: '46px', minWidth: '46px', height: '90px', flexShrink: 0,
                 border: `2px solid ${isEmpty ? 'var(--green)' : isReserved ? 'var(--orange)' : isAlert ? 'var(--red)' : 'transparent'}`,
                 background: isEmpty ? 'var(--green-dim)' : isReserved ? 'var(--orange-dim)' : isAlert ? 'var(--red-dim)' : 'transparent',
                 borderRadius: '6px',
@@ -222,7 +222,7 @@ function BlockRow({ block, spots, onSpotClick }) {
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{occupied}/{def.total} · {pct}%</span>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0', alignItems: 'center', width: '100%' }}>
                 <div style={{
                     display: 'flex',
                     gap: '4px',

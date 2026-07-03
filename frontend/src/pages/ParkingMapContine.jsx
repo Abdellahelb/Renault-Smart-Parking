@@ -86,7 +86,7 @@ function ParkingSpot({ spot, onClick, facing }) {
                 className="parking-spot"
                 whileHover={{ scale: 1.05 }}
                 style={{
-                    width: '46px', height: '90px',
+                    width: '46px', minWidth: '46px', height: '90px', flexShrink: 0,
                     border: `2px solid ${isEmpty ? 'var(--green)' : isReserved ? 'var(--orange)' : isAlert ? 'var(--red)' : 'transparent'}`,
                     background: isEmpty ? 'var(--green-dim)' : isReserved ? 'var(--orange-dim)' : isAlert ? 'var(--red-dim)' : 'transparent',
                     borderRadius: '6px',
