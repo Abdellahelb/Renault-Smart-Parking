@@ -91,7 +91,7 @@ export default function Layout() {
                 { path: '/map/rhl', icon: Map, label: 'Park RHL', role: 'operator' },
                 { path: '/map/contine', icon: ParkingSquare, label: 'Park Cantine', role: 'operator' },
             ];
-            const dynamicLots = (virtualLots || []).filter(v => v.active === 1).map(v => ({
+            const dynamicLots = (virtualLots || []).filter(v => v.active === 1 && v.name !== 'Park RHL' && v.name !== 'Park Cantine').map(v => ({
                 path: v.type === 'virtual' ? `/map/virtual/${v.id}` : `/map/physical/${v.id}`,
                 icon: v.type === 'virtual' ? Map : ParkingSquare,
                 label: v.name,
