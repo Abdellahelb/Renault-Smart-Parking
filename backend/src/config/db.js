@@ -209,6 +209,15 @@ async function initDatabase() {
   try {
     logger.info('Checking database schema seeding status...');
 
+    // 0. Ensure pending_messages table exists for ESP32 integration
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS pending_messages (
+        device_id VARCHAR(50) PRIMARY KEY,
+        message_text TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // 1. Ensure ADMIN001 user exists
     const { rows: adminUser } = await pool.query("SELECT id FROM users WHERE operator_id = 'ADMIN001'");
     if (adminUser.length === 0) {

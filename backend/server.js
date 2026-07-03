@@ -12,6 +12,7 @@ const vehicleRoutes = require('./src/routes/vehicle.routes');
 const parkingRoutes = require('./src/routes/parking.routes');
 const dashboardRoutes = require('./src/routes/dashboard.routes');
 const adminRoutes = require('./src/routes/admin.routes');
+const espRoutes = require('./src/routes/esp.routes');
 const db = require('./src/config/db');
 const logger = require('./src/utils/logger');
 
@@ -94,6 +95,7 @@ app.use('/api/v1/vehicles', vehicleRoutes(io));
 app.use('/api/v1', parkingRoutes(io));
 app.use('/api/v1', dashboardRoutes());
 app.use('/api/v1', adminRoutes());
+app.use('/api/v1/esp', espRoutes());
 
 app.use((err, req, res, next) => {
     logger.error(`💥 Unhandled error: ${err.message}`, { stack: err.stack });

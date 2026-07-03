@@ -11,6 +11,8 @@ import DashboardPage from './pages/DashboardPage';
 import ParkingMapRHL from './pages/ParkingMapRHL';
 import ParkingMapContine from './pages/ParkingMapContine';
 import ScanPage from './pages/ScanPage';
+import ScanEntryPage from './pages/ScanEntryPage';
+import ScanExitPage from './pages/ScanExitPage';
 import SearchPage from './pages/SearchPage';
 import AlertsPage from './pages/AlertsPage';
 import UserManagementPage from './pages/UserManagementPage';
@@ -65,6 +67,8 @@ function App() {
             <Route path="map/virtual/:id" element={<VirtualMapPage />} />
             <Route path="map/physical/:id" element={<PhysicalMapPage />} />
             <Route path="scan" element={<ScanPage />} />
+            <Route path="scan-entry" element={<ScanEntryPage />} />
+            <Route path="scan-exit" element={<ScanExitPage />} />
             <Route path="search" element={<SearchPage />} />
             <Route path="history" element={<HistoryPage />} />
             <Route path="alerts" element={

@@ -1,0 +1,163 @@
+import { useState, useEffect } from 'react';
+import { API_URL } from '../api_config';
+import { Html5QrcodeScanner } from 'html5-qrcode';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ScanBarcode, CheckCircle2, XCircle, Zap } from 'lucide-react';
+import useAuthStore from '../store/authStore';
+
+export default function ScanEntryPage() {
+    const [scanning, setScanning] = useState(false);
+    const [result, setResult] = useState(null);
+    const { token } = useAuthStore.getState();
+
+    useEffect(() => {
+        const scanner = new Html5QrcodeScanner("reader", { 
+            fps: 10, 
+            qrbox: { width: 250, height: 250 },
+            supportedScanTypes: [0] // Camera scan only
+        });
+
+        const onScanSuccess = async (decodedText) => {
+            scanner.clear();
+            setScanning(true);
+            
+            try {
+                // Fetch to /api/v1/esp/scan-entry
+                // In a real app we might not put the API key in the frontend,
+                // but since the user requested this exact flow and we have a Vite env setup:
+                // We will rely on a VITE_ESP_API_KEY environment variable.
+                const apiKey = import.meta.env.VITE_ESP_API_KEY || 'default-esp-key';
+                
+                const res = await fetch(`${API_URL}/esp/scan-entry`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': apiKey
+                    },
+                    body: JSON.stringify({ vin: decodedText })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    setResult({ success: true, place: data.place, vin: decodedText });
+                } else {
+                    setResult({ success: false, error: data.error || 'Erreur lors de l\'assignation' });
+                }
+            } catch (err) {
+                setResult({ success: false, error: 'Erreur réseau' });
+            } finally {
+                setScanning(false);
+            }
+        };
+
+        scanner.render(onScanSuccess, (error) => {
+            // Ignore normal scan errors (no QR code found in current frame)
+        });
+
+        return () => {
+            scanner.clear().catch(error => {
+                console.error("Failed to clear html5QrcodeScanner. ", error);
+            });
+        };
+    }, []);
+
+    const reset = () => {
+        window.location.reload(); // Quick way to remount the scanner
+    };
+
+    return (
+        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '16px' }}>
+            <motion.div className="card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                <div className="card-header">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div className="kpi-icon yellow" style={{ width: '40px', height: '40px' }}>
+                            <ScanBarcode size={20} />
+                        </div>
+                        <div>
+                            <div className="card-title">Scanner d'Entrée</div>
+                            <div className="card-subtitle">Scannez le VIN pour assigner une place</div>
+                        </div>
+                    </div>
+                </div>
+
+                {!result && !scanning && (
+                    <div id="reader" style={{ width: '100%', marginTop: '20px' }}></div>
+                )}
+
+                <AnimatePresence>
+                    {scanning && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            style={{
+                                marginTop: '16px', padding: '20px', textAlign: 'center',
+                                background: 'var(--bg-surface)', borderRadius: '8px',
+                                border: '1px solid var(--yellow-border)',
+                            }}
+                        >
+                            <motion.div
+                                animate={{ opacity: [0.3, 1, 0.3] }}
+                                transition={{ duration: 1.5, repeat: Infinity }}
+                                style={{ color: 'var(--yellow)', fontSize: '0.85rem', fontWeight: 600 }}
+                            >
+                                <Zap size={20} style={{ display: 'inline', marginRight: '8px' }} />
+                                Traitement en cours...
+                            </motion.div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                <AnimatePresence>
+                    {result && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            style={{
+                                marginTop: '16px', padding: '20px', borderRadius: '12px',
+                                background: result.success ? 'var(--green-dim)' : 'var(--red-dim)',
+                                border: \`1px solid \${result.success ? 'rgba(67,160,71,0.3)' : 'rgba(229,57,53,0.3)'}\`,
+                            }}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                                {result.success ? (
+                                    <CheckCircle2 size={24} style={{ color: 'var(--green)', flexShrink: 0 }} />
+                                ) : (
+                                    <XCircle size={24} style={{ color: 'var(--red)', flexShrink: 0 }} />
+                                )}
+                                <div>
+                                    <div style={{
+                                        fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 700, marginBottom: '8px',
+                                        color: result.success ? 'var(--green)' : 'var(--red)',
+                                    }}>
+                                        {result.success ? 'PLACE ASSIGNÉE' : 'ERREUR'}
+                                    </div>
+                                    <div style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>
+                                        {result.success ? \`Veuillez vous diriger vers la place : \${result.place}\` : result.error}
+                                    </div>
+                                    {result.success && (
+                                         <div style={{
+                                            display: 'flex', gap: '16px', padding: '12px', marginTop: '12px',
+                                            background: 'rgba(0,0,0,0.2)', borderRadius: '8px',
+                                        }}>
+                                            <div>
+                                                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Place</div>
+                                                <div style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 700, color: 'var(--yellow)' }}>
+                                                    {result.place}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            <button className="btn btn-secondary" onClick={reset} style={{ marginTop: '20px', width: '100%' }}>
+                                Scanner un autre véhicule
+                            </button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </motion.div>
+        </div>
+    );
+}
