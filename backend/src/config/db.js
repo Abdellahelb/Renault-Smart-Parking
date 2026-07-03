@@ -217,10 +217,6 @@ async function initDatabase() {
   try {
     logger.info('Checking database schema seeding status...');
 
-    // Clean up any dynamically created lots to satisfy user request
-    await pool.query("DELETE FROM parking_spots WHERE lot_id NOT IN ('2d69f4ac-0efd-4812-bdf6-d62e1d27bb69', '83943c3a-a562-4749-b9d2-d55faad8913f')");
-    await pool.query("DELETE FROM parking_lots WHERE id NOT IN ('2d69f4ac-0efd-4812-bdf6-d62e1d27bb69', '83943c3a-a562-4749-b9d2-d55faad8913f')");
-
     // 0. Ensure all tables exist for fresh deployment
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT NOT NULL, operator_id TEXT UNIQUE NOT NULL, email TEXT, password_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'operator', active INTEGER NOT NULL DEFAULT 1, created_by TEXT, created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, last_login TIMESTAMP);

@@ -36,6 +36,7 @@ const baseNavItems = [
     {
         section: 'Administration', items: [
             { path: '/admin/users', icon: Users, label: 'Personnel Access', role: 'supervisor' },
+            { path: '/admin/virtual', icon: Zap, label: 'Virtual Sector AI', role: 'supervisor' },
             { path: '/admin/settings', icon: Settings, label: 'Settings', role: 'supervisor' },
         ]
     },
@@ -90,7 +91,13 @@ export default function Layout() {
                 { path: '/map/rhl', icon: Map, label: 'Park RHL', role: 'operator' },
                 { path: '/map/contine', icon: ParkingSquare, label: 'Park Cantine', role: 'operator' },
             ];
-            return { ...section, items: staticLots };
+            const dynamicLots = (virtualLots || []).filter(v => v.active === 1).map(v => ({
+                path: v.type === 'virtual' ? `/map/virtual/${v.id}` : `/map/physical/${v.id}`,
+                icon: v.type === 'virtual' ? Map : ParkingSquare,
+                label: v.name,
+                role: 'operator'
+            }));
+            return { ...section, items: [...staticLots, ...dynamicLots] };
         }
         return section;
     });
