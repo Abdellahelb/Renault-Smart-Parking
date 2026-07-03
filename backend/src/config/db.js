@@ -182,6 +182,14 @@ async function query(text, params) {
       return { rows: [{ '?column?': 1 }] };
     }
 
+    if (textLower.includes("ps.status = 'empty'") && textLower.includes("pl.type = 'physical'")) {
+      return { rows: [{ id: 'mock-spot-1', spot_label: 'A1' }] };
+    }
+
+    if (textLower.includes("vin = $1") && textLower.includes("status = 'occupied'")) {
+      return { rows: [{ id: 'mock-spot-1', spot_label: 'A1' }] };
+    }
+
     return { rows: [], rowCount: 0 };
   }
 
