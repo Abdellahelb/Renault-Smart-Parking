@@ -499,8 +499,10 @@ export default function ParkingMapContine() {
                                 {/* Left side, face upward -> down=false */}
                                 {leftCols.map(col => {
                                     const num = (row - 1) * 7 + col;
-                                    const spot = spots[`CT${num}`];
-                                    return spot && <ParkingSpot key={spot.id} spot={spot} onClick={setSelectedSpot} facing="up" />;
+                                    const spot = spots[`CT${num}`] || {
+                                        id: `CT${num}`, block: 'CT', number: num, status: 'empty', daysParked: 0, carColor: null
+                                    };
+                                    return <ParkingSpot key={spot.id} spot={spot} onClick={setSelectedSpot} facing="up" />;
                                 })}
 
                                 {/* Center aisle */}
@@ -511,8 +513,10 @@ export default function ParkingMapContine() {
                                 {/* Right side, face downward -> down=true */}
                                 {rightCols.map(col => {
                                     const num = (row - 1) * 7 + col;
-                                    const spot = spots[`CT${num}`];
-                                    return spot && <ParkingSpot key={spot.id} spot={spot} onClick={setSelectedSpot} facing="down" />;
+                                    const spot = spots[`CT${num}`] || {
+                                        id: `CT${num}`, block: 'CT', number: num, status: 'empty', daysParked: 0, carColor: null
+                                    };
+                                    return <ParkingSpot key={spot.id} spot={spot} onClick={setSelectedSpot} facing="down" />;
                                 })}
                             </div>
                         );

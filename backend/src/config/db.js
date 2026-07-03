@@ -217,13 +217,13 @@ async function initDatabase() {
   try {
     logger.info('Checking database schema seeding status...');
 
-    // 0. Ensure pending_messages table exists for ESP32 integration
+    // 0. Ensure all tables exist for fresh deployment
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS pending_messages (
-        device_id VARCHAR(50) PRIMARY KEY,
-        message_text TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
+      CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT NOT NULL, operator_id TEXT UNIQUE NOT NULL, email TEXT, password_hash TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'operator', active INTEGER NOT NULL DEFAULT 1, created_by TEXT, created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, last_login TIMESTAMP);
+      CREATE TABLE IF NOT EXISTS parking_lots (id TEXT PRIMARY KEY, name TEXT NOT NULL, type TEXT NOT NULL DEFAULT 'physical', total_spots INTEGER NOT NULL, width REAL, length REAL, active INTEGER NOT NULL DEFAULT 1, created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP);
+      CREATE TABLE IF NOT EXISTS parking_spots (id TEXT PRIMARY KEY, lot_id TEXT NOT NULL REFERENCES parking_lots(id), spot_label TEXT NOT NULL, block TEXT, side TEXT, position INTEGER, status TEXT NOT NULL DEFAULT 'empty', vin TEXT, operator_id TEXT, occupied_at TIMESTAMP, car_color TEXT, reserved_by TEXT, reservation_method TEXT DEFAULT 'manual');
+      CREATE TABLE IF NOT EXISTS pending_messages (device_id VARCHAR(50) PRIMARY KEY, message_text TEXT NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+      CREATE TABLE IF NOT EXISTS system_settings (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP);
     `);
 
     // 1. Ensure ADMIN001 user exists

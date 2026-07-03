@@ -189,12 +189,16 @@ function BlockRow({ block, spots, onSpotClick }) {
     const rightSpots = [];
 
     for (let i = def.left[0]; i <= def.left[1]; i++) {
-        if (spots[`${block}${i}`]) leftSpots.push(spots[`${block}${i}`]);
+        leftSpots.push(spots[`${block}${i}`] || {
+            id: `${block}${i}`, block, number: i, status: 'empty', daysParked: 0, carColor: null
+        });
     }
     for (let i = def.right[0]; i <= def.right[1]; i++) {
-        if (spots[`${block}${i}`]) rightSpots.push(spots[`${block}${i}`]);
+        rightSpots.push(spots[`${block}${i}`] || {
+            id: `${block}${i}`, block, number: i, status: 'empty', daysParked: 0, carColor: null
+        });
     }
-    rightSpots.reverse();
+    if (rightSpots.length > 0) rightSpots.reverse();
 
     const allBlockSpots = [...leftSpots, ...rightSpots];
     const occupied = allBlockSpots.filter(s => s.status !== 'empty').length;
