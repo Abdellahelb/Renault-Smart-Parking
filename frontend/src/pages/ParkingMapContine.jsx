@@ -405,8 +405,11 @@ export default function ParkingMapContine() {
             }
         };
 
+        let pollInterval;
         if (token) {
             fetchSpots();
+            // Polling toutes les 1 seconde pour le rafraichissement automatique (Vercel Serverless)
+            pollInterval = setInterval(fetchSpots, 1000);
 
             socket = io(SOCKET_URL);
             socket.on('spot:updated', (data) => {
@@ -434,6 +437,7 @@ export default function ParkingMapContine() {
         }
 
         return () => {
+            if (pollInterval) clearInterval(pollInterval);
             if (socket) socket.disconnect();
         };
     }, [token]);
