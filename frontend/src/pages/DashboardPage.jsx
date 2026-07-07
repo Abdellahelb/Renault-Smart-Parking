@@ -157,16 +157,17 @@ export default function DashboardPage() {
             fetchAlerts();
             fetchBlockStats();
 
-            // Polling toutes les 1 seconde pour l'ensemble des donnees (Vercel Serverless fallbacks)
-            const pollInterval = setInterval(refresh, 1000);
-
-            const socket = io(SOCKET_URL);
             const refresh = () => {
                 fetchStats();
                 fetchActivity();
                 fetchAlerts();
                 fetchBlockStats(); // Mise à jour immédiate des secteurs sur événement
             };
+
+            // Polling toutes les 1 seconde pour l'ensemble des donnees (Vercel Serverless fallbacks)
+            const pollInterval = setInterval(refresh, 1000);
+
+            const socket = io(SOCKET_URL);
 
             socket.on('vehicle:arrived', refresh);
             socket.on('vehicle:departed', refresh);
