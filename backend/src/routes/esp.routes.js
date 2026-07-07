@@ -29,7 +29,7 @@ router.post('/scan-entry', authenticate, async (req, res) => {
             FROM parking_spots ps
             JOIN parking_lots pl ON ps.lot_id = pl.id
             WHERE ps.status = 'empty' AND pl.type = 'physical'
-            ORDER BY ps.spot_label ASC 
+            ORDER BY COALESCE(ps.block, '') ASC, ps.position ASC 
             LIMIT 1
         `;
         const { rows: emptySpots } = await db.query(findSpotQuery);

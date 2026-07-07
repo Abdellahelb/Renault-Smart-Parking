@@ -94,6 +94,8 @@ export default function DashboardPage() {
     const [activity, setActivity] = useState([]);
     const [alerts, setAlerts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [blockStats, setBlockStats] = useState([]);
+    const [blockLastUpdated, setBlockLastUpdated] = useState(null);
 
     const fetchStats = async () => {
         try {
@@ -133,23 +135,47 @@ export default function DashboardPage() {
         }
     };
 
+    const fetchBlockStats = async () => {
+        try {
+            const res = await fetch(`${API_URL}/stats`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.blockStats && data.blockStats.length > 0) {
+                setBlockStats(data.blockStats);
+            }
+            setBlockLastUpdated(new Date());
+        } catch (err) {
+            console.error('Failed to fetch block stats:', err);
+        }
+    };
+
     useEffect(() => {
         if (token) {
             fetchStats();
             fetchActivity();
             fetchAlerts();
+            fetchBlockStats();
+
+            // Polling toutes les 1 seconde pour l'ensemble des donnees (Vercel Serverless fallbacks)
+            const pollInterval = setInterval(refresh, 1000);
+
             const socket = io(SOCKET_URL);
             const refresh = () => {
                 fetchStats();
                 fetchActivity();
                 fetchAlerts();
+                fetchBlockStats(); // Mise à jour immédiate des secteurs sur événement
             };
 
             socket.on('vehicle:arrived', refresh);
             socket.on('vehicle:departed', refresh);
             socket.on('spot:updated', refresh);
 
-            return () => socket.disconnect();
+            return () => {
+                clearInterval(pollInterval);
+                socket.disconnect();
+            };
         }
     }, [token]);
 
@@ -258,37 +284,72 @@ export default function DashboardPage() {
                 <motion.div className="card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
                     <div className="card-header">
                         <div>
-                            <div className="card-title">Sector Saturation Metrics</div>
-                            <div className="card-subtitle">Global Facility blocks</div>
+                            <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                Sector Saturation Metrics
+                                {/* Indicateur LIVE pulsant */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginLeft: '4px' }}>
+                                    <div style={{
+                                        width: '8px', height: '8px', borderRadius: '50%',
+                                        background: '#4CAF50',
+                                        boxShadow: '0 0 0 0 rgba(76,175,80,0.7)',
+                                        animation: 'pulse-live 1.5s infinite',
+                                    }} />
+                                    <span style={{ fontSize: '0.65rem', color: '#4CAF50', fontWeight: 700, letterSpacing: '0.08em' }}>LIVE</span>
+                                </div>
+                            </div>
+                            <div className="card-subtitle">
+                                Global Facility blocks
+                                {blockLastUpdated && (
+                                    <span style={{ marginLeft: '8px', fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                                        · Mis à jour {blockLastUpdated.toLocaleTimeString()}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-                        {(stats.blockStats && stats.blockStats.length > 0 ? stats.blockStats : blockData).map(block => {
-                            const pct = block.pct || Math.round((block.vehicles / block.capacity) * 100);
-                            const color = pct > 75 ? '#E53935' : '#F7C948';
+                        {(blockStats.length > 0 ? blockStats : (stats.blockStats && stats.blockStats.length > 0 ? stats.blockStats : blockData)).map(block => {
+                            const pct = block.pct !== undefined ? block.pct : Math.round((block.vehicles / block.capacity) * 100);
+                            const color = pct > 85 ? '#E53935' : pct > 65 ? '#FF9800' : '#4CAF50';
                             return (
-                                <div key={block.name} style={{
-                                    background: 'var(--bg-card)',
-                                    borderRadius: '16px',
-                                    padding: '16px',
-                                    textAlign: 'center',
-                                    border: `1px solid ${color}30`,
-                                    position: 'relative',
-                                    overflow: 'hidden',
-                                    boxShadow: `0 4px 16px ${color}10`,
-                                }}
+                                <motion.div
+                                    key={block.name}
+                                    layout
+                                    animate={{ borderColor: `${color}30` }}
+                                    transition={{ duration: 0.6 }}
+                                    style={{
+                                        background: 'var(--bg-card)',
+                                        borderRadius: '16px',
+                                        padding: '16px',
+                                        textAlign: 'center',
+                                        border: `1px solid ${color}30`,
+                                        position: 'relative',
+                                        overflow: 'hidden',
+                                        boxShadow: `0 4px 16px ${color}10`,
+                                    }}
                                 >
-                                    <div style={{
-                                        position: 'absolute', bottom: 0, left: 0, right: 0,
-                                        height: `${pct}%`, background: `linear-gradient(180deg, ${color}20 0%, ${color}05 100%)`,
-                                        transition: 'height 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
-                                    }} />
+                                    <motion.div
+                                        animate={{ height: `${pct}%` }}
+                                        transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
+                                        style={{
+                                            position: 'absolute', bottom: 0, left: 0, right: 0,
+                                            background: `linear-gradient(180deg, ${color}25 0%, ${color}05 100%)`,
+                                        }}
+                                    />
                                     <div style={{ position: 'relative', zIndex: 1 }}>
                                         <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 700, color }}>{block.name}</div>
                                         <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{block.vehicles}/{block.capacity}</div>
-                                        <div style={{ fontSize: '0.7rem', fontWeight: 600, color, marginTop: '2px' }}>{pct}%</div>
+                                        <motion.div
+                                            key={pct}
+                                            initial={{ scale: 1.3, opacity: 0.5 }}
+                                            animate={{ scale: 1, opacity: 1 }}
+                                            transition={{ duration: 0.4 }}
+                                            style={{ fontSize: '0.7rem', fontWeight: 700, color, marginTop: '2px' }}
+                                        >
+                                            {pct}%
+                                        </motion.div>
                                     </div>
-                                </div>
+                                </motion.div>
                             );
                         })}
                     </div>

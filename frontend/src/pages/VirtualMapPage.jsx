@@ -121,8 +121,11 @@ export default function VirtualMapPage() {
 
     useEffect(() => {
         let socket;
+        let pollInterval;
         if (token && id) {
             fetchSpots();
+            // Polling toutes les 1 seconde pour le rafraichissement automatique (Vercel Serverless)
+            pollInterval = setInterval(fetchSpots, 1000);
 
             socket = io(SOCKET_URL);
             socket.on('spot:updated', (data) => {
@@ -144,6 +147,7 @@ export default function VirtualMapPage() {
         }
 
         return () => {
+            if (pollInterval) clearInterval(pollInterval);
             if (socket) socket.disconnect();
         };
     }, [id, token]);
