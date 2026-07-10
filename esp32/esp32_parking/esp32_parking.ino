@@ -3,25 +3,32 @@
  *  RENAULT SMART PARKING - ESP32
  *  WiFi Web Server + Serial Monitor (SANS OLED)
  *  Saisie Intelligente du VIN & Entree/Sortie Automatique
+ *  Recherche de place par VIN integree
  * ============================================================
  */
+
 #include <WiFi.h>
 #include <WebServer.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+
 // --- Paramètres WiFi ---
 const char* ssid     = "Orange_wifi_D783";
 const char* password = "qLdDaiR6b9G5";
+
 // --- Identifiants API ---
 const char* operator_id    = "OPERATOR";
 const char* op_password    = "OP001";
 const char* login_url      = "https://renault-smart-parking-manager-blush.vercel.app/api/v1/auth/login";
 const char* scan_entry_url = "https://renault-smart-parking-manager-blush.vercel.app/api/v1/esp/scan-entry";
 const char* scan_exit_url  = "https://renault-smart-parking-manager-blush.vercel.app/api/v1/esp/scan-exit";
+
 WebServer server(80);
 String token = "";
+
 // Déclaration de la page web (définie tout en bas)
 extern const char HTML_PAGE[];
+
 // --- Connexion WiFi avec Diagnostic ---
 void setupWiFi() {
     Serial.println("\n--- Initialisation WiFi ---");
@@ -31,6 +38,7 @@ void setupWiFi() {
     
     WiFi.mode(WIFI_STA);
     delay(100);
+
     // Analyse rapide des réseaux visibles
     int n = WiFi.scanNetworks();
     Serial.print("Analyse terminee : ");
@@ -68,6 +76,7 @@ void setupWiFi() {
             }
         }
     }
+
     if (WiFi.status() == WL_CONNECTED) {
         Serial.println("\n[WiFi] Connecte avec succes !");
         Serial.print("[WiFi] Adresse IP : http://");
@@ -79,17 +88,20 @@ void setupWiFi() {
     }
     Serial.println("-----------------------------------------\n");
 }
+
 // --- Recupere le Token d'authentification ---
 bool loginToServer() {
     HTTPClient http;
     http.begin(login_url);
     http.addHeader("Content-Type", "application/json");
+
     StaticJsonDocument<128> doc;
     doc["operator_id"] = operator_id;
     doc["password"]    = op_password;
     
     String requestBody;
     serializeJson(doc, requestBody);
+
     int httpResponseCode = http.POST(requestBody);
     if (httpResponseCode == 200) {
         String payload = http.getString();
@@ -107,20 +119,25 @@ bool loginToServer() {
         return false;
     }
 }
+
 // --- Traitement intelligent du Scan (Entree vs Sortie) ---
 bool processScan(String vin, String &place, bool &isExit, String &errorMsg) {
     if (token == "") {
         loginToServer();
     }
+
     // Étape 1 : Essayer la sortie (scan-exit)
     HTTPClient http;
     http.begin(scan_exit_url);
     http.addHeader("Content-Type", "application/json");
     http.addHeader("Authorization", "Bearer " + token);
+
     StaticJsonDocument<128> doc;
     doc["vin"] = vin;
+
     String requestBody;
     serializeJson(doc, requestBody);
+
     int httpResponseCode = http.POST(requestBody);
     
     // Si code 200 => Le vehicule etait la, il est sorti et sa place est liberee !
@@ -134,7 +151,8 @@ bool processScan(String vin, String &place, bool &isExit, String &errorMsg) {
         return true;
     }
     http.end();
-    // Si code 404 => Le vehicule n'et etait pas dans le parking. Donc c'est une ENTREE !
+
+    // Si code 404 => Le vehicule n'etait pas dans le parking. Donc c'est une ENTREE !
     if (httpResponseCode == 404) {
         http.begin(scan_entry_url);
         http.addHeader("Content-Type", "application/json");
@@ -157,65 +175,18 @@ bool processScan(String vin, String &place, bool &isExit, String &errorMsg) {
         http.end();
         return false;
     }
+
     // Si le token a expire (401), se reconnecter et reessayer une fois
     if (httpResponseCode == 401) {
         if (loginToServer()) {
             return processScan(vin, place, isExit, errorMsg);
         }
     }
+
     errorMsg = "Erreur serveur (Code " + String(httpResponseCode) + ")";
     return false;
 }
-// --- Route principale (Sert la page HTML) ---
-void handleRoot() {
-    server.send(200, "text/html", HTML_PAGE);
-}
-// --- Route Scan (Entree / Sortie automatique) ---
-void handleScan() {
-    if (!server.hasArg("plain")) {
-        server.send(400, "application/json", "{\"success\":false}");
-        return;
-    }
-    String body = server.arg("plain");
-    StaticJsonDocument<128> req;
-    deserializeJson(req, body);
-    String vin = req["vin"].as<String>();
-    vin.trim();
-    Serial.print("Scan recu (Entree/Sortie). VIN : ");
-    Serial.println(vin);
-    
-    String place = "";
-    bool isExit = false;
-    String errorMsg = "";
-    bool success = processScan(vin, place, isExit, errorMsg);
-    StaticJsonDocument<128> resp;
-    if (success) {
-        resp["success"] = true;
-        resp["place"] = place;
-        resp["isExit"] = isExit;
-        
-        if (isExit) {
-            Serial.println("====== SORTIE VEHICULE ======");
-            Serial.print("Place liberee : ");
-            Serial.println(place);
-            Serial.println("=============================");
-        } else {
-            Serial.println("====== ENTREE VEHICULE ======");
-            Serial.print("Place assignee : ");
-            Serial.println(place);
-            Serial.println("=============================");
-        }
-    } else {
-        resp["success"] = false;
-        resp["error"] = errorMsg;
-        Serial.println("====== ERREUR DE PROCESS ======");
-        Serial.println(errorMsg);
-        Serial.println("===============================");
-    }
-    String responseBody;
-    serializeJson(resp, responseBody);
-    server.send(200, "application/json", responseBody);
-}
+
 // --- Recherche de la place d'un VIN ---
 bool queryVehiclePlace(String vin, String &parking, String &place, String &errorMsg) {
     if (token == "") {
@@ -249,6 +220,61 @@ bool queryVehiclePlace(String vin, String &parking, String &place, String &error
     http.end();
     return false;
 }
+
+// --- Route principale (Sert la page HTML) ---
+void handleRoot() {
+    server.send(200, "text/html", HTML_PAGE);
+}
+
+// --- Route Scan (Entree / Sortie automatique) ---
+void handleScan() {
+    if (!server.hasArg("plain")) {
+        server.send(400, "application/json", "{\"success\":false}");
+        return;
+    }
+    String body = server.arg("plain");
+    StaticJsonDocument<128> req;
+    deserializeJson(req, body);
+    String vin = req["vin"].as<String>();
+    vin.trim();
+    Serial.print("Scan recu (Entree/Sortie). VIN : ");
+    Serial.println(vin);
+
+    String place = "";
+    bool isExit = false;
+    String errorMsg = "";
+    bool success = processScan(vin, place, isExit, errorMsg);
+
+    StaticJsonDocument<128> resp;
+    if (success) {
+        resp["success"] = true;
+        resp["place"] = place;
+        resp["isExit"] = isExit;
+        
+        if (isExit) {
+            Serial.println("====== SORTIE VEHICULE ======");
+            Serial.print("Place liberee : ");
+            Serial.println(place);
+            Serial.println("=============================");
+        } else {
+            Serial.println("====== ENTREE VEHICULE ======");
+            Serial.print("Place assignee : ");
+            Serial.println(place);
+            Serial.println("=============================");
+        }
+    } else {
+        resp["success"] = false;
+        resp["error"] = errorMsg;
+        Serial.println("====== ERREUR DE PROCESS ======");
+        Serial.println(errorMsg);
+        Serial.println("===============================");
+    }
+
+    String responseBody;
+    serializeJson(resp, responseBody);
+    server.send(200, "application/json", responseBody);
+}
+
 // --- Route Recherche ---
 void handleSearchVIN() {
     if (!server.hasArg("plain")) {
@@ -262,10 +288,12 @@ void handleSearchVIN() {
     vin.trim();
     Serial.print("Recherche de place pour le VIN : ");
     Serial.println(vin);
+
     String parking = "";
     String place = "";
     String errorMsg = "";
     bool success = queryVehiclePlace(vin, parking, place, errorMsg);
+
     StaticJsonDocument<256> resp;
     if (success) {
         resp["success"] = true;
@@ -282,16 +310,19 @@ void handleSearchVIN() {
         Serial.println(errorMsg);
         Serial.println("===================================");
     }
+
     String responseBody;
     serializeJson(resp, responseBody);
     server.send(200, "application/json", responseBody);
 }
+
 void setup() {
     Serial.begin(115200);
     delay(1000);
     
     setupWiFi();
     loginToServer();
+
     server.on("/", HTTP_GET, handleRoot);
     server.on("/scan", HTTP_POST, handleScan);
     server.on("/search-vin", HTTP_POST, handleSearchVIN);
@@ -299,10 +330,12 @@ void setup() {
     
     Serial.println("Serveur Web ESP32 pret !");
 }
+
 void loop() {
     server.handleClient();
     delay(10);
 }
+
 // ============================================================
 //  CODE HTML DE LA PAGE WEB
 // ============================================================
