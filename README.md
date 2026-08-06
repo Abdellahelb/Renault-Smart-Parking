@@ -119,7 +119,7 @@ This software is designed as a template for Renault Group Internal Logistics. Al
 
 ## 👤 Author
 **Abdellah Elberkaoui**  
-*Mechatronics Engineer | Industrial Digitalization & IoT specialist*  
+*Mechatronics Engineer*  
 [LinkedIn Profile](https://linkedin.com/in/abdellah-elberkaoui-1a3493195)
 
 ---
