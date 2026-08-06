@@ -112,57 +112,7 @@ The project utilizes a standalone **ESP32 Dev Module** acting as a local server.
 
 ---
 
-## 🚀 Setup & Installation
 
-### Prerequisites
-- Node.js (v18 or newer)
-- Arduino IDE (for compilation & flashing of the ESP32)
-- Static IP allocation capability in your local network router.
-
-### 1. Central Backend Configuration
-1. Navigate to the backend directory:
-   ```bash
-   cd backend
-   npm install
-   ```
-2. Create a `.env` file based on `.env.example`:
-   ```env
-   PORT=3001
-   JWT_SECRET=your_super_secret_jwt_key_here
-   DB_PATH=./src/config/parking.db
-   ```
-3. Boot the API:
-   ```bash
-   npm start
-   ```
-   *Note: On first startup, the SQLite database will automatically initialize schemas and populate mock logistics records.*
-
-### 2. Frontend Installation
-1. Navigate to the frontend directory:
-   ```bash
-   cd frontend
-   npm install
-   ```
-2. Launch the Vite development server:
-   ```bash
-   npm run dev
-   ```
-
-### 3. Flashing the ESP32
-1. Open the [esp32_parking.ino](file:///C:/Users/abdel/.gemini/antigravity/scratch/Renault-Parking%202/esp32/esp32_parking/esp32_parking.ino) sketch in the Arduino IDE.
-2. Install the necessary libraries via library manager:
-   - `ArduinoJson` (v6.x)
-   - `WiFi` (built-in)
-   - `WebServer` (built-in)
-   - `HTTPClient` (built-in)
-3. Modify the Wi-Fi credentials (`ssid` and `password`) and Vercel endpoints to match your server instance:
-   ```cpp
-   const char* ssid     = "YOUR_WIFI_SSID";
-   const char* password = "YOUR_WIFI_PASSWORD";
-   ```
-4. Select the target **ESP32 Dev Module** board, connect your microcontroller via USB, and hit **Upload**.
-
----
 
 ## 🛡️ Enterprise Grade Logistics Policy
 This software is designed as a template for Renault Group Internal Logistics. All database states, telemetry records, and vehicle identification records are locally encrypted and secure under JWT auth token protocols.
