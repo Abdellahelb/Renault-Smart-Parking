@@ -2,11 +2,11 @@
  * ============================================================
  *  RENAULT SMART PARKING - ESP32
  *  WiFi Web Server + Serial Monitor (SANS OLED)
- *  Saisie Intelligente du VIN & Entree/Sortie Automatique
- *  Recherche de place par VIN integree
+ *  IP Fixe + Scan VIN RAPIDE (Pretraitement image +
+ *  Code-barres ZXing en priorite + OCR cible en secours)
+ *  Entree/Sortie Auto + Recherche de place par VIN
  * ============================================================
  */
-
 #include <WiFi.h>
 #include <WebServer.h>
 #include <HTTPClient.h>
@@ -15,6 +15,15 @@
 // --- Paramètres WiFi ---
 const char* ssid     = "Orange_wifi_D783";
 const char* password = "qLdDaiR6b9G5";
+
+// --- Configuration IP statique ---
+// IMPORTANT : verifie que cette IP n'est utilisee par AUCUN autre appareil
+// avant de flasher. Teste avec "ping 192.168.1.222" depuis un autre appareil.
+IPAddress local_IP(192, 168, 1, 222);
+IPAddress gateway(192, 168, 1, 1);
+IPAddress subnet(255, 255, 255, 0);
+IPAddress primaryDNS(8, 8, 8, 8);
+IPAddress secondaryDNS(8, 8, 4, 4);
 
 // --- Identifiants API ---
 const char* operator_id    = "OPERATOR";
@@ -26,20 +35,28 @@ const char* scan_exit_url  = "https://renault-smart-parking-manager-blush.vercel
 WebServer server(80);
 String token = "";
 
-// Déclaration de la page web (définie tout en bas)
 extern const char HTML_PAGE[];
 
-// --- Connexion WiFi avec Diagnostic ---
+// --- Connexion WiFi avec IP fixe + Diagnostic ---
 void setupWiFi() {
     Serial.println("\n--- Initialisation WiFi ---");
-    WiFi.persistent(false); 
-    WiFi.disconnect(true);  
+    WiFi.persistent(false);
+    WiFi.disconnect(true);
     delay(1000);
-    
+
     WiFi.mode(WIFI_STA);
     delay(100);
 
-    // Analyse rapide des réseaux visibles
+    Serial.print("[WiFi] Adresse MAC de l'ESP32 : ");
+    Serial.println(WiFi.macAddress());
+
+    if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
+        Serial.println("[WiFi] Echec de la configuration IP statique !");
+    } else {
+        Serial.print("[WiFi] IP statique configuree : ");
+        Serial.println(local_IP);
+    }
+
     int n = WiFi.scanNetworks();
     Serial.print("Analyse terminee : ");
     Serial.print(n);
@@ -48,20 +65,18 @@ void setupWiFi() {
         Serial.print("   - ");
         Serial.println(WiFi.SSID(i));
     }
-    
+
     Serial.print("Tentative de connexion a : ");
     Serial.println(ssid);
-    
+
     WiFi.begin(ssid, password);
-    
-    // Essayer de se connecter (max 20 secondes)
+
     int attempts = 0;
     while (WiFi.status() != WL_CONNECTED && attempts < 40) {
         delay(500);
         Serial.print(".");
         attempts++;
-        
-        // Afficher le statut reel toutes les 5 secondes
+
         if (attempts % 10 == 0) {
             int status = WiFi.status();
             Serial.print("\n[Statut WiFi] : ");
@@ -81,6 +96,8 @@ void setupWiFi() {
         Serial.println("\n[WiFi] Connecte avec succes !");
         Serial.print("[WiFi] Adresse IP : http://");
         Serial.println(WiFi.localIP());
+        Serial.print("[WiFi] Passerelle detectee : ");
+        Serial.println(WiFi.gatewayIP());
     } else {
         Serial.println("\n[WiFi] Connexion impossible.");
         Serial.print("[WiFi] Statut d'erreur final : ");
@@ -94,14 +111,12 @@ bool loginToServer() {
     HTTPClient http;
     http.begin(login_url);
     http.addHeader("Content-Type", "application/json");
-
     StaticJsonDocument<128> doc;
     doc["operator_id"] = operator_id;
     doc["password"]    = op_password;
-    
+
     String requestBody;
     serializeJson(doc, requestBody);
-
     int httpResponseCode = http.POST(requestBody);
     if (httpResponseCode == 200) {
         String payload = http.getString();
@@ -125,22 +140,16 @@ bool processScan(String vin, String &place, bool &isExit, String &errorMsg) {
     if (token == "") {
         loginToServer();
     }
-
-    // Étape 1 : Essayer la sortie (scan-exit)
     HTTPClient http;
     http.begin(scan_exit_url);
     http.addHeader("Content-Type", "application/json");
     http.addHeader("Authorization", "Bearer " + token);
-
     StaticJsonDocument<128> doc;
     doc["vin"] = vin;
-
     String requestBody;
     serializeJson(doc, requestBody);
-
     int httpResponseCode = http.POST(requestBody);
-    
-    // Si code 200 => Le vehicule etait la, il est sorti et sa place est liberee !
+
     if (httpResponseCode == 200) {
         String payload = http.getString();
         StaticJsonDocument<256> res;
@@ -152,12 +161,11 @@ bool processScan(String vin, String &place, bool &isExit, String &errorMsg) {
     }
     http.end();
 
-    // Si code 404 => Le vehicule n'etait pas dans le parking. Donc c'est une ENTREE !
     if (httpResponseCode == 404) {
         http.begin(scan_entry_url);
         http.addHeader("Content-Type", "application/json");
         http.addHeader("Authorization", "Bearer " + token);
-        
+
         httpResponseCode = http.POST(requestBody);
         if (httpResponseCode == 200) {
             String payload = http.getString();
@@ -176,13 +184,11 @@ bool processScan(String vin, String &place, bool &isExit, String &errorMsg) {
         return false;
     }
 
-    // Si le token a expire (401), se reconnecter et reessayer une fois
     if (httpResponseCode == 401) {
         if (loginToServer()) {
             return processScan(vin, place, isExit, errorMsg);
         }
     }
-
     errorMsg = "Erreur serveur (Code " + String(httpResponseCode) + ")";
     return false;
 }
@@ -221,12 +227,10 @@ bool queryVehiclePlace(String vin, String &parking, String &place, String &error
     return false;
 }
 
-// --- Route principale (Sert la page HTML) ---
 void handleRoot() {
     server.send(200, "text/html", HTML_PAGE);
 }
 
-// --- Route Scan (Entree / Sortie automatique) ---
 void handleScan() {
     if (!server.hasArg("plain")) {
         server.send(400, "application/json", "{\"success\":false}");
@@ -239,18 +243,16 @@ void handleScan() {
     vin.trim();
     Serial.print("Scan recu (Entree/Sortie). VIN : ");
     Serial.println(vin);
-
     String place = "";
     bool isExit = false;
     String errorMsg = "";
     bool success = processScan(vin, place, isExit, errorMsg);
-
     StaticJsonDocument<128> resp;
     if (success) {
         resp["success"] = true;
         resp["place"] = place;
         resp["isExit"] = isExit;
-        
+
         if (isExit) {
             Serial.println("====== SORTIE VEHICULE ======");
             Serial.print("Place liberee : ");
@@ -269,13 +271,11 @@ void handleScan() {
         Serial.println(errorMsg);
         Serial.println("===============================");
     }
-
     String responseBody;
     serializeJson(resp, responseBody);
     server.send(200, "application/json", responseBody);
 }
 
-// --- Route Recherche ---
 void handleSearchVIN() {
     if (!server.hasArg("plain")) {
         server.send(400, "application/json", "{\"success\":false}");
@@ -288,12 +288,10 @@ void handleSearchVIN() {
     vin.trim();
     Serial.print("Recherche de place pour le VIN : ");
     Serial.println(vin);
-
     String parking = "";
     String place = "";
     String errorMsg = "";
     bool success = queryVehiclePlace(vin, parking, place, errorMsg);
-
     StaticJsonDocument<256> resp;
     if (success) {
         resp["success"] = true;
@@ -310,7 +308,6 @@ void handleSearchVIN() {
         Serial.println(errorMsg);
         Serial.println("===================================");
     }
-
     String responseBody;
     serializeJson(resp, responseBody);
     server.send(200, "application/json", responseBody);
@@ -319,15 +316,14 @@ void handleSearchVIN() {
 void setup() {
     Serial.begin(115200);
     delay(1000);
-    
+
     setupWiFi();
     loginToServer();
-
     server.on("/", HTTP_GET, handleRoot);
     server.on("/scan", HTTP_POST, handleScan);
     server.on("/search-vin", HTTP_POST, handleSearchVIN);
     server.begin();
-    
+
     Serial.println("Serveur Web ESP32 pret !");
 }
 
@@ -464,50 +460,49 @@ const char HTML_PAGE[] PROGMEM = R"HTML(
     <div class="container">
         <h2 style="color: #F7C948; margin-top: 0; margin-bottom: 5px;">RENAULT</h2>
         <p style="margin-top: 0; margin-bottom: 20px; color: #888;">Smart Parking Manager</p>
-        
-        <!-- Système d'onglets -->
+
         <div class="tabs">
             <button id="tabAssignBtn" class="tab-btn active" onclick="switchTab('assign')">🚗 Attribuer</button>
             <button id="tabSearchBtn" class="tab-btn" onclick="switchTab('search')">🔍 Rechercher</button>
         </div>
-        
-        <!-- ONGLET 1 : ATTRIBUTION (ENTREE/SORTIE) -->
+
         <div id="tabAssign" class="tab-content active">
             <input type="file" id="cameraInputAssign" accept="image/*" capture="environment" style="display: none;">
             <button class="btn-secondary" onclick="document.getElementById('cameraInputAssign').click()">📷 Scanner Photo du VIN</button>
             <img id="previewAssign" class="preview-img" alt="Aperçu">
-            <div id="statusAssign" class="status-text">Moteur de scan prêt.</div>
-            
+            <div id="statusAssign" class="status-text">Lecteur prêt.</div>
+
             <input type="text" id="vinAssign" placeholder="VIN à attribuer..." autocomplete="off">
             <button class="btn-primary" onclick="sendAssign()">🚗 Enregistrer Entrée/Sortie</button>
             <div id="resultAssign" class="result"></div>
         </div>
-        
-        <!-- ONGLET 2 : RECHERCHE -->
+
         <div id="tabSearch" class="tab-content">
             <input type="file" id="cameraInputSearch" accept="image/*" capture="environment" style="display: none;">
-            <button class="btn-secondary" onclick="document.getElementById('cameraInputSearch').click()">📷 Scanner VIN à Rechercher</button>
+            <button class="btn-secondary" onclick="document.getElementById('cameraInputSearch').click()">📷 Scanner Photo du VIN à Rechercher</button>
             <img id="previewSearch" class="preview-img" alt="Aperçu">
-            <div id="statusSearch" class="status-text">Moteur de scan prêt.</div>
-            
+            <div id="statusSearch" class="status-text">Lecteur prêt.</div>
+
             <input type="text" id="vinSearch" placeholder="Saisir VIN à chercher..." autocomplete="off">
             <button class="btn-primary" style="background: #1565c0; color: white;" onclick="sendSearch()">🔍 Chercher la Place</button>
             <div id="resultSearch" class="result"></div>
         </div>
     </div>
 
-    <!-- Moteur OCR Tesseract.js -->
+    <!-- ZXing = lecture code-barres RAPIDE (priorite) -->
+    <script src="https://unpkg.com/@zxing/library@0.20.0/umd/index.min.js"></script>
+    <!-- Tesseract = OCR texte, utilise seulement en secours si pas de code-barres -->
     <script src="https://unpkg.com/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
     <script>
-        let worker = null;
+        let ocrWorker = null;
+        const zxingReader = new ZXing.BrowserMultiFormatReader();
 
-        // Commande d'onglet
         function switchTab(tab) {
             document.getElementById('tabAssign').classList.remove('active');
             document.getElementById('tabSearch').classList.remove('active');
             document.getElementById('tabAssignBtn').classList.remove('active');
             document.getElementById('tabSearchBtn').classList.remove('active');
-            
+
             if (tab === 'assign') {
                 document.getElementById('tabAssign').classList.add('active');
                 document.getElementById('tabAssignBtn').classList.add('active');
@@ -517,93 +512,171 @@ const char HTML_PAGE[] PROGMEM = R"HTML(
             }
         }
 
-        // Chargement du OCR en arrière-plan
+        // Preparation du moteur OCR EN ARRIERE-PLAN des le chargement de la page
         async function initOCR() {
             try {
-                worker = await Tesseract.createWorker({
-                    logger: m => {
-                        if (m.status === 'recognizing text') {
-                            const pct = Math.round(m.progress * 100);
-                            document.getElementById('statusAssign').textContent = "Lecture : " + pct + "%";
-                            document.getElementById('statusSearch').textContent = "Lecture : " + pct + "%";
-                        }
-                    }
+                ocrWorker = await Tesseract.createWorker();
+                await ocrWorker.loadLanguage('eng');
+                await ocrWorker.initialize('eng');
+                await ocrWorker.setParameters({
+                    tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ:. \n',
+                    tessedit_pageseg_mode: '6',
                 });
-                await worker.loadLanguage('eng');
-                await worker.initialize('eng');
-                await worker.setParameters({
-                    tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-                });
-                document.getElementById('statusAssign').textContent = "Lecteur prêt !";
-                document.getElementById('statusSearch').textContent = "Lecteur prêt !";
             } catch (err) {
-                document.getElementById('statusAssign').textContent = "Erreur OCR : " + err.message;
-                document.getElementById('statusSearch').textContent = "Erreur OCR : " + err.message;
+                console.error("Erreur init OCR :", err);
+            }
+        }
+        window.addEventListener('load', initOCR);
+
+        // Pré-traite l'image : redimensionne et renforce le contraste
+        // (ameliore nettement le taux de reussite en usine / eclairage difficile)
+        function preprocessImage(file) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = function() {
+                    const maxDim = 1000;
+                    let w = img.width, h = img.height;
+                    if (w > h && w > maxDim) { h = h * (maxDim / w); w = maxDim; }
+                    else if (h > maxDim) { w = w * (maxDim / h); h = maxDim; }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+
+                    const imageData = ctx.getImageData(0, 0, w, h);
+                    const data = imageData.data;
+                    for (let i = 0; i < data.length; i += 4) {
+                        const gray = 0.3 * data[i] + 0.59 * data[i+1] + 0.11 * data[i+2];
+                        const contrast = gray < 128 ? gray * 0.7 : Math.min(255, gray * 1.3);
+                        data[i] = data[i+1] = data[i+2] = contrast;
+                    }
+                    ctx.putImageData(imageData, 0, 0);
+
+                    canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.92);
+                    URL.revokeObjectURL(img.src);
+                };
+                img.src = URL.createObjectURL(file);
+            });
+        }
+
+        // Cherche un VIN (17 caracteres, format standard sans I/O/Q) en ciblant
+        // le libelle "Vehicule Identification Number", avec repli global.
+        function extractVINFromText(rawText) {
+            const upperText = rawText.toUpperCase();
+            const lines = upperText.split(/\r?\n/);
+            const vinPattern = /[A-HJ-NPR-Z0-9]{17}/;
+
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i].includes("IDENTIFICATION") || lines[i].includes("VEHICULE") || lines[i].includes("VEHICLE")) {
+                    for (let j = i; j < Math.min(i + 4, lines.length); j++) {
+                        const cleaned = lines[j].replace(/[^A-Z0-9]/g, "");
+                        const match = cleaned.match(vinPattern);
+                        if (match) return { vin: match[0], fromLabel: true };
+                    }
+                }
+            }
+
+            const cleanedAll = upperText.replace(/[^A-Z0-9]/g, "");
+            const globalMatch = cleanedAll.match(vinPattern);
+            if (globalMatch) return { vin: globalMatch[0], fromLabel: false };
+
+            return null;
+        }
+
+        // ETAPE RAPIDE : essaie de lire un code-barres (quasi instantane)
+        async function tryBarcodeDecode(blob) {
+            const imgUrl = URL.createObjectURL(blob);
+            try {
+                const result = await zxingReader.decodeFromImageUrl(imgUrl);
+                const text = result.getText().trim().toUpperCase();
+                const cleaned = text.replace(/[^A-Z0-9]/g, "");
+                if (cleaned.length === 17) return cleaned;
+                const match = cleaned.match(/[A-HJ-NPR-Z0-9]{17}/);
+                return match ? match[0] : null;
+            } catch (err) {
+                return null;
+            } finally {
+                URL.revokeObjectURL(imgUrl);
             }
         }
 
-        window.addEventListener('load', initOCR);
+        // Fonction principale : pretraitement -> code-barres en priorite -> OCR en secours
+        async function processImageForVIN(file, statusEl) {
+            statusEl.textContent = "Préparation de l'image...";
+            const processedBlob = await preprocessImage(file);
 
-        // OCR pour l'onglet Attribution (Entrée/Sortie)
+            statusEl.textContent = "Lecture rapide...";
+            const barcodeVin = await tryBarcodeDecode(processedBlob);
+            if (barcodeVin) {
+                return { vin: barcodeVin, source: "barcode" };
+            }
+
+            statusEl.textContent = "Analyse du texte...";
+            try {
+                if (!ocrWorker) await initOCR();
+                const { data: { text } } = await ocrWorker.recognize(processedBlob);
+                const result = extractVINFromText(text);
+                if (result) {
+                    return { vin: result.vin, source: result.fromLabel ? "ocr_label" : "ocr_fallback" };
+                }
+            } catch (err) {
+                console.error(err);
+            }
+            return null;
+        }
+
+        // Scan pour l'onglet Attribution (Entrée/Sortie)
         document.getElementById('cameraInputAssign').addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if (!file) return;
-
             const preview = document.getElementById('previewAssign');
             const status = document.getElementById('statusAssign');
             const vinInput = document.getElementById('vinAssign');
             const resultBox = document.getElementById('resultAssign');
-
             preview.src = URL.createObjectURL(file);
             preview.style.display = "inline-block";
             resultBox.style.display = "none";
-            status.textContent = "Analyse de la photo...";
 
-            try {
-                if (!worker) await initOCR();
-                const { data: { text } } = await worker.recognize(file);
-                const cleanedText = text.replace(/[^A-Z0-9]/g, "").trim();
-                
-                if (cleanedText.length >= 5) {
-                    vinInput.value = cleanedText;
-                    status.textContent = "VIN détecté !";
+            const result = await processImageForVIN(file, status);
+            if (result) {
+                vinInput.value = result.vin;
+                if (result.source === "barcode") {
+                    status.textContent = "VIN détecté (code-barres) : " + result.vin;
+                } else if (result.source === "ocr_label") {
+                    status.textContent = "VIN détecté (texte) : " + result.vin;
                 } else {
-                    status.textContent = "Échec de lecture, saisissez manuellement.";
+                    status.textContent = "VIN possible : " + result.vin + " (vérifiez avant de valider)";
                 }
-            } catch (err) {
-                status.textContent = "Erreur d'analyse.";
+            } else {
+                status.textContent = "Échec de lecture, saisissez manuellement.";
             }
         });
 
-        // OCR pour l'onglet Recherche (Ultra rapide - Déclenche direct)
+        // Scan pour l'onglet Recherche (déclenche direct si détection fiable)
         document.getElementById('cameraInputSearch').addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if (!file) return;
-
             const preview = document.getElementById('previewSearch');
             const status = document.getElementById('statusSearch');
             const vinInput = document.getElementById('vinSearch');
             const resultBox = document.getElementById('resultSearch');
-
             preview.src = URL.createObjectURL(file);
             preview.style.display = "inline-block";
             resultBox.style.display = "none";
-            status.textContent = "Analyse de la photo...";
 
-            try {
-                if (!worker) await initOCR();
-                const { data: { text } } = await worker.recognize(file);
-                const cleanedText = text.replace(/[^A-Z0-9]/g, "").trim();
-                
-                if (cleanedText.length >= 5) {
-                    vinInput.value = cleanedText;
-                    status.textContent = "VIN détecté ! Lancement recherche...";
-                    sendSearch(); // fast operation: déclenche la recherche automatiquement !
+            const result = await processImageForVIN(file, status);
+            if (result) {
+                vinInput.value = result.vin;
+                if (result.source === "barcode" || result.source === "ocr_label") {
+                    status.textContent = "VIN détecté : " + result.vin + " — Lancement recherche...";
+                    sendSearch();
                 } else {
-                    status.textContent = "Échec de lecture. Saisissez à la main.";
+                    status.textContent = "VIN possible : " + result.vin + " (vérifiez avant de chercher)";
                 }
-            } catch (err) {
-                status.textContent = "Erreur d'analyse.";
+            } else {
+                status.textContent = "Échec de lecture. Saisissez à la main.";
             }
         });
 

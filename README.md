@@ -1,98 +1,176 @@
-# 🚗 Smart Parking Manager (SPM) - Renault Internal
+# 🚗 Renault Smart Parking Manager (SPM) - RTMA
 
-A premium, full-stack real-time parking management system designed for Renault's internal logistics and vehicle storage sectors (RHL, Contine).
+A premium, industrial-grade, full-stack real-time parking management system designed for **Renault Group's** internal logistics, vehicle storage yards, and compound facilities (Park RHL, Park Cantine).
 
-![Confidential](https://img.shields.io/badge/Status-Confidential-red)
-![Version](https://img.shields.io/badge/Version-1.0.0-yellow)
-![Tech](https://img.shields.io/badge/Stack-React%20%7C%20Node%20%7C%20SQLite-blue)
+This repository integrates a modern web command center with an **IoT-based hardware scanner (ESP32)** to automate entry, exit, and real-time localization of transit vehicles.
 
-## 🌟 Overview
-
-The **Smart Parking Manager** is a "Command Center" style dashboard that provides real-time visibility and control over vehicle storage. It enables operators to track vehicle positions via VIN, manage reservations, and monitor retention cycles with automated alerts for overstaying vehicles.
-
-## ✨ Key Features
-
-- **Interactive 2D Maps**: Real-time visual representation of parking blocks (A-I) with high-fidelity car visualizations.
-- **Real-Time Updates**: Instant synchronization across all connected clients via Socket.io.
-- **Retention Management**: Automatic tracking of parking duration with visual alerts for vehicles exceeding the 6-day limit.
-- **VIN Operations**: 
-  - Quick VIN Scanning and Search.
-  - Precise byte-perfect mapping for vehicle data.
-- **Smart Reservations**: Support for individual and bulk reservations (Multi-spot) based on person identity (Nom/Prénom).
-- **Virtual Sectors**: Create and manage "Virtual Parking" zones for additional storage flexibility.
-- **Role-Based Access**: 
-  - **Operator**: Daily operations (Maps, Scan, Release).
-  - **Supervisor/Admin**: Analytics, User Management, System Settings, and Audit Logs.
-
-## 🛠️ Tech Stack
-
-### Frontend
-- **Framework**: React 19 + Vite
-- **State**: Zustand (Atomic State Management)
-- **UI/UX**: 
-  - Vanilla CSS (Premium Design System)
-  - Framer Motion (Micro-animations)
-  - Lucide React (Icons)
-  - Recharts (Analytics)
-- **Communication**: Socket.io-client, Axios
-
-### Backend
-- **Runtime**: Node.js + Express
-- **Database**: SQLite (Better-SQLite3) with WAL mode
-- **Real-Time**: Socket.io
-- **Security**: JWT, BcryptJS, Helmet, CORS
-- **Validation**: Zod
-
-## 📂 Project Structure
-
-```text
-Renault-Parking 2/
-├── backend/            # Express API & SQLite DB
-│   ├── src/
-│   │   ├── config/     # Database & App config
-│   │   ├── middleware/ # Auth & Validation
-│   │   └── routes/     # Modular API endpoints
-│   └── server.js       # Entry Point
-├── frontend/           # React Application
-│   ├── src/
-│   │   ├── components/ # Reusable UI units
-│   │   ├── pages/      # View components
-│   │   ├── store/      # Zustand state
-│   │   └── index.css   # Global Design System
-│   └── vite.config.js  # Build config
-└── vercel.json         # Deployment config
-```
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js (v18+)
-- npm or yarn
-
-### 1. Backend Setup
-```bash
-cd backend
-npm install
-# Create .env (copy from .env.example)
-# The database (parking.db) will be automatically initialized and seeded on first run
-node server.js
-```
-
-### 2. Frontend Setup
-```bash
-cd frontend
-npm install
-# Create .env with VITE_API_URL=http://localhost:3001
-npm run dev
-```
-
-## 🔒 Security Note
-This application is designed for **Renault Internal Use Only**. It contains confidential logic regarding logistics operations. Ensure all `.env` files and the `parking.db` are excluded from public repositories.
-
-## 👤 Author
-**Abdellah Elberkaoui**
-*Mechatronics Engineer | Industrial Digitalization*
-[LinkedIn](https://linkedin.com/in/abdellah-elberkaoui-1a3493195)
+[![License](https://img.shields.io/badge/Status-Active_Confidential-orange.svg)](#)
+[![Version](https://img.shields.io/badge/Version-4.0.2-gold.svg)](#)
+[![Stack](https://img.shields.io/badge/Stack-React_19_|_Node.js_|_SQLite_|_ESP32-blue.svg)](#)
 
 ---
-© 2026 Renault Group | Confidential & Proprietary
+
+## 📸 System Showcase
+
+### 1. Command Center Portal
+An elegant glassmorphic authentication gateway providing a secure uplink to the central server.
+![Login](./docs/screenshots/01_login.png)
+
+### 2. Live Telemetry Dashboard
+Real-time KPI telemetry monitoring system processing volume, storage saturation, mean storage durations, and active SLA alerts. Features custom Recharts visualization for hourly occupancy trends and weekly vehicle flow.
+![Command Center](./docs/screenshots/02_dashboard.png)
+
+### 3. Interactive 2D Yard Maps (Park RHL & Park Cantine)
+Bespoke, reactive maps representing actual parking grids (A-I). Spots are color-coded (Green for Available, Red for Occupied, Yellow for Reserved) with support for multi-reservation and bulk-release operations.
+![Park RHL Map](./docs/screenshots/03_park_rhl.png)
+![Park Cantine Grid](./docs/screenshots/04_park_cantine.png)
+
+### 4. SLA Alert Center & AI Diagnostics
+Automated monitoring of container/vehicle dwell times with visual alerts for vehicles breaching the logistics SLAs (6-day max limit). AI-assisted predictive diagnostics summarize system bottlenecks.
+![Alert Center](./docs/screenshots/05_alerts.png)
+![Virtual Sector AI](./docs/screenshots/07_virtual_sector_ai.png)
+
+---
+
+## 🛠️ System Architecture
+
+```mermaid
+graph TD
+    subgraph Edge Hardware [IoT Scanner Node]
+        ESP32[ESP32 Microcontroller] -->|Serves Web Server| ESP_Web[Edge Scanner UI]
+        ESP_Web -->|Camera Capture| PreProcess[Client Canvas Pre-processing]
+        PreProcess -->|Fast Route| ZXing[ZXing Barcode Decoder]
+        PreProcess -->|Fallback Route| Tesseract[Tesseract.js OCR engine]
+    end
+
+    subgraph Cloud Infrastructure [Vercel API Gateway]
+        ESP32 -->|Secure HTTP POST| Vercel[API Endpoint]
+        Web_App[React 19 Dashboard] -->|HTTP / WebSockets| Vercel
+    end
+
+    subgraph On-Premises Backend [Central Controller]
+        Vercel <--> Express[Node.js / Express Server]
+        Express <--> SQLite[(SQLite DB with WAL mode)]
+        Express <--> SocketIO[Socket.io Broker]
+        SocketIO <-->|Real-time Telemetry| Web_App
+    end
+```
+
+### 1. Frontend Command Center
+- **Framework & Build**: React 19 + Vite for rapid modular loading.
+- **State Management**: Zustand (atomic, reactive store) ensuring zero-lag state synchronization.
+- **UI/UX Aesthetics**: Bespoke CSS variables with premium dark themes, glassmorphism, Framer Motion micro-animations, and Lucide React iconography.
+- **Analytics**: Recharts engine graphing vehicle ingress/egress velocities and yard capacity saturation.
+
+### 2. Central Backend & Telemetry Broker
+- **Runtime**: Node.js + Express REST API.
+- **Database**: SQLite optimized with WAL (Write-Ahead Logging) mode, enabling swift multi-user write operations.
+- **Real-Time Pipeline**: Socket.io serving instantaneous telemetry feeds to all connected dashboards.
+- **Security**: Stateless JWT validation, bcrypt password hashing, Helmet headers, and CORS control.
+
+### 3. IoT Edge Device (ESP32) & Computer Vision
+- **Hardware Controller**: ESP32 microcontroller with a static IP configuration to bypass DHCP overhead and guarantee connection predictability.
+- **Firmware Server**: Serves a lightweight web interface directly to operator smartphones, enabling camera capture.
+- **Dual Computer Vision Pipeline**:
+  1. **Primary - ZXing Decoded Barcode**: Instant barcode extraction from VIN labels.
+  2. **Secondary - Tesseract OCR Fallback**: If the barcode is worn or dusty, an inline OCR worker extracts the 17-character alphanumeric VIN, verifying standard ISO 3779 formats (omitting `I`, `O`, `Q`).
+- **Autonomic Ingress/Egress Logic**:
+  - The ESP32 submits a scan payload.
+  - The backend verifies if the vehicle is currently parked.
+  - **If Parked**: Instantly executes a `/scan-exit`, releasing the spot, updating database counts, and broadcasting the event.
+  - **If New Inbound**: Executes `/scan-entry`, locating the next optimal vacant slot, mapping it to the VIN, and prompting the operator with the assigned spot.
+
+---
+
+## 🔌 Hardware Setup (ESP32)
+
+### Pinout & Wiring Specifications
+The project utilizes a standalone **ESP32 Dev Module** acting as a local server.
+- **GPIO 2 (Built-in LED)**: Used as status indicator (Blinks fast during AP/WiFi search, stays solid when connected).
+- **Communication Protocol**: Dual-band Wi-Fi connection configured with static parameters:
+  - **Static IP**: `192.168.1.222`
+  - **Gateway**: `192.168.1.1`
+  - **Subnet**: `255.255.255.0`
+
+### Dual-Pipeline Web Scanner Diagram
+```text
+  [Camera Capture] ---> [Canvas Grayscale/Contrast Filter]
+                               |
+            +------------------+------------------+
+            | (High Speed Route)                  | (Fallback Route)
+            v                                     v
+   [ZXing Barcode Engine]               [Tesseract OCR Engine]
+      Detects VIN Code                    Filters Alphanumeric VIN
+            |                                     |
+            +------------------+------------------+
+                               |
+                               v
+                     [17-Char Standard VIN]
+                               |
+                 [POST to Vercel Gateway REST API]
+```
+
+---
+
+## 🚀 Setup & Installation
+
+### Prerequisites
+- Node.js (v18 or newer)
+- Arduino IDE (for compilation & flashing of the ESP32)
+- Static IP allocation capability in your local network router.
+
+### 1. Central Backend Configuration
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   npm install
+   ```
+2. Create a `.env` file based on `.env.example`:
+   ```env
+   PORT=3001
+   JWT_SECRET=your_super_secret_jwt_key_here
+   DB_PATH=./src/config/parking.db
+   ```
+3. Boot the API:
+   ```bash
+   npm start
+   ```
+   *Note: On first startup, the SQLite database will automatically initialize schemas and populate mock logistics records.*
+
+### 2. Frontend Installation
+1. Navigate to the frontend directory:
+   ```bash
+   cd frontend
+   npm install
+   ```
+2. Launch the Vite development server:
+   ```bash
+   npm run dev
+   ```
+
+### 3. Flashing the ESP32
+1. Open the [esp32_parking.ino](file:///C:/Users/abdel/.gemini/antigravity/scratch/Renault-Parking%202/esp32/esp32_parking/esp32_parking.ino) sketch in the Arduino IDE.
+2. Install the necessary libraries via library manager:
+   - `ArduinoJson` (v6.x)
+   - `WiFi` (built-in)
+   - `WebServer` (built-in)
+   - `HTTPClient` (built-in)
+3. Modify the Wi-Fi credentials (`ssid` and `password`) and Vercel endpoints to match your server instance:
+   ```cpp
+   const char* ssid     = "YOUR_WIFI_SSID";
+   const char* password = "YOUR_WIFI_PASSWORD";
+   ```
+4. Select the target **ESP32 Dev Module** board, connect your microcontroller via USB, and hit **Upload**.
+
+---
+
+## 🛡️ Enterprise Grade Logistics Policy
+This software is designed as a template for Renault Group Internal Logistics. All database states, telemetry records, and vehicle identification records are locally encrypted and secure under JWT auth token protocols.
+
+## 👤 Author
+**Abdellah Elberkaoui**  
+*Mechatronics Engineer | Industrial Digitalization & IoT specialist*  
+[LinkedIn Profile](https://linkedin.com/in/abdellah-elberkaoui-1a3493195)
+
+---
+© 2026 Renault Group | Logistics Division | Confidential & Proprietary
