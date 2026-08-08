@@ -108,43 +108,16 @@ The project utilizes a standalone **ESP32 Dev Module** acting as a local server.
 
 ---
 
-## 🚀 Local Development Walkthrough
+## 📋 Project Summary
 
-Follow these steps to run the application components locally:
+The **Renault Smart Parking Manager (SPM)** is an advanced, end-to-end logistics tracking and vehicle storage management system designed to optimize compound operations. It automates vehicle handling from initial entry to final exit using a combination of edge hardware and a centralized web dashboard.
 
-### 1. Backend Controller Setup
-1. Navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Configure environment variables in `.env` (refer to `.env.example` as a template):
-   ```env
-   PORT=5000
-   JWT_SECRET=your_jwt_secret_here
-   HARDWARE_API_KEY=your_hardware_api_key_here
-   ```
-4. Start the server (runs on `http://localhost:5000` by default):
-   ```bash
-   node server.js
-   ```
-
-### 2. Frontend Command Center Setup
-1. Navigate to the frontend directory:
-   ```bash
-   cd frontend
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the Vite development server (runs on `http://localhost:5173` by default):
-   ```bash
-   npm run dev
-   ```
+### Core Architecture & Capabilities
+1. **IoT Edge Scanner (ESP32)**: Configured with custom canvas-based pre-processing, it decodes vehicle identification numbers (VIN) using a dual-pipeline approach (high-speed ZXing decoding for barcodes and Tesseract OCR as a fallback).
+2. **Automated Allocator**: Coordinates with the backend APIs to dynamically determine and assign the next optimal vacant parking spot for incoming vehicles, reducing yard search times.
+3. **Live Telemetry & Dashboard**: Provides real-time metrics on yard saturation, occupancy velocity, and storage durations.
+4. **Interactive 2D Yard Maps**: Offers reactive maps representing physical zones (Park RHL and Park Cantine) for real-time monitoring and bulk spot management.
+5. **SLA Monitoring**: Tracks dwell times to prevent delays and alert operators when vehicles breach the logistics SLAs (6-day maximum storage policy).
 
 ---
 
