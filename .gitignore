@@ -135,3 +135,10 @@ frontend/dist
 *.sqlite
 *.sqlite3
 parking.db
+
+# ESP32 Code
+esp32/
+
+# Hardcoded Operator/Login data
+login_data.json
+
