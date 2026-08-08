@@ -4,10 +4,6 @@ A premium, industrial-grade, full-stack real-time parking management system desi
 
 This repository integrates a modern web command center with an **IoT-based hardware scanner (ESP32)** to automate entry, exit, and real-time localization of transit vehicles.
 
-[![License](https://img.shields.io/badge/Status-Active_Confidential-orange.svg)](#)
-[![Version](https://img.shields.io/badge/Version-4.0.2-gold.svg)](#)
-[![Stack](https://img.shields.io/badge/Stack-React_19_|_Node.js_|_SQLite_|_ESP32-blue.svg)](#)
-
 ---
 
 ## 📸 System Showcase
@@ -112,7 +108,45 @@ The project utilizes a standalone **ESP32 Dev Module** acting as a local server.
 
 ---
 
+## 🚀 Local Development Walkthrough
 
+Follow these steps to run the application components locally:
+
+### 1. Backend Controller Setup
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Configure environment variables in `.env` (refer to `.env.example` as a template):
+   ```env
+   PORT=5000
+   JWT_SECRET=your_jwt_secret_here
+   HARDWARE_API_KEY=your_hardware_api_key_here
+   ```
+4. Start the server (runs on `http://localhost:5000` by default):
+   ```bash
+   node server.js
+   ```
+
+### 2. Frontend Command Center Setup
+1. Navigate to the frontend directory:
+   ```bash
+   cd frontend
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the Vite development server (runs on `http://localhost:5173` by default):
+   ```bash
+   npm run dev
+   ```
+
+---
 
 ## 🛡️ Enterprise Grade Logistics Policy
 This software is designed as a template for Renault Group Internal Logistics. All database states, telemetry records, and vehicle identification records are locally encrypted and secure under JWT auth token protocols.
