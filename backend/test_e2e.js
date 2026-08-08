@@ -3,10 +3,10 @@ const jwt = require('jsonwebtoken');
 
 // --- CONFIGURATION ---
 // 1. Assurez-vous d'avoir exporté POSTGRES_URL dans votre terminal avant de lancer le script
-// 2. Assurez-vous que JWT_SECRET correspond EXACTEMENT à la valeur sur Vercel
+// 2. Assurez-vous que JWT_SECRET correspond EXACTEMENT à la valeur en production
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secure_spm_jwt_secret_key_prod_2026_xyz987!';
 const HARDWARE_API_KEY = process.env.HARDWARE_API_KEY || 'SPM-PROD-HW-KEY-XYZ-987654321';
-const BASE_URL = process.env.API_URL || 'https://renault-smart-parking-manager-blush.vercel.app';
+const BASE_URL = process.env.API_URL || 'https://your-renault-parking-manager.example.app';
 
 if (!process.env.POSTGRES_URL) {
     console.error("❌ ERREUR : La variable d'environnement POSTGRES_URL n'est pas définie.");
@@ -20,7 +20,7 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// Générer un token local avec le même JWT_SECRET que Vercel
+// Générer un token local avec le même JWT_SECRET que la production
 const token = jwt.sign({ userId: 'test-admin', role: 'admin', active: 1 }, JWT_SECRET, { expiresIn: '8h' });
 
 async function runTests() {

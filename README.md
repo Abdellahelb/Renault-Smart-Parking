@@ -39,13 +39,13 @@ graph TD
         PreProcess -->|Fallback Route| Tesseract[Tesseract.js OCR engine]
     end
 
-    subgraph Cloud Infrastructure [Vercel API Gateway]
-        ESP32 -->|Secure HTTP POST| Vercel[API Endpoint]
-        Web_App[React 19 Dashboard] -->|HTTP / WebSockets| Vercel
+    subgraph Cloud Infrastructure [Cloud API Gateway]
+        ESP32 -->|Secure HTTP POST| Gateway[API Endpoint]
+        Web_App[React 19 Dashboard] -->|HTTP / WebSockets| Gateway
     end
 
     subgraph On-Premises Backend [Central Controller]
-        Vercel <--> Express[Node.js / Express Server]
+        Gateway <--> Express[Node.js / Express Server]
         Express <--> SQLite[(SQLite DB with WAL mode)]
         Express <--> SocketIO[Socket.io Broker]
         SocketIO <-->|Real-time Telemetry| Web_App
@@ -103,7 +103,7 @@ The project utilizes a standalone **ESP32 Dev Module** acting as a local server.
                                v
                      [17-Char Standard VIN]
                                |
-                 [POST to Vercel Gateway REST API]
+                  [POST to Gateway REST API]
 ```
 
 ---

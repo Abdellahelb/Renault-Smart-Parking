@@ -18,7 +18,7 @@ const transports = [
   })
 ];
 
-// Only add file transports if NOT in production (avoid EROFS on Vercel)
+// Only add file transports if NOT in production (avoid EROFS on read-only environments)
 if (process.env.NODE_ENV !== 'production') {
   transports.push(
     new winston.transports.File({ 

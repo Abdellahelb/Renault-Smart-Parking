@@ -59,7 +59,7 @@ if (process.env.NODE_ENV !== 'production') {
         });
     });
 } else {
-    // Mock for Vercel
+    // Mock for serverless environments
     io = {
         emit: (event, data) => logger.info(`[Socket Mock] Emitted ${event}`),
         on: () => {}

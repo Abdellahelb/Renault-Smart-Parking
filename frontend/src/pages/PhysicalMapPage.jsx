@@ -168,7 +168,7 @@ export default function PhysicalMapPage({ id: propId }) {
         let pollInterval;
         if (token && id) {
             fetchState();
-            // Polling toutes les 1 seconde pour le rafraichissement automatique (Vercel Serverless)
+            // Polling toutes les 1 seconde pour le rafraichissement automatique (Serverless)
             pollInterval = setInterval(fetchState, 1000);
             socket = io(SOCKET_URL);
             socket.on('spot:updated', () => fetchState());

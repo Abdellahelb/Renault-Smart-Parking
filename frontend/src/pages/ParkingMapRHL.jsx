@@ -591,7 +591,7 @@ export default function ParkingMapRHL() {
         let pollInterval;
         if (token) {
             fetchSpots();
-            // Polling toutes les 1 seconde pour le rafraichissement automatique (Vercel Serverless)
+            // Polling toutes les 1 seconde pour le rafraichissement automatique (Serverless)
             pollInterval = setInterval(fetchSpots, 1000);
 
             socket = io(SOCKET_URL);

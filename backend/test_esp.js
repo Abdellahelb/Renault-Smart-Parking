@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = 'super_secure_spm_jwt_secret_key_prod_2026_xyz987!';
 const HARDWARE_API_KEY = 'SPM-PROD-HW-KEY-XYZ-987654321';
-const BASE_URL = 'https://renault-smart-parking-manager-blush.vercel.app';
+const BASE_URL = 'https://your-renault-parking-manager.example.app';
 
 // Generate a valid token
 const token = jwt.sign({ userId: 'test-admin', role: 'admin', active: 1 }, JWT_SECRET, { expiresIn: '8h' });

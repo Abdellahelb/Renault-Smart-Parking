@@ -164,7 +164,7 @@ export default function DashboardPage() {
                 fetchBlockStats(); // Mise à jour immédiate des secteurs sur événement
             };
 
-            // Polling toutes les 1 seconde pour l'ensemble des donnees (Vercel Serverless fallbacks)
+            // Polling toutes les 1 seconde pour l'ensemble des donnees (Serverless fallbacks)
             const pollInterval = setInterval(refresh, 1000);
 
             const socket = io(SOCKET_URL);
